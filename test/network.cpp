@@ -93,7 +93,7 @@ BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, INIT_NETWORK)
 {
     output_test_stream cout(
         folder + "network_01.txt"
-        , !butrc::save_pattern());
+    ,   !butrc::save_pattern());
     for (auto agent : n)
         cout << agent.id_ << ',';
     BOOST_CHECK(cout.match_pattern());
@@ -130,6 +130,6 @@ BOOST_FIXTURE_TEST_CASE(Print, INIT_NETWORK)
     output_test_stream cout(
         folder + "network_02.txt"
     ,   !butrc::save_pattern());
-    n.print(cout);
+    cout << n;
     BOOST_CHECK(cout.match_pattern());
 }

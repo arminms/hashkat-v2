@@ -72,7 +72,6 @@ public:
         agents_ = new AgentType[max_agents_];
         followers_.reserve(max_agents_);
         following_.reserve(max_agents_);
-        //bins_.reserve(max_agents_);
     }
 
     void grow(T n = 1)
@@ -81,7 +80,6 @@ public:
         {
             followers_.emplace_back(std::unordered_set<T>());
             following_.emplace_back(std::unordered_set<T>());
-            //bins_.emplace_back(std::unordered_set<T>());
             bins_[0].second.insert(n_agents_);
             ++denominator_;
             ++n_agents_;
@@ -124,7 +122,7 @@ public:
         for (auto i = min; i < max; i += inc)
         {
             bins_.emplace_back(std::make_pair(
-                std::pow((double)i, exp)
+                std::pow(ValueType(i), exp)
             ,   std::unordered_set<T>()));
             //group.categories[j].prob = pow((double)i, exp);
             total_weight += i;
@@ -249,10 +247,18 @@ public:
 //typedef network<std::size_t> Network;
 //typedef network<int> Network;
 
-//std::ostream& operator<<(std::ostream& out, const Network& n)
-//{
-//    return n.print(out);
-//}
+template
+<
+    class    AgentType
+,   typename T
+,   typename ValueType
+>
+std::ostream& operator<< (
+    std::ostream& out
+,   const network<AgentType, T, ValueType>& n)
+{
+    return n.print(out);
+}
 
 }    // namespace hashkat
 
