@@ -1,9 +1,9 @@
+# Maximum Number of Agents: 200
 # Number of Agents: 100
 # Number of Bins: 100
 # Denominator: 1043
 # kmax: 16
 # Network: 
-
 0000000
     +---[in]
         \--- 11 -> 77,55,46,35,57,80,1,27,99,53,85,

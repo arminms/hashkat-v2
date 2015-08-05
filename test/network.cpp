@@ -55,7 +55,7 @@ struct test_agent
 struct INIT_NETWORK
 {
     INIT_NETWORK()
-    :   n(100)
+    :   n(200)
 #ifdef _MSC_VER
     ,   folder(std::getenv("HASHKAT"))
     {

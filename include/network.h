@@ -202,11 +202,12 @@ public:
 
     std::ostream& print(std::ostream& out) const
     {
+        out << "# Maximum Number of Agents: " << max_agents_ << std::endl;
         out << "# Number of Agents: " << n_agents_ << std::endl;
         out << "# Number of Bins: " << bins_.size() << std::endl;
         out << "# Denominator: " << denominator_ << std::endl;
         out << "# kmax: " << kmax_ << std::endl;
-        out << "# Network: " << std::endl << std::endl;
+        out << "# Network: " << std::endl;
 
         for (auto i = 0; i < n_agents_; ++i)
         {
