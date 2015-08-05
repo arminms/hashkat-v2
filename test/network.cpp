@@ -77,6 +77,8 @@ struct INIT_NETWORK
         std::uniform_int_distribution<int> di(0, 99);
         for (auto i = 0; i < 1000; ++i)
         {
+            if (i < 100)
+                n[i].id_ = i;
             auto followed = di(gen), follower = di(gen);
             if (followed != follower && !n.have_connection(followed, follower))
                 n.connect(followed, follower);
@@ -86,6 +88,16 @@ struct INIT_NETWORK
     network<test_agent> n;
     std::string folder;
 };
+
+BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, INIT_NETWORK)
+{
+    output_test_stream cout(
+        folder + "network_01.txt"
+        , !butrc::save_pattern());
+    for (auto agent : n)
+        cout << agent.id_ << ',';
+    BOOST_CHECK(cout.match_pattern());
+}
 
 BOOST_AUTO_TEST_CASE(Connection)
 {
@@ -116,7 +128,7 @@ BOOST_AUTO_TEST_CASE(Connection)
 BOOST_FIXTURE_TEST_CASE(Print, INIT_NETWORK)
 {
     output_test_stream cout(
-        folder + "network_01.txt"
+        folder + "network_02.txt"
     ,   !butrc::save_pattern());
     n.print(cout);
     BOOST_CHECK(cout.match_pattern());
