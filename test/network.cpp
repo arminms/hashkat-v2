@@ -31,7 +31,6 @@
 #include <unordered_set>
 #include <random>
 #include <numeric>
-#include <algorithm>
 
 #define BOOST_TEST_MAIN
 #include <boost/test/included/unit_test.hpp>
@@ -42,6 +41,7 @@
 
 using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;
+using namespace hashkat;
 
 struct test_agent
 {
@@ -56,40 +56,62 @@ struct INIT_NETWORK
 {
     INIT_NETWORK()
     :   n(100)
-#if (_MSC_VER >= 1800)
+#ifdef _MSC_VER
     ,   folder(std::getenv("HASHKAT"))
     {
         if (!folder.empty())
-            folder += "/test/patterns/";
+            folder += "/test/patterns/vc_";
         else
             std::cout << "HASHKAT environment variable is not defined\n";
-#else
-    , folder("patterns/")
+#elif defined(__clang__)
+    , folder("patterns/clang_")
     {
-#endif  // _WIN32
-        std::default_random_engine dre;
-        std::vector<std::size_t> v1(100);
-        std::iota(v1.begin(), v1.end(), 0);
-        //boost::iota(v1, 0);
-        std::vector<std::size_t> v2(v1);
-        std::shuffle(v1.begin(), v1.end(), dre);
-        //boost::shuffle(v1, dre);
-        std::shuffle(v2.begin(), v2.end(), dre);
-        //boost::shuffle(v2, dre);
-
+#else
+    , folder("patterns/gcc_")
+    {
+#endif  // _MSC_VER
         n.initialize_bins(0, 100);
         n.grow(100);
-        for (auto i = 0; i < v1.size(); ++i)
+
+        std::mt19937 gen(333);
+        std::uniform_int_distribution<int> di(0, 99);
+        for (auto i = 0; i < 1000; ++i)
         {
-            n[i].id_ = i;
-            if (v1[i] != v2[i])
-                n.connect(v1[i], v2[i]);
+            auto followed = di(gen), follower = di(gen);
+            if (followed != follower && !n.have_connection(followed, follower))
+                n.connect(followed, follower);
         }
     }
 
     network<test_agent> n;
     std::string folder;
 };
+
+BOOST_AUTO_TEST_CASE(Connection)
+{
+    network<test_agent> n(2);
+    n.initialize_bins(0, 2);
+    n.grow(2);
+
+    BOOST_CHECK(!n.have_connection(0, 1));
+    BOOST_CHECK(!n.have_connection(1, 0));
+
+    n.connect(0, 1);
+    BOOST_CHECK(n.have_connection(0, 1));
+    BOOST_CHECK(!n.have_connection(1, 0));
+
+    n.connect(1, 0);
+    BOOST_CHECK(n.have_connection(0, 1));
+    BOOST_CHECK(n.have_connection(1, 0));
+
+    n.disconnect(0, 1);
+    BOOST_CHECK(!n.have_connection(0, 1));
+    BOOST_CHECK(n.have_connection(1, 0));
+
+    n.disconnect(1, 0);
+    BOOST_CHECK(!n.have_connection(0, 1));
+    BOOST_CHECK(!n.have_connection(1, 0));
+}
 
 BOOST_FIXTURE_TEST_CASE(Print, INIT_NETWORK)
 {

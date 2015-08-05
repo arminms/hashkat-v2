@@ -26,6 +26,8 @@
 #ifndef HASHKAT_NETWORK_H_
 #define HASHKAT_NETWORK_H_
 
+namespace hashkat {
+
 template
 <
     class    AgentType
@@ -162,30 +164,40 @@ public:
         return n_agents_ < max_agents_;
     }
 
+    bool have_connection(T followed_id, T follower_id) const
+    {
+        return (    followers_[followed_id].find(follower_id)
+               !=   followers_[followed_id].end()   );
+    }
+
     void connect(T followed_id, T follower_id)
     {
-        if (followed_id != follower_id)
-        {
-            bins_[followers_size(followed_id)].second.erase(followed_id);
-            followers_[followed_id].insert(follower_id);
-            following_[follower_id].insert(followed_id);
-            bins_[followers_size(followed_id)].second.insert(followed_id);
-            ++denominator_;
-            if (kmax_ < followers_size(followed_id))
-                kmax_ = followers_size(followed_id);
-        }
+        BOOST_ASSERT_MSG(followed_id != follower_id,
+            "agemt cannot connect to itself :(");
+        BOOST_ASSERT_MSG(!have_connection(followed_id, follower_id),
+            "already connected :(");
+
+        bins_[followers_size(followed_id)].second.erase(followed_id);
+        followers_[followed_id].insert(follower_id);
+        following_[follower_id].insert(followed_id);
+        bins_[followers_size(followed_id)].second.insert(followed_id);
+        ++denominator_;
+        if (kmax_ < followers_size(followed_id))
+            kmax_ = followers_size(followed_id);
     }
 
     void disconnect(T unfollowed_id, T unfollower_id)
     {
-        if (unfollowed_id != unfollower_id)
-        {
-            bins_[followers_size(unfollowed_id)].second.erase(unfollowed_id);
-            followers_[unfollowed_id].erase(unfollower_id);
-            following_[unfollower_id].erase(unfollowed_id);
-            bins_[followers_size(unfollowed_id)].second.insert(unfollowed_id);
-            --denominator_;
-        }
+        BOOST_ASSERT_MSG(unfollowed_id != unfollower_id,
+            "agemt cannot disconnect from itself :(");
+        BOOST_ASSERT_MSG(have_connection(unfollowed_id, unfollower_id),
+            "no connection to remove :(");
+
+        bins_[followers_size(unfollowed_id)].second.erase(unfollowed_id);
+        followers_[unfollowed_id].erase(unfollower_id);
+        following_[unfollower_id].erase(unfollowed_id);
+        bins_[followers_size(unfollowed_id)].second.insert(unfollowed_id);
+        --denominator_;
     }
 
     std::ostream& print(std::ostream& out) const
@@ -193,6 +205,7 @@ public:
         out << "# Number of Agents: " << n_agents_ << std::endl;
         out << "# Number of Bins: " << bins_.size() << std::endl;
         out << "# Denominator: " << denominator_ << std::endl;
+        out << "# kmax: " << kmax_ << std::endl;
         out << "# Network: " << std::endl << std::endl;
 
         for (auto i = 0; i < n_agents_; ++i)
@@ -215,13 +228,17 @@ public:
                 out << following << ',';
             out << std::endl;
 
-            out << "    \\---[bin] "
-                << bins_[i].first << std::endl
-                << "        \\--- "
-                << bins_[i].second.size()
-                << " -> ";
-            for (auto followed : bins_[i].second)
-                out << followed << ',';
+            if (i < bins_.size())
+            {
+                out << "    \\---[bin] "
+                    << bins_[i].first << std::endl
+                    << "        \\--- "
+                    << bins_[i].second.size()
+                    << " -> ";
+                for (auto followed : bins_[i].second)
+                    out << followed << ',';
+            }
+
             out << std::endl;
         }
         return out;
@@ -235,5 +252,7 @@ public:
 //{
 //    return n.print(out);
 //}
+
+}    // namespace hashkat
 
 #endif  // HASHKAT_NETWORK_H_
