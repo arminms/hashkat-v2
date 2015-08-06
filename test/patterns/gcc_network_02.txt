@@ -1,4 +1,4 @@
-# Maximum Number of Agents: 200
+# Maximum Number of Agents: 100
 # Number of Agents: 100
 # Number of Bins: 100
 # Denominator: 1043

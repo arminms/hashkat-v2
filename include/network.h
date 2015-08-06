@@ -124,7 +124,6 @@ public:
             bins_.emplace_back(std::make_pair(
                 std::pow(ValueType(i), exp)
             ,   std::unordered_set<T>()));
-            //group.categories[j].prob = pow((double)i, exp);
             total_weight += i;
         }
         if (total_weight > 0)
@@ -175,13 +174,17 @@ public:
         BOOST_ASSERT_MSG(!have_connection(followed_id, follower_id),
             "already connected :(");
 
-        bins_[followers_size(followed_id)].second.erase(followed_id);
+        auto idx = followers_size(followed_id) * bins_.size() / max_agents_;
+        bins_[idx].second.erase(followed_id);
         followers_[followed_id].insert(follower_id);
         following_[follower_id].insert(followed_id);
-        bins_[followers_size(followed_id)].second.insert(followed_id);
+        idx = followers_size(followed_id) * bins_.size() / max_agents_;
+        bins_[idx].second.insert(followed_id);
         ++denominator_;
-        if (kmax_ < followers_size(followed_id))
-            kmax_ = followers_size(followed_id);
+        //if (kmax_ < followers_size(followed_id))
+        //    kmax_ = followers_size(followed_id);
+        if (kmax_ < idx)
+            kmax_ = idx;
     }
 
     void disconnect(T unfollowed_id, T unfollower_id)
@@ -191,10 +194,12 @@ public:
         BOOST_ASSERT_MSG(have_connection(unfollowed_id, unfollower_id),
             "no connection to remove :(");
 
-        bins_[followers_size(unfollowed_id)].second.erase(unfollowed_id);
+        auto idx = followers_size(unfollowed_id) * bins_.size() / max_agents_;
+        bins_[idx].second.erase(unfollowed_id);
         followers_[unfollowed_id].erase(unfollower_id);
         following_[unfollower_id].erase(unfollowed_id);
-        bins_[followers_size(unfollowed_id)].second.insert(unfollowed_id);
+        idx = followers_size(unfollowed_id) * bins_.size() / max_agents_;
+        bins_[idx].second.insert(unfollowed_id);
         --denominator_;
     }
 

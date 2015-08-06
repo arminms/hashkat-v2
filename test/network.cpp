@@ -52,10 +52,32 @@ struct test_agent
     {}
 };
 
+struct FOLDER
+{
+    FOLDER()
+#ifdef _MSC_VER
+    :   folder(std::getenv("HASHKAT"))
+    {
+        if (!folder.empty())
+            folder += "/test/patterns/vc_";
+        else
+            std::cout << "HASHKAT environment variable is not defined\n";
+#elif defined(__clang__)
+    :   folder("patterns/clang_")
+    {
+#else
+    :   folder("patterns/gcc_")
+    {
+#endif  // _MSC_VER
+    }
+
+    std::string folder;
+};
+
 struct INIT_NETWORK
 {
     INIT_NETWORK()
-    :   n(200)
+    :   n(100)
 #ifdef _MSC_VER
     ,   folder(std::getenv("HASHKAT"))
     {
@@ -70,7 +92,7 @@ struct INIT_NETWORK
     , folder("patterns/gcc_")
     {
 #endif  // _MSC_VER
-        n.initialize_bins(0, 100);
+        n.initialize_bins(0, 100, 1);
         n.grow(100);
 
         std::mt19937 gen(333);
