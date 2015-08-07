@@ -224,3 +224,26 @@ BOOST_FIXTURE_TEST_CASE(Bins_10_10_2, FOLDER)
     cout << n;
     BOOST_CHECK(cout.match_pattern());
 }
+
+BOOST_FIXTURE_TEST_CASE(Bins_10_10_3, FOLDER)
+{
+    output_test_stream cout(
+        folder + "network_06.txt"
+    ,   !butrc::save_pattern());
+
+    network<test_agent> n(10);
+    n.initialize_bins(0, 10, 3);
+    n.grow(10);
+
+    std::mt19937 gen(333);
+    std::uniform_int_distribution<int> di(0, 9);
+    for (auto i = 0; i < 25; ++i)
+    {
+        auto followed = di(gen), follower = di(gen);
+        if (followed != follower && !n.have_connection(followed, follower))
+            n.connect(followed, follower);
+    }
+
+    cout << n;
+    BOOST_CHECK(cout.match_pattern());
+}
