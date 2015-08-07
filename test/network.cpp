@@ -92,7 +92,7 @@ struct INIT_NETWORK
     , folder("patterns/gcc_")
     {
 #endif  // _MSC_VER
-        n.initialize_bins(0, 100, 1);
+        n.initialize_bins(1, 100, 1);
         n.grow(100);
 
         std::mt19937 gen(333);
@@ -124,7 +124,7 @@ BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, INIT_NETWORK)
 BOOST_AUTO_TEST_CASE(Connection)
 {
     network<test_agent> n(2);
-    n.initialize_bins(0, 2);
+    n.initialize_bins(1, 2);
     n.grow(2);
 
     BOOST_CHECK(!n.have_connection(0, 1));
@@ -163,7 +163,7 @@ BOOST_FIXTURE_TEST_CASE(Bins_10_10_1, FOLDER)
     ,   !butrc::save_pattern());
 
     network<test_agent> n(10);
-    n.initialize_bins(0, 10, 1);
+    n.initialize_bins(1, 10, 1);
     n.grow(10);
 
     std::mt19937 gen(333);
@@ -186,7 +186,7 @@ BOOST_FIXTURE_TEST_CASE(Bins_20_10_1, FOLDER)
     ,   !butrc::save_pattern());
 
     network<test_agent> n(20);
-    n.initialize_bins(0, 10, 1);
+    n.initialize_bins(1, 10, 1);
     n.grow(10);
 
     std::mt19937 gen(333);
@@ -209,7 +209,7 @@ BOOST_FIXTURE_TEST_CASE(Bins_10_10_2, FOLDER)
     ,   !butrc::save_pattern());
 
     network<test_agent> n(10);
-    n.initialize_bins(0, 10, 2);
+    n.initialize_bins(1, 10, 2);
     n.grow(10);
 
     std::mt19937 gen(333);
@@ -232,7 +232,7 @@ BOOST_FIXTURE_TEST_CASE(Bins_10_10_3, FOLDER)
     ,   !butrc::save_pattern());
 
     network<test_agent> n(10);
-    n.initialize_bins(0, 10, 3);
+    n.initialize_bins(1, 10, 3);
     n.grow(10);
 
     std::mt19937 gen(333);
@@ -255,7 +255,30 @@ BOOST_FIXTURE_TEST_CASE(Bins_21_10_3, FOLDER)
     ,   !butrc::save_pattern());
 
     network<test_agent> n(21);
-    n.initialize_bins(0, 10, 3);
+    n.initialize_bins(1, 10, 3);
+    n.grow(10);
+
+    std::mt19937 gen(333);
+    std::uniform_int_distribution<int> di(0, 9);
+    for (auto i = 0; i < 25; ++i)
+    {
+        auto followed = di(gen), follower = di(gen);
+        if (followed != follower && !n.have_connection(followed, follower))
+            n.connect(followed, follower);
+    }
+
+    cout << n;
+    BOOST_CHECK(cout.match_pattern());
+}
+
+BOOST_FIXTURE_TEST_CASE(Bins_10_10_2_1_2, FOLDER)
+{
+    output_test_stream cout(
+        folder + "network_08.txt"
+    ,   !butrc::save_pattern());
+
+    network<test_agent> n(10);
+    n.initialize_bins(1, 10, 2, 1, 2);
     n.grow(10);
 
     std::mt19937 gen(333);

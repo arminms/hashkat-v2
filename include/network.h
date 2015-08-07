@@ -109,17 +109,15 @@ public:
     }
 
     void initialize_bins(T min, T max, T inc = T(1),
-        ValueType exp = ValueType(1), const std::string& spacing = "")
+        ValueType exp = ValueType(1), T spacing = T(1))
     {
-        if ("quadratic" == spacing)
+        for (auto i = 1; i < spacing; ++i)
             inc *= inc;
-        else if ("cubic" == spacing)
-            inc *= inc * inc;
 
         T count = (max - min) / inc;
         bins_.reserve(count + 1);
         ValueType total_weight = 0;
-        for (auto i = min; i < max; i += inc)
+        for (auto i = min; i <= max; i += inc)
         {
             bins_.emplace_back(std::make_pair(
                 std::pow(ValueType(i), exp)
@@ -181,8 +179,6 @@ public:
         idx = followers_size(followed_id) * bins_.size() / max_agents_;
         bins_[idx].second.insert(followed_id);
         ++denominator_;
-        //if (kmax_ < followers_size(followed_id))
-        //    kmax_ = followers_size(followed_id);
         if (kmax_ < idx)
             kmax_ = idx;
     }
@@ -247,9 +243,6 @@ public:
         return out;
     }
 };
-
-//typedef network<std::size_t> Network;
-//typedef network<int> Network;
 
 template
 <
