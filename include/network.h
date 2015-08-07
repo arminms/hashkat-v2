@@ -241,9 +241,8 @@ public:
                     << " -> ";
                 for (auto followed : bins_[i].second)
                     out << followed << ',';
+                out << std::endl;
             }
-
-            out << std::endl;
         }
         return out;
     }
