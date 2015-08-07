@@ -109,9 +109,9 @@ public:
     }
 
     void initialize_bins(T min, T max, T inc = T(1),
-        ValueType exp = ValueType(1), T spacing = T(1))
+        ValueType exp = ValueType(1), T spc = T(1))
     {
-        for (auto i = 1; i < spacing; ++i)
+        for (auto i = 1; i < spc; ++i)
             inc *= inc;
 
         T count = (max - min) / inc;
@@ -122,7 +122,7 @@ public:
             bins_.emplace_back(std::make_pair(
                 std::pow(ValueType(i), exp)
             ,   std::unordered_set<T>()));
-            total_weight += i;
+            total_weight += bins_.back().first;
         }
         if (total_weight > 0)
             for (auto i = 0; i < bins_.size(); ++i)
