@@ -117,7 +117,7 @@ public:
             inc *= inc * inc;
 
         T count = (max - min) / inc;
-        bins_.reserve(count);
+        bins_.reserve(count + 1);
         ValueType total_weight = 0;
         for (auto i = min; i < max; i += inc)
         {
