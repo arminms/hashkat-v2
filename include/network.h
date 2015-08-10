@@ -40,7 +40,8 @@ class network
     T n_agents_, max_agents_;
     std::vector<std::unordered_set<T>> followers_;
     std::vector<std::unordered_set<T>> following_;
-    std::vector<std::pair<ValueType, std::unordered_set<T>>> bins_;
+    std::vector<std::unordered_set<T>> bins_;
+    std::vector<ValueType> weights_;
     T denominator_;
     T kmax_;
 
@@ -80,7 +81,7 @@ public:
         {
             followers_.emplace_back(std::unordered_set<T>());
             following_.emplace_back(std::unordered_set<T>());
-            bins_[0].second.insert(n_agents_);
+            bins_[0].insert(n_agents_);
             ++denominator_;
             ++n_agents_;
         }
@@ -116,17 +117,17 @@ public:
 
         T count = (max - min) / inc;
         bins_.reserve(count + 1);
+        weights_.reserve(count + 1);
         ValueType total_weight = 0;
         for (auto i = min; i <= max; i += inc)
         {
-            bins_.emplace_back(std::make_pair(
-                std::pow(ValueType(i), exp)
-            ,   std::unordered_set<T>()));
-            total_weight += bins_.back().first;
+            bins_.emplace_back(std::unordered_set<T>());
+            weights_.push_back(ValueType(std::pow(ValueType(i), exp)));
+            total_weight += weights_.back();
         }
         if (total_weight > 0)
-            for (auto i = 0; i < bins_.size(); ++i)
-                bins_[i].first /= total_weight;
+            for (auto i = 0; i < weights_.size(); ++i)
+                weights_[i] /= total_weight;
     }
 
     T following_size(T id) const
@@ -139,10 +140,10 @@ public:
         return followers_[id].size();
     }
 
-    const std::vector<std::unordered_set<T>>& bins() const
-    {
-        return bins_;
-    }
+    //const std::vector<std::unordered_set<T>>& bins() const
+    //{
+    //    return bins_;
+    //}
 
     T denominator() const
     {
@@ -173,11 +174,11 @@ public:
             "already connected :(");
 
         auto idx = followers_size(followed_id) * bins_.size() / max_agents_;
-        bins_[idx].second.erase(followed_id);
+        bins_[idx].erase(followed_id);
         followers_[followed_id].insert(follower_id);
         following_[follower_id].insert(followed_id);
         idx = followers_size(followed_id) * bins_.size() / max_agents_;
-        bins_[idx].second.insert(followed_id);
+        bins_[idx].insert(followed_id);
         ++denominator_;
         if (kmax_ < idx)
             kmax_ = idx;
@@ -191,11 +192,11 @@ public:
             "no connection to remove :(");
 
         auto idx = followers_size(unfollowed_id) * bins_.size() / max_agents_;
-        bins_[idx].second.erase(unfollowed_id);
+        bins_[idx].erase(unfollowed_id);
         followers_[unfollowed_id].erase(unfollower_id);
         following_[unfollower_id].erase(unfollowed_id);
         idx = followers_size(unfollowed_id) * bins_.size() / max_agents_;
-        bins_[idx].second.insert(unfollowed_id);
+        bins_[idx].insert(unfollowed_id);
         --denominator_;
     }
 
@@ -231,11 +232,11 @@ public:
             if (i < bins_.size())
             {
                 out << "    \\---[bin] "
-                    << bins_[i].first << std::endl
+                    << weights_[i] << std::endl
                     << "        \\--- "
-                    << bins_[i].second.size()
+                    << bins_[i].size()
                     << " -> ";
-                for (auto followed : bins_[i].second)
+                for (auto followed : bins_[i])
                     out << followed << ',';
                 out << std::endl;
             }
