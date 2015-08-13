@@ -36,6 +36,12 @@ template
 >
 class network
 {
+public:
+    typedef boost::signals2::signal<void(T)> grown_signal_type;
+    typedef boost::signals2::signal<void(T, T)> connection_added_signal_type;
+    typedef boost::signals2::signal<void(T, T)> connection_removed_signal_type;
+
+private:
     AgentType* agents_;
     T n_agents_, max_agents_;
     std::vector<std::unordered_set<T>> followers_;
@@ -44,6 +50,9 @@ class network
     std::vector<ValueType> weights_;
     T denominator_;
     T kmax_;
+    grown_signal_type grown_signal_;
+    connection_added_signal_type connection_added_signal_;
+    connection_removed_signal_type connection_removed_signal_;
 
 public:
     network()
@@ -85,6 +94,7 @@ public:
             ++denominator_;
             ++n_agents_;
         }
+        grown_signal_(n);
     }
 
     T size() const
@@ -108,6 +118,15 @@ public:
             "network out-of-bounds agent access :(");
         return agents_[idx];
     }
+
+    grown_signal_type& grown()
+    {   return grown_signal_;   }
+
+    connection_added_signal_type& connection_added()
+    {   return connection_added_signal_;    }
+
+    connection_removed_signal_type& connection_removed()
+    {   return connection_removed_signal_;  }
 
     void initialize_bins(T min, T max, T inc = T(1),
         ValueType exp = ValueType(1), T spc = T(1))
@@ -139,11 +158,6 @@ public:
     {
         return followers_[id].size();
     }
-
-    //const std::vector<std::unordered_set<T>>& bins() const
-    //{
-    //    return bins_;
-    //}
 
     T denominator() const
     {
@@ -182,6 +196,7 @@ public:
         ++denominator_;
         if (kmax_ < idx)
             kmax_ = idx;
+        connection_added_signal_(followed_id, follower_id);
     }
 
     void disconnect(T unfollowed_id, T unfollower_id)
@@ -198,6 +213,7 @@ public:
         idx = followers_size(unfollowed_id) * bins_.size() / max_agents_;
         bins_[idx].insert(unfollowed_id);
         --denominator_;
+        connection_removed_signal_(unfollowed_id, unfollower_id);
     }
 
     std::ostream& print(std::ostream& out) const

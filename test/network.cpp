@@ -37,6 +37,8 @@
 #include <boost/test/output_test_stream.hpp>
 #include <boost/test/detail/unit_test_parameters.hpp>
 
+#include <boost/signals2.hpp>
+
 #include "../include/network.h"
 
 using boost::test_tools::output_test_stream;
