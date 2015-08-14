@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-project(hashkat-lib LANGUAGES CXX)
+project(hashkat-lib)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
     add_definitions(-stdlib=libc++ -std=c++11)
