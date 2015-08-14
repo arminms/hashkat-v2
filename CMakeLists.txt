@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
+project(hashkat-lib LANGUAGES CXX)
+
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_definitions(-stdlib=libc++ -std=c++11)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

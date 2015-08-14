@@ -1,0 +1,17 @@
+CMakeCache.txt
+CMakeFiles/
+oprofile_data/
+Makefile
+cmake_install.cmake
+build
+build/*
+.libs
+*.a
+*.o
+*.swp
+*.so
+*.sav
+*.dat
+*.xyz
+*.json
+*.csv
