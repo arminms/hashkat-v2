@@ -23,15 +23,17 @@
 // of a derivation, subsequent authors.
 //
 
-#ifndef HASHKAT_ACTION_H_
-#define HASHKAT_ACTION_H_
+#ifndef HASHKAT_ACTIONS_TWITTER_ADD_AGENT_H_
+#define HASHKAT_ACTIONS_TWITTER_ADD_AGENT_H_
 
-#include <boost/core/noncopyable.hpp>
+#ifndef HASHKAT_ACTION_H_
+#   include "../action.h"
+#endif // HASHKAT_ACTION_H_
 
 namespace hashkat {
 
 ////////////////////////////////////////////////////////////////////////////////
-// Abstract base class for actions
+// twitter_add_agent action class
 
 template
 <
@@ -40,33 +42,37 @@ template
 ,   class ConfigType
 ,   class RngType
 >
-class action_base
-:   private boost::noncopyable
+class twitter_add_agent
+:   public action_base<NetworkType, ContentsType, ConfigType, RngType>
 {
 public:
-    typedef NetworkType::type rate_type;
-
-    action_base()
-    :   rate_(0)
+    twitter_add_agent(
+        NetworkType& net
+    ,   ContentsType& cnt
+    ,   ConfigType& cnf
+    ,   RngType& rng)
+    :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
+    ,   net_(net)
+    ,   cnt_(cnt)
+    ,   cnf_(cnf)
+    ,   rng_(rng)
     {}
 
-    rate_type rate() const
-    {   return rate_;   }
-
-    bool operator()()
-    {   return do_action();   }
-
-
-// Implementation
-    virtual ~action_base() {};
-
-protected:
-    rate_type rate_;
-
 private:
-    virtual bool do_action() = 0;
+    NetworkType& net_;
+    ContentsType& cnt_;
+    ConfigType& cnf_;
+    RngType& rng_;
+
+    virtual bool do_action()
+    {
+        if (net_.size() == new_.max_size())
+            return false;
+        net_.grow();
+        //rate_++;
+    }
 };
 
 }    // namespace hashkat
 
-#endif  // HASHKAT_ACTION_H_
+#endif  // HASHKAT_ACTIONS_TWITTER_ADD_AGENT_H_
