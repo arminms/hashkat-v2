@@ -41,6 +41,11 @@ template
 class network
 {
 public:
+    typedef T type;
+    typedef ValueType value_type;
+    typedef AgentType agent_type;
+    typedef ConfigType config_type;
+    typedef network<AgentType, ConfigType, T, ValueType> self_type;
     typedef boost::signals2::signal<void(T)> grown_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_added_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_removed_signal_type;
