@@ -28,9 +28,13 @@
 
 namespace hashkat {
 
+struct dummy
+{};
+
 template
 <
     class    AgentType
+,   class    ConfigType = dummy
 ,   typename T = std::size_t
 ,   typename ValueType = double
 >
@@ -59,6 +63,14 @@ public:
     :   agents_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
+    ,   denominator_(0)
+    ,   kmax_(0)
+    {}
+
+    network(const ConfigType& conf)
+    :   agents_(nullptr)
+    ,   n_agents_(0)
+    ,   max_agents_(conf.template get<T>("hashkat.network.max_agents", 1000))
     ,   denominator_(0)
     ,   kmax_(0)
     {}
@@ -264,12 +276,13 @@ public:
 template
 <
     class    AgentType
+,   class    ConfigType
 ,   typename T
 ,   typename ValueType
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const network<AgentType, T, ValueType>& n)
+,   const network<AgentType, ConfigType, T, ValueType>& n)
 {
     return n.print(out);
 }

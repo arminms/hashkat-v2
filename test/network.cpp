@@ -38,6 +38,8 @@
 #include <boost/test/detail/unit_test_parameters.hpp>
 
 #include <boost/signals2.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
 #include "../include/network.h"
 
@@ -112,6 +114,25 @@ struct INIT_NETWORK
     network<test_agent> n;
     std::string folder;
 };
+
+BOOST_AUTO_TEST_CASE(Config_Constructor)
+{
+#ifdef _MSC_VER
+    std::string folder(std::getenv("HASHKAT"));
+    if (!folder.empty())
+        folder += "/test/patterns/";
+    else
+        std::cout << "HASHKAT environment variable is not defined\n";
+#else
+    std::string folder("patterns/");
+#endif  // _MSC_VER
+    typedef boost::property_tree::ptree config;
+    config conf;
+    boost::property_tree::read_xml(folder + "config.xml", conf);
+    network<test_agent, config> n(conf);
+
+    BOOST_CHECK_EQUAL(n.max_size(), 10000);
+}
 
 BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, INIT_NETWORK)
 {

@@ -1,0 +1,5 @@
+<hashkat>
+    <network>
+        <max_agents>10000</max_agents>
+    </network>
+</hashkat>
