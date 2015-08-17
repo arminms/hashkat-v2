@@ -54,7 +54,7 @@ private:
     AgentType* agents_;
     T n_agents_, max_agents_;
     std::vector<std::unordered_set<T>> followers_;
-    std::vector<std::unordered_set<T>> following_;
+    std::vector<std::unordered_set<T>> followees_;
     std::vector<std::unordered_set<T>> bins_;
     std::vector<ValueType> weights_;
     T denominator_;
@@ -98,7 +98,7 @@ public:
         max_agents_ = n;
         agents_ = new AgentType[max_agents_];
         followers_.reserve(max_agents_);
-        following_.reserve(max_agents_);
+        followees_.reserve(max_agents_);
     }
 
     void grow(T n = 1)
@@ -106,12 +106,12 @@ public:
         for (auto i = 0; i < n; ++i)
         {
             followers_.emplace_back(std::unordered_set<T>());
-            following_.emplace_back(std::unordered_set<T>());
+            followees_.emplace_back(std::unordered_set<T>());
             bins_[0].insert(n_agents_);
             ++denominator_;
             ++n_agents_;
+            grown_signal_(n_agents_ -1);
         }
-        grown_signal_(n);
     }
 
     T size() const
@@ -166,9 +166,9 @@ public:
                 weights_[i] /= total_weight;
     }
 
-    T following_size(T id) const
+    T followees_size(T id) const
     {
-        return following_[id].size();
+        return followees_[id].size();
     }
 
     T followers_size(T id) const
@@ -197,40 +197,40 @@ public:
                !=   followers_[followed_id].end()   );
     }
 
-    void connect(T followed_id, T follower_id)
+    void connect(T followee_id, T follower_id)
     {
-        BOOST_ASSERT_MSG(followed_id != follower_id,
-            "agemt cannot connect to itself :(");
-        BOOST_ASSERT_MSG(!have_connection(followed_id, follower_id),
+        BOOST_ASSERT_MSG(followee_id != follower_id,
+            "agent cannot be connected to itself :(");
+        BOOST_ASSERT_MSG(!have_connection(followee_id, follower_id),
             "already connected :(");
 
-        auto idx = followers_size(followed_id) * bins_.size() / max_agents_;
-        bins_[idx].erase(followed_id);
-        followers_[followed_id].insert(follower_id);
-        following_[follower_id].insert(followed_id);
-        idx = followers_size(followed_id) * bins_.size() / max_agents_;
-        bins_[idx].insert(followed_id);
+        auto idx = followers_size(followee_id) * bins_.size() / max_agents_;
+        bins_[idx].erase(followee_id);
+        followers_[followee_id].insert(follower_id);
+        followees_[follower_id].insert(followee_id);
+        idx = followers_size(followee_id) * bins_.size() / max_agents_;
+        bins_[idx].insert(followee_id);
         ++denominator_;
         if (kmax_ < idx)
             kmax_ = idx;
-        connection_added_signal_(followed_id, follower_id);
+        connection_added_signal_(followee_id, follower_id);
     }
 
-    void disconnect(T unfollowed_id, T unfollower_id)
+    void disconnect(T unfollowee_id, T unfollower_id)
     {
-        BOOST_ASSERT_MSG(unfollowed_id != unfollower_id,
-            "agemt cannot disconnect from itself :(");
-        BOOST_ASSERT_MSG(have_connection(unfollowed_id, unfollower_id),
+        BOOST_ASSERT_MSG(unfollowee_id != unfollower_id,
+            "agent cannot be disconnected from itself :(");
+        BOOST_ASSERT_MSG(have_connection(unfollowee_id, unfollower_id),
             "no connection to remove :(");
 
-        auto idx = followers_size(unfollowed_id) * bins_.size() / max_agents_;
-        bins_[idx].erase(unfollowed_id);
-        followers_[unfollowed_id].erase(unfollower_id);
-        following_[unfollower_id].erase(unfollowed_id);
-        idx = followers_size(unfollowed_id) * bins_.size() / max_agents_;
-        bins_[idx].insert(unfollowed_id);
+        auto idx = followers_size(unfollowee_id) * bins_.size() / max_agents_;
+        bins_[idx].erase(unfollowee_id);
+        followers_[unfollowee_id].erase(unfollower_id);
+        followees_[unfollower_id].erase(unfollowee_id);
+        idx = followers_size(unfollowee_id) * bins_.size() / max_agents_;
+        bins_[idx].insert(unfollowee_id);
         --denominator_;
-        connection_removed_signal_(unfollowed_id, unfollower_id);
+        connection_removed_signal_(unfollowee_id, unfollower_id);
     }
 
     std::ostream& print(std::ostream& out) const
@@ -256,9 +256,9 @@ public:
 
             out << "    +---[out]" << std::endl
                 << "        \\--- "
-                << following_[i].size()
+                << followees_[i].size()
                 << " -> ";
-            for (auto following : following_[i])
+            for (auto following : followees_[i])
                 out << following << ',';
             out << std::endl;
 

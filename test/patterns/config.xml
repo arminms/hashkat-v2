@@ -1,5 +1,12 @@
 <hashkat>
-    <network>
-        <max_agents>10000</max_agents>
-    </network>
+	<network>
+		<max_agents>10000</max_agents>
+	</network>
+	<follow_ranks>
+		<bin_spacing>1</bin_spacing>
+		<min>1</min>
+		<max>10000</max>
+		<increment>1</increment>
+		<exponent>1.0</exponent>
+	</follow_ranks>
 </hashkat>

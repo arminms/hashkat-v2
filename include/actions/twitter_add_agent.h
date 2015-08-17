@@ -66,10 +66,14 @@ private:
 
     virtual bool do_action()
     {
-        if (net_.size() == new_.max_size())
+        if (net_.can_grow())
+        {
+            net_.grow();
+            //rate_++;
+            return true;
+        }
+        else
             return false;
-        net_.grow();
-        //rate_++;
     }
 };
 
