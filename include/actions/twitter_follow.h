@@ -45,8 +45,9 @@ template
 class twitter_follow
 :   public action_base<NetworkType, ContentsType, ConfigType, RngType>
 {
-    typedef NetworkType::type T;
-    typedef NetworkType::value_type V;
+    typedef twitter_follow<NetworkType, ContentsType, ConfigType, RngType> self_type;
+    typedef typename NetworkType::type T;
+    typedef typename NetworkType::value_type V;
 
 public:
     twitter_follow(
@@ -88,6 +89,28 @@ public:
                 weights_[i] /= total_weight;
     }
 
+    std::ostream& print(std::ostream& out) const
+    {
+        out << "# Maximum Number of Agents: " << net_.max_size() << std::endl;
+        out << "# Number of Agents: " << net_.size() << std::endl;
+        out << "# Number of Bins: " << bins_.size() << std::endl;
+        out << "# Number of Connections: " << n_connections_ << std::endl;
+        out << "# kmax: " << kmax_ << std::endl;
+        out << "# Bins: " << std::endl;
+        out << "#  K      W    N   Agent IDs" << std::endl;
+        out << std::fixed << std::setprecision(3);
+        for (auto i = 0; i < bins_.size(); ++i)
+        {
+            out << std::setfill('0') << std::setw(6) << i
+                << ' ' << std::setw(5) << weights_[i] << " ["
+                << std::setw(3) << bins_[i].size() << "] ";
+            for (auto followee : bins_[i])
+                out << followee << ',';
+            out << std::endl;
+        }
+        return out;
+    }
+
 private:
     NetworkType& net_;
     ContentsType& cnt_;
@@ -96,23 +119,23 @@ private:
     T n_connections_;
     T kmax_;
     std::vector<std::unordered_set<T>> bins_;
-    std::vector<ValueType> weights_;
+    std::vector<V> weights_;
 
     virtual bool do_action()
     {
         auto follower = select_follower();
         auto followee = select_followee();
-        while ( follower != followee
-            &&  !net_.have_connection(followee, follower) )
+        while ( follower == followee
+            ||  net_.have_connection(followee, follower) )
             followee = select_followee();
 
         auto idx = net_.followers_size(followee) * bins_.size()
-                 / net_.max_agents();
+                 / net_.max_size();
         bins_[idx].erase(followee);
 
         net_.connect(followee, follower);
 
-        idx = net_.followers_size(followee) * bins_.size() / net_.max_agents();
+        idx = net_.followers_size(followee) * bins_.size() / net_.max_size();
         bins_[idx].insert(followee);
         ++n_connections_;
         if (kmax_ < idx)
@@ -123,13 +146,13 @@ private:
 
     T select_follower()
     {
-        std::uniform_int_distribution<T> di(0, net_.size());
+        std::uniform_int_distribution<T> di(0, net_.size() - 1);
         return di(rng_);
     }
 
     T select_followee()
     {
-        std::uniform_int_distribution<T> di(0, net_.size());
+        std::uniform_int_distribution<T> di(0, net_.size() - 1);
         return di(rng_);
     }
 
@@ -139,6 +162,20 @@ private:
         ++n_connections_;
     }
 };
+
+template
+<
+    class NetworkType
+,   class ContentsType
+,   class ConfigType
+,   class RngType
+>
+std::ostream& operator<< (
+    std::ostream& out
+,   const twitter_follow<NetworkType, ContentsType, ConfigType, RngType>& tfa)
+{
+    return tfa.print(out);
+}
 
 }    // namespace hashkat
 

@@ -44,7 +44,7 @@ class action_base
 :   private boost::noncopyable
 {
 public:
-    typedef NetworkType::type rate_type;
+    typedef typename NetworkType::type rate_type;
 
     action_base()
     :   rate_(0)

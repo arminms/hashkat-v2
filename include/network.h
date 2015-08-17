@@ -75,10 +75,10 @@ public:
     network(const ConfigType& conf)
     :   agents_(nullptr)
     ,   n_agents_(0)
-    ,   max_agents_(conf.template get<T>("hashkat.network.max_agents", 1000))
+    ,   max_agents_(0)
     ,   denominator_(0)
     ,   kmax_(0)
-    {}
+    {   allocate(conf.template get<T>("hashkat.network.max_agents", 1000)); }
 
     network(T n)
     :   agents_(nullptr)
@@ -107,8 +107,8 @@ public:
         {
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
-            bins_[0].insert(n_agents_);
-            ++denominator_;
+            //bins_[0].insert(n_agents_);
+            //++denominator_;
             ++n_agents_;
             grown_signal_(n_agents_ -1);
         }
@@ -204,15 +204,15 @@ public:
         BOOST_ASSERT_MSG(!have_connection(followee_id, follower_id),
             "already connected :(");
 
-        auto idx = followers_size(followee_id) * bins_.size() / max_agents_;
-        bins_[idx].erase(followee_id);
+        //auto idx = followers_size(followee_id) * bins_.size() / max_agents_;
+        //bins_[idx].erase(followee_id);
         followers_[followee_id].insert(follower_id);
         followees_[follower_id].insert(followee_id);
-        idx = followers_size(followee_id) * bins_.size() / max_agents_;
-        bins_[idx].insert(followee_id);
-        ++denominator_;
-        if (kmax_ < idx)
-            kmax_ = idx;
+        //idx = followers_size(followee_id) * bins_.size() / max_agents_;
+        //bins_[idx].insert(followee_id);
+        //++denominator_;
+        //if (kmax_ < idx)
+        //    kmax_ = idx;
         connection_added_signal_(followee_id, follower_id);
     }
 
@@ -223,13 +223,13 @@ public:
         BOOST_ASSERT_MSG(have_connection(unfollowee_id, unfollower_id),
             "no connection to remove :(");
 
-        auto idx = followers_size(unfollowee_id) * bins_.size() / max_agents_;
-        bins_[idx].erase(unfollowee_id);
+        //auto idx = followers_size(unfollowee_id) * bins_.size() / max_agents_;
+        //bins_[idx].erase(unfollowee_id);
         followers_[unfollowee_id].erase(unfollower_id);
         followees_[unfollower_id].erase(unfollowee_id);
-        idx = followers_size(unfollowee_id) * bins_.size() / max_agents_;
-        bins_[idx].insert(unfollowee_id);
-        --denominator_;
+        //idx = followers_size(unfollowee_id) * bins_.size() / max_agents_;
+        //bins_[idx].insert(unfollowee_id);
+        //--denominator_;
         connection_removed_signal_(unfollowee_id, unfollower_id);
     }
 
