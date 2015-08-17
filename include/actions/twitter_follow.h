@@ -65,11 +65,11 @@ public:
     {
         net_.grown().connect(boost::bind(&self_type::agent_added, this));
 
-        T spc = cnf_.get<T>("hashkat.follow_ranks.bin_spacing", T(1));
-        T min = cnf_.get<T>("hashkat.follow_ranks.min", T(1));
-        T max = cnf_.get<T>("hashkat.follow_ranks.max", net_.max_size());
-        T inc = cnf_.get<T>("hashkat.follow_ranks.increment", T(1));
-        V exp = cnf_.get<V>("hashkat.follow_ranks.exponent", V(1.0));
+        T spc = cnf_.template get<T>("hashkat.follow_ranks.bin_spacing", T(1));
+        T min = cnf_.template get<T>("hashkat.follow_ranks.min", T(1));
+        T max = cnf_.template get<T>("hashkat.follow_ranks.max", net_.max_size());
+        T inc = cnf_.template get<T>("hashkat.follow_ranks.increment", T(1));
+        V exp = cnf_.template get<V>("hashkat.follow_ranks.exponent", V(1.0));
 
         for (auto i = 1; i < spc; ++i)
             inc *= inc;
