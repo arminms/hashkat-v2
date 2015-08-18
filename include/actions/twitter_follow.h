@@ -63,7 +63,7 @@ public:
     ,   n_connections_(0)
     ,   kmax_(0)
     {
-        net_.grown().connect(boost::bind(&self_type::agent_added, this));
+        net_.grown().connect(boost::bind(&self_type::agent_added, this, _1));
 
         T spc = cnf_.template get<T>("hashkat.follow_ranks.bin_spacing", T(1));
         T min = cnf_.template get<T>("hashkat.follow_ranks.min", T(1));
@@ -97,13 +97,13 @@ public:
         out << "# Number of Connections: " << n_connections_ << std::endl;
         out << "# kmax: " << kmax_ << std::endl;
         out << "# Bins: " << std::endl;
-        out << "#  K      W    N   Agent IDs" << std::endl;
+        out << "#  K      W       N     Agent IDs" << std::endl;
         out << std::fixed << std::setprecision(3);
         for (auto i = 0; i < bins_.size(); ++i)
         {
-            out << std::setfill('0') << std::setw(6) << i
+            out << std::setfill('0') << std::setw(7) << i
                 << ' ' << std::setw(5) << weights_[i] << " ["
-                << std::setw(3) << bins_[i].size() << "] ";
+                << std::setw(7) << bins_[i].size() << "] ";
             for (auto followee : bins_[i])
                 out << followee << ',';
             out << std::endl;

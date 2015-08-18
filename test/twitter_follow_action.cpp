@@ -89,7 +89,7 @@ BOOST_FIXTURE_TEST_CASE(Bins_10_10_1, FOLDERS)
     test_twitter_follow ttf(n, mock_cnts, conf, rng);
 
     n.grow(10);
-    for (auto i = 0; i < 25; ++i)
+    for (auto i = 0; i < 5; ++i)
         ttf();
 
     output_test_stream cout(
