@@ -25,10 +25,18 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <array>
 #include <vector>
 #include <unordered_set>
 #include <random>
 #include <numeric>
+#include <limits>
+
+// due to inclusion of <windows.h> by header only boost::test, we need
+// the following define to prevent problem with std::numeric_limits
+#   if defined(_MSC_VER)
+#       define NOMINMAX
+#   endif  //_MSC_VER
 
 #define BOOST_TEST_MAIN
 #include <boost/test/included/unit_test.hpp>
@@ -86,6 +94,7 @@ BOOST_FIXTURE_TEST_CASE(Bins_10_10_1, FOLDERS)
     test_rng rng;
     pt::read_xml(cnf_folder + "follow_config_01.xml", conf);
     test_network n(conf);
+#pragma warning ( suppress: 4503 )
     test_twitter_follow ttf(n, mock_cnts, conf, rng);
 
     n.grow(10);

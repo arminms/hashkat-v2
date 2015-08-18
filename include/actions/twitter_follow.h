@@ -35,6 +35,11 @@ namespace hashkat {
 ////////////////////////////////////////////////////////////////////////////////
 // twitter_follow action class
 
+#ifdef _MSC_VER
+#   pragma warning( push )
+#   pragma warning( disable: 4503 )
+#endif  // _MSC_VER
+
 template
 <
     class NetworkType
@@ -63,7 +68,23 @@ public:
     ,   n_connections_(0)
     ,   kmax_(0)
     {
+        // connecting relevant slots to signals
         net_.grown().connect(boost::bind(&self_type::agent_added, this, _1));
+
+        // initializing follow models
+        default_follow_model_ = 
+            boost::bind(&self_type::random_follow_model , this , _1 );
+        //default_follow_model_ = 
+        //    boost::bind(&self_type::twitter_follow_model , this , _1 );
+        model_weights_ = { 1, 0, 0, 0, 0 };
+        follow_models_ =
+        {
+            boost::bind(&self_type::random_follow_model , this , _1 )
+        ,   boost::bind(&self_type::twitter_suggest_follow_model , this , _1 )
+        ,   boost::bind(&self_type::agent_follow_model , this , _1 )
+        ,   boost::bind(&self_type::preferential_agent_follow_model , this , _1 )
+        ,   boost::bind(&self_type::hashtag_follow_model , this , _1 )
+        };
 
         T spc = cnf_.template get<T>("hashkat.follow_ranks.bin_spacing", T(1));
         T min = cnf_.template get<T>("hashkat.follow_ranks.min", T(1));
@@ -111,23 +132,21 @@ public:
         return out;
     }
 
+// Implementation
+// everyhting below here is not reliable to count on
 private:
-    NetworkType& net_;
-    ContentsType& cnt_;
-    ConfigType& cnf_;
-    RngType& rng_;
-    T n_connections_;
-    T kmax_;
-    std::vector<std::unordered_set<T>> bins_;
-    std::vector<V> weights_;
-
     virtual bool do_action()
     {
+        BOOST_CONSTEXPR_OR_CONST auto failed = std::numeric_limits<T>::max();
+
         auto follower = select_follower();
-        auto followee = select_followee();
-        while ( follower == followee
+        if (follower == failed)
+            return false;
+
+        auto followee = select_followee(follower);
+        while ( followee == failed
             ||  net_.have_connection(followee, follower) )
-            followee = select_followee();
+            followee = select_followee(follower);
 
         auto idx = net_.followers_size(followee) * bins_.size()
                  / net_.max_size();
@@ -150,10 +169,48 @@ private:
         return di(rng_);
     }
 
-    T select_followee()
+    T select_followee(T follower)
+    {
+        T followee = default_follow_model_(follower);
+        // check for the same language must be added later
+        return followee == follower ? std::numeric_limits<T>::max() : followee;
+    }
+
+    T random_follow_model(T follower)
     {
         std::uniform_int_distribution<T> di(0, net_.size() - 1);
         return di(rng_);
+    }
+
+    T twitter_suggest_follow_model(T follower)
+    {
+        // not implemented yet
+        return std::numeric_limits<T>::max();
+    }
+
+    T agent_follow_model(T follower)
+    {
+        // not implemented yet
+        return std::numeric_limits<T>::max();
+    }
+
+    T preferential_agent_follow_model(T follower)
+    {
+        // not implemented yet
+        return std::numeric_limits<T>::max();
+    }
+
+    T hashtag_follow_model(T follower)
+    {
+        // not implemented yet
+        return std::numeric_limits<T>::max();
+    }
+
+    T twitter_follow_model(T follower)
+    {
+        std::discrete_distribution<T>
+            di(model_weights_.begin(), model_weights_.end());
+        return follow_models_[di(rng_)](follower);
     }
 
     void agent_added(T idx)
@@ -161,6 +218,19 @@ private:
         bins_[0].insert(idx);
         ++n_connections_;
     }
+
+// member variables
+    NetworkType& net_;
+    ContentsType& cnt_;
+    ConfigType& cnf_;
+    RngType& rng_;
+    T n_connections_;
+    T kmax_;
+    std::vector<std::unordered_set<T>> bins_;
+    std::vector<V> weights_;
+    std::function<T(T)> default_follow_model_;
+    std::array<std::function<T(T)>, 5> follow_models_;
+    std::array<T, 5> model_weights_;
 };
 
 template
@@ -176,6 +246,10 @@ std::ostream& operator<< (
 {
     return tfa.print(out);
 }
+
+#ifdef _MSC_VER
+#   pragma warning( pop )
+#endif  // _MSC_VER
 
 }    // namespace hashkat
 
