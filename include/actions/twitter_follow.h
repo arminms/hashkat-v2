@@ -73,11 +73,6 @@ public:
         net_.grown().connect(boost::bind(&self_type::agent_added, this, _1));
 
         // initializing follow models
-        default_follow_model_ = 
-            boost::bind(&self_type::random_follow_model , this , _1);
-        //default_follow_model_ = 
-        //    boost::bind(&self_type::twitter_follow_model , this , _1 );
-        model_weights_ = { 1, 0, 0, 0, 0 };
         follow_models_ =
         {
             boost::bind(&self_type::random_follow_model , this , _1)
@@ -87,11 +82,45 @@ public:
         ,   boost::bind(&self_type::hashtag_follow_model, this, _1)
         };
 
-        T spc = cnf_.template get<T>("hashkat.follow_ranks.bin_spacing", T(1));
-        T min = cnf_.template get<T>("hashkat.follow_ranks.min", T(1));
-        T max = cnf_.template get<T>("hashkat.follow_ranks.max", net_.max_size());
-        T inc = cnf_.template get<T>("hashkat.follow_ranks.increment", T(1));
-        V exp = cnf_.template get<V>("hashkat.follow_ranks.exponent", V(1.0));
+        std::string follow_model = cnf_.template
+            get<std::string>("hashkat.follow_model", "twitter");
+
+        if (follow_model == "random")
+            default_follow_model_ = follow_models_[0];
+        else if (follow_model == "twitter_suggest")
+            default_follow_model_ = follow_models_[1];
+        else if (follow_model == "agent")
+            default_follow_model_ = follow_models_[2];
+        else if (follow_model == "preferential_agent")
+            default_follow_model_ = follow_models_[3];
+        else if (follow_model == "hashtag")
+            default_follow_model_ = follow_models_[4];
+        else
+            default_follow_model_ = 
+                boost::bind(&self_type::twitter_follow_model , this , _1 );
+
+        model_weights_[0] = cnf_.template get<T>
+            ("hashkat.twitter_follow_model.weights.random", T(1));
+        model_weights_[1] = cnf_.template get<T>
+            ("hashkat.twitter_follow_model.weights.twitter_suggest", T(1));
+        model_weights_[2] = cnf_.template get<T>
+            ("hashkat.twitter_follow_model.weights.agent", T(1));
+        model_weights_[3] = cnf_.template get<T>
+            ("hashkat.twitter_follow_model.weights.preferential_agent", T(1));
+        model_weights_[4] = cnf_.template get<T>
+            ("hashkat.twitter_follow_model.weights.hashtag", T(1));
+
+        // initializing bins
+        T spc = cnf_.template get<T>
+            ("hashkat.follow_ranks.bin_spacing", T(1));
+        T min = cnf_.template get<T>
+            ("hashkat.follow_ranks.min", T(1));
+        T max = cnf_.template get<T>
+            ("hashkat.follow_ranks.max", net_.max_size());
+        T inc = cnf_.template get<T>
+            ("hashkat.follow_ranks.increment", T(1));
+        V exp = cnf_.template get<V>
+            ("hashkat.follow_ranks.exponent", V(1.0));
 
         for (auto i = 1; i < spc; ++i)
             inc *= inc;

@@ -2,6 +2,16 @@
 	<network>
 		<max_agents>10</max_agents>
 	</network>
+	<follow_model>random</follow_model>
+	<twitter_follow_model>
+		<weights>
+			<random>1</random>
+			<twitter_suggest>0</twitter_suggest>
+			<agent>0</agent>
+			<preferential_agent>0</preferential_agent>
+			<hashtag>0</hashtag>
+		</weights>
+	</twitter_follow_model>
 	<follow_ranks>
 		<bin_spacing>1</bin_spacing>
 		<min>1</min>
