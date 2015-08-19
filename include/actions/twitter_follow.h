@@ -95,9 +95,11 @@ public:
             default_follow_model_ = follow_models_[3];
         else if (follow_model == "hashtag")
             default_follow_model_ = follow_models_[4];
-        else
+        else if  (follow_model == "twitter")
             default_follow_model_ = 
                 boost::bind(&self_type::twitter_follow_model , this , _1 );
+        else
+            default_follow_model_ = follow_models_[0];
 
         if (follow_model == "twitter")
         {
