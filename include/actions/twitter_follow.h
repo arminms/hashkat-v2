@@ -99,16 +99,19 @@ public:
             default_follow_model_ = 
                 boost::bind(&self_type::twitter_follow_model , this , _1 );
 
-        model_weights_[0] = cnf_.template get<T>
-            ("hashkat.twitter_follow_model.weights.random", T(1));
-        model_weights_[1] = cnf_.template get<T>
-            ("hashkat.twitter_follow_model.weights.twitter_suggest", T(1));
-        model_weights_[2] = cnf_.template get<T>
-            ("hashkat.twitter_follow_model.weights.agent", T(1));
-        model_weights_[3] = cnf_.template get<T>
-            ("hashkat.twitter_follow_model.weights.preferential_agent", T(1));
-        model_weights_[4] = cnf_.template get<T>
-            ("hashkat.twitter_follow_model.weights.hashtag", T(1));
+        if (follow_model == "twitter")
+        {
+            model_weights_[0] = cnf_.template get<T>
+                ("hashkat.twitter_follow_model.weights.random", T(1));
+            model_weights_[1] = cnf_.template get<T>
+                ("hashkat.twitter_follow_model.weights.twitter_suggest", T(1));
+            model_weights_[2] = cnf_.template get<T>
+                ("hashkat.twitter_follow_model.weights.agent", T(1));
+            model_weights_[3] = cnf_.template get<T>
+                ("hashkat.twitter_follow_model.weights.preferential_agent", T(1));
+            model_weights_[4] = cnf_.template get<T>
+                ("hashkat.twitter_follow_model.weights.hashtag", T(1));
+         }
 
         // initializing bins
         T spc = cnf_.template get<T>
@@ -202,7 +205,7 @@ private:
     T select_followee(T follower)
     {
         T followee = default_follow_model_(follower);
-        // check for the same language must be added later
+        // TODO - check for having the same language
         return followee == follower ? std::numeric_limits<T>::max() : followee;
     }
 
@@ -214,8 +217,15 @@ private:
 
     T twitter_suggest_follow_model(T follower)
     {
-        // not implemented yet
-        return std::numeric_limits<T>::max();
+        std::size_t i(0);
+        std::discrete_distribution<> di(
+            kmax_
+        ,   0.0 // dummy
+        ,   0.0 // dummy
+        ,   [&](double) //-> double
+        {   return weights_[i++];    });
+        //{   return weights_[i] * bins_[i++].size();    });
+        return di(rng_);
     }
 
     T agent_follow_model(T follower)
