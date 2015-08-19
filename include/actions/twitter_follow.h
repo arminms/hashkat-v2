@@ -179,9 +179,10 @@ private:
             return false;
 
         auto followee = select_followee(follower);
-        while ( followee == failed
-            ||  net_.have_connection(followee, follower) )
-            followee = select_followee(follower);
+        //while (followee == failed)
+        //    followee = select_followee(follower);
+        if (followee == failed || net_.have_connection(followee, follower))
+            return false;
 
         auto idx = net_.followers_size(followee) * bins_.size()
                  / net_.max_size();
@@ -220,14 +221,16 @@ private:
     T twitter_suggest_follow_model(T follower)
     {
         std::size_t i(0);
-        std::discrete_distribution<> di(
+        std::discrete_distribution<T> di(
             kmax_
-        ,   0.0 // dummy
-        ,   0.0 // dummy
+        ,   0
+        ,   weights_[kmax_] * bins_[kmax_].size()
         ,   [&](double) //-> double
-        {   return weights_[i++];    });
-        //{   return weights_[i] * bins_[i++].size();    });
-        return di(rng_);
+        //{   return weights_[i++];    });
+        //{ auto w = weights_[i]* bins_[i].size(); ++i; return w; });
+        {   return weights_[i] * bins_[i++].size();    });
+        auto followee = bins_[di(rng_)].cbegin();
+        return *followee;
     }
 
     T agent_follow_model(T follower)

@@ -107,22 +107,22 @@ BOOST_FIXTURE_TEST_CASE(Bins_10_10_1, FOLDERS)
     BOOST_CHECK(cout.match_pattern());
 }
 
-//BOOST_FIXTURE_TEST_CASE(Twitter_Suggest_Follow_Model, FOLDERS)
-//{
-//    dummy mock_cnts;
-//    test_config conf;
-//    test_rng rng;
-//    pt::read_xml(cnf_folder + "follow_config_02.xml", conf);
-//    test_network n(conf);
-//    test_twitter_follow ttf(n, mock_cnts, conf, rng);
-//
-//    n.grow(10);
-//    for (auto i = 0; i < 6; ++i)
-//        ttf();
-//
-//    output_test_stream cout(
-//        ptn_folder + "twitter_follow_02.txt"
-//    ,   !butrc::save_pattern());
-//    cout << ttf;
-//    BOOST_CHECK(cout.match_pattern());
-//}
+BOOST_FIXTURE_TEST_CASE(Twitter_Suggest_Follow_Model, FOLDERS)
+{
+    dummy mock_cnts;
+    test_config conf;
+    test_rng rng;
+    pt::read_xml(cnf_folder + "follow_config_02.xml", conf);
+    test_network n(conf);
+    test_twitter_follow ttf(n, mock_cnts, conf, rng);
+
+    n.grow(10);
+    for (auto i = 0; i < 5; ++i)
+        ttf();
+
+    output_test_stream cout(
+        ptn_folder + "twitter_follow_02.txt"
+    ,   !butrc::save_pattern());
+    cout << ttf;
+    BOOST_CHECK(cout.match_pattern());
+}
