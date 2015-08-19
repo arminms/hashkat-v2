@@ -35,10 +35,10 @@ namespace hashkat {
 ////////////////////////////////////////////////////////////////////////////////
 // twitter_follow action class
 
-#ifdef _MSC_VER
-#   pragma warning( push )
-#   pragma warning( disable: 4503 )
-#endif  // _MSC_VER
+#   ifdef _MSC_VER
+#       pragma warning( push )
+#       pragma warning( disable: 4503 )
+#   endif  // _MSC_VER
 
 template
 <
@@ -50,7 +50,8 @@ template
 class twitter_follow
 :   public action_base<NetworkType, ContentsType, ConfigType, RngType>
 {
-    typedef twitter_follow<NetworkType, ContentsType, ConfigType, RngType> self_type;
+    typedef twitter_follow<NetworkType, ContentsType, ConfigType, RngType>
+        self_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
 
@@ -73,17 +74,17 @@ public:
 
         // initializing follow models
         default_follow_model_ = 
-            boost::bind(&self_type::random_follow_model , this , _1 );
+            boost::bind(&self_type::random_follow_model , this , _1);
         //default_follow_model_ = 
         //    boost::bind(&self_type::twitter_follow_model , this , _1 );
         model_weights_ = { 1, 0, 0, 0, 0 };
         follow_models_ =
         {
-            boost::bind(&self_type::random_follow_model , this , _1 )
-        ,   boost::bind(&self_type::twitter_suggest_follow_model , this , _1 )
+            boost::bind(&self_type::random_follow_model , this , _1)
+        ,   boost::bind(&self_type::twitter_suggest_follow_model , this, _1)
         ,   boost::bind(&self_type::agent_follow_model , this , _1 )
-        ,   boost::bind(&self_type::preferential_agent_follow_model , this , _1 )
-        ,   boost::bind(&self_type::hashtag_follow_model , this , _1 )
+        ,   boost::bind(&self_type::preferential_agent_follow_model, this, _1)
+        ,   boost::bind(&self_type::hashtag_follow_model, this, _1)
         };
 
         T spc = cnf_.template get<T>("hashkat.follow_ranks.bin_spacing", T(1));
@@ -247,9 +248,9 @@ std::ostream& operator<< (
     return tfa.print(out);
 }
 
-#ifdef _MSC_VER
-#   pragma warning( pop )
-#endif  // _MSC_VER
+#   ifdef _MSC_VER
+#       pragma warning( pop )
+#   endif  // _MSC_VER
 
 }    // namespace hashkat
 
