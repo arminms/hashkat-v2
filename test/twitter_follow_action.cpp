@@ -117,7 +117,7 @@ BOOST_FIXTURE_TEST_CASE(Twitter_Suggest_Follow_Model, FOLDERS)
     test_twitter_follow ttf(n, mock_cnts, conf, rng);
 
     n.grow(10);
-    for (auto i = 0; i < 5; ++i)
+    for (auto i = 0; i < 8; ++i)
         ttf();
 
     output_test_stream cout(
