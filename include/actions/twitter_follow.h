@@ -220,6 +220,11 @@ private:
 
     T twitter_suggest_follow_model(T follower)
     {
+        //std::vector<V> weights(weights_);
+        //for (auto i = 0; i < weights.size(); ++i)
+        //    weights[i] *= bins_[i].size();
+        //std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
+
         std::vector<V> weights;
         weights.reserve(kmax_ + 1);
         std::transform(
@@ -227,35 +232,16 @@ private:
         ,   weights_.cbegin() + kmax_ + 1
         ,   bins_.cbegin()
         ,   std::back_inserter(weights)
-        ,   [](V w, std::unordered_set<T> b) { return w * b.size(); });
-        //for (auto w : weights_)
-        //    std::cout << std::fixed << std::setprecision(3) << w << std::endl;
+        ,   [](V w, const std::unordered_set<T>& b)
+            { return w * b.size(); });
         std::discrete_distribution<T> di(weights.begin(), weights.end());
-
-        //std::vector<V> weights(weights_);
-        //for (auto i = 0; i < weights.size(); ++i)
-
-        //std::vector<V> weights(weights_.begin(), weights_.begin() + kmax_ + 1);
-        //for (auto i = 0; i <= kmax_; ++i)
-        //    weights[i] *= bins_[i].size();
-        //std::discrete_distribution<T> di(weights.begin(), weights.end());
 
         //std::size_t i(0);
         //std::discrete_distribution<T> di(
         //    kmax_ + 1
         //,   0
-        //,   kmax_ + 1 
-        //,   [&](double) //-> double
-        //{   return double(weights_[i] * bins_[i++].size());    });
-
-        //std::size_t i(0);
-        //std::discrete_distribution<T> di(
-        //    kmax_
-        //,   0
-        //,   weights_[kmax_] * bins_[kmax_].size()
-        //,   [&](double) //-> double
-        ////{   return weights_[i++];    });
-        ////{ auto w = weights_[i]* bins_[i].size(); ++i; return w; });
+        //,   double(kmax_ + 1) 
+        //,   [&](double)
         //{   return weights_[i] * bins_[i++].size();    });
 
         auto followee = bins_[di(rng_)].cbegin();
