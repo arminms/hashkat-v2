@@ -1,15 +1,9 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
-project(hashkat-lib)
+project(hashkat-lib CXX)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
-    add_definitions(-stdlib=libc++ -std=c++11)
-elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
-    add_definitions(-std=c++11)
-elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL Intel)
-    add_definitions(-std=c++11)
-elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
-  add_definitions(-DWIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS /EHa)
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+  add_definitions(-DWIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS /EHa /bigobj)
 endif()
 
 file(COPY "include" DESTINATION ".")
