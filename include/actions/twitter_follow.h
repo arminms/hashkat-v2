@@ -233,7 +233,7 @@ private:
         ,   bins_.cbegin()
         ,   std::back_inserter(weights)
         ,   [](V w, const std::unordered_set<T>& b)
-            { return w * b.size(); });
+        {   return w * b.size();    });
         std::discrete_distribution<T> di(weights.begin(), weights.end());
 
         //std::size_t i(0);

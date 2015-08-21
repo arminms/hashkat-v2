@@ -55,10 +55,6 @@ private:
     T n_agents_, max_agents_;
     std::vector<std::unordered_set<T>> followers_;
     std::vector<std::unordered_set<T>> followees_;
-    std::vector<std::unordered_set<T>> bins_;
-    std::vector<ValueType> weights_;
-    T denominator_;
-    T kmax_;
     grown_signal_type grown_signal_;
     connection_added_signal_type connection_added_signal_;
     connection_removed_signal_type connection_removed_signal_;
@@ -68,24 +64,18 @@ public:
     :   agents_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
-    ,   denominator_(0)
-    ,   kmax_(0)
     {}
 
     network(const ConfigType& conf)
     :   agents_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
-    ,   denominator_(0)
-    ,   kmax_(0)
     {   allocate(conf.template get<T>("hashkat.network.max_agents", 1000)); }
 
     network(T n)
     :   agents_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
-    ,   denominator_(0)
-    ,   kmax_(0)
     {   allocate(n); }
 
     ~network()
@@ -107,8 +97,6 @@ public:
         {
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
-            //bins_[0].insert(n_agents_);
-            //++denominator_;
             ++n_agents_;
             grown_signal_(n_agents_ -1);
         }
@@ -145,27 +133,6 @@ public:
     connection_removed_signal_type& connection_removed()
     {   return connection_removed_signal_;  }
 
-    void initialize_bins(T min, T max, T inc = T(1),
-        ValueType exp = ValueType(1), T spc = T(1))
-    {
-        for (auto i = 1; i < spc; ++i)
-            inc *= inc;
-
-        T count = (max - min) / inc;
-        bins_.reserve(count + 1);
-        weights_.reserve(count + 1);
-        ValueType total_weight = 0;
-        for (auto i = min; i <= max; i += inc)
-        {
-            bins_.emplace_back(std::unordered_set<T>());
-            weights_.push_back(ValueType(std::pow(ValueType(i), exp)));
-            total_weight += weights_.back();
-        }
-        if (total_weight > 0)
-            for (auto i = 0; i < weights_.size(); ++i)
-                weights_[i] /= total_weight;
-    }
-
     T followees_size(T id) const
     {
         return followees_[id].size();
@@ -174,16 +141,6 @@ public:
     T followers_size(T id) const
     {
         return followers_[id].size();
-    }
-
-    T denominator() const
-    {
-        return denominator_;
-    }
-
-    T kmax() const
-    {
-        return kmax_;
     }
 
     bool can_grow() const
@@ -204,15 +161,8 @@ public:
         BOOST_ASSERT_MSG(!have_connection(followee_id, follower_id),
             "already connected :(");
 
-        //auto idx = followers_size(followee_id) * bins_.size() / max_agents_;
-        //bins_[idx].erase(followee_id);
         followers_[followee_id].insert(follower_id);
         followees_[follower_id].insert(followee_id);
-        //idx = followers_size(followee_id) * bins_.size() / max_agents_;
-        //bins_[idx].insert(followee_id);
-        //++denominator_;
-        //if (kmax_ < idx)
-        //    kmax_ = idx;
         connection_added_signal_(followee_id, follower_id);
     }
 
@@ -223,13 +173,8 @@ public:
         BOOST_ASSERT_MSG(have_connection(unfollowee_id, unfollower_id),
             "no connection to remove :(");
 
-        //auto idx = followers_size(unfollowee_id) * bins_.size() / max_agents_;
-        //bins_[idx].erase(unfollowee_id);
         followers_[unfollowee_id].erase(unfollower_id);
         followees_[unfollower_id].erase(unfollowee_id);
-        //idx = followers_size(unfollowee_id) * bins_.size() / max_agents_;
-        //bins_[idx].insert(unfollowee_id);
-        //--denominator_;
         connection_removed_signal_(unfollowee_id, unfollower_id);
     }
 
@@ -237,9 +182,6 @@ public:
     {
         out << "# Maximum Number of Agents: " << max_agents_ << std::endl;
         out << "# Number of Agents: " << n_agents_ << std::endl;
-        out << "# Number of Bins: " << bins_.size() << std::endl;
-        out << "# Denominator: " << denominator_ << std::endl;
-        out << "# kmax: " << kmax_ << std::endl;
         out << "# Network: " << std::endl;
 
         for (auto i = 0; i < n_agents_; ++i)
@@ -261,18 +203,6 @@ public:
             for (auto following : followees_[i])
                 out << following << ',';
             out << std::endl;
-
-            if (i < bins_.size())
-            {
-                out << "    \\---[bin] "
-                    << weights_[i] << std::endl
-                    << "        \\--- "
-                    << bins_[i].size()
-                    << " -> ";
-                for (auto followed : bins_[i])
-                    out << followed << ',';
-                out << std::endl;
-            }
         }
         return out;
     }

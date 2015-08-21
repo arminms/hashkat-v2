@@ -60,17 +60,14 @@ struct FOLDER
 {
     FOLDER()
 #ifdef _MSC_VER
-    :   folder(std::getenv("HASHKAT"))
+    :   folder(std::getenv("HASHKAT") ? std::getenv("HASHKAT") : "")
     {
         if (!folder.empty())
-            folder += "/test/patterns/vc_";
+            folder += "/test/patterns/";
         else
-            std::cout << "HASHKAT environment variable is not defined\n";
-#elif defined(__clang__)
-    :   folder("patterns/clang_")
-    {
+            folder = "patterns/";
 #else
-    :   folder("patterns/gcc_")
+    :   folder("patterns/")
     {
 #endif  // _MSC_VER
     }
@@ -78,67 +75,27 @@ struct FOLDER
     std::string folder;
 };
 
-struct INIT_NETWORK
+BOOST_FIXTURE_TEST_CASE(Config_Constructor, FOLDER)
 {
-    INIT_NETWORK()
-    :   n(100)
-#ifdef _MSC_VER
-    ,   folder(std::getenv("HASHKAT"))
-    {
-        if (!folder.empty())
-            folder += "/test/patterns/vc_";
-        else
-            std::cout << "HASHKAT environment variable is not defined\n";
-#elif defined(__clang__)
-    , folder("patterns/clang_")
-    {
-#else
-    , folder("patterns/gcc_")
-    {
-#endif  // _MSC_VER
-        n.initialize_bins(1, 100, 1);
-        n.grow(100);
-
-        std::mt19937 gen(333);
-        std::uniform_int_distribution<int> di(0, 99);
-        for (auto i = 0; i < 1000; ++i)
-        {
-            if (i < 100)
-                n[i].id_ = i;
-            auto followed = di(gen), follower = di(gen);
-            if (followed != follower && !n.have_connection(followed, follower))
-                n.connect(followed, follower);
-        }
-    }
-
-    network<test_agent> n;
-    std::string folder;
-};
-
-BOOST_AUTO_TEST_CASE(Config_Constructor)
-{
-#ifdef _MSC_VER
-    std::string folder(std::getenv("HASHKAT"));
-    if (!folder.empty())
-        folder += "/test/patterns/";
-    else
-        std::cout << "HASHKAT environment variable is not defined\n";
-#else
-    std::string folder("patterns/");
-#endif  // _MSC_VER
     typedef boost::property_tree::ptree config;
     config conf;
-    boost::property_tree::read_xml(folder + "config.xml", conf);
+    boost::property_tree::read_xml(folder + "network_config.xml", conf);
     network<test_agent, config> n(conf);
 
     BOOST_CHECK_EQUAL(n.max_size(), 10000);
 }
 
-BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, INIT_NETWORK)
+BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, FOLDER)
 {
     output_test_stream cout(
         folder + "network_01.txt"
     ,   !butrc::save_pattern());
+
+    network<test_agent> n(10);
+    n.grow(10);
+    for (auto i = 0; i < n.size(); ++i)
+        n[i].id_ = i;
+
     for (auto agent : n)
         cout << agent.id_ << ',';
     BOOST_CHECK(cout.match_pattern());
@@ -147,7 +104,6 @@ BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, INIT_NETWORK)
 BOOST_AUTO_TEST_CASE(Connection)
 {
     network<test_agent> n(2);
-    n.initialize_bins(1, 2);
     n.grow(2);
 
     BOOST_CHECK(!n.have_connection(0, 1));
@@ -170,173 +126,178 @@ BOOST_AUTO_TEST_CASE(Connection)
     BOOST_CHECK(!n.have_connection(1, 0));
 }
 
-BOOST_FIXTURE_TEST_CASE(Print, INIT_NETWORK)
+BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
 {
     output_test_stream cout(
         folder + "network_02.txt"
     ,   !butrc::save_pattern());
-    cout << n;
-    BOOST_CHECK(cout.match_pattern());
-}
 
-BOOST_FIXTURE_TEST_CASE(Bins_10_10_1, FOLDER)
-{
-    output_test_stream cout(
-        folder + "network_03.txt"
-    ,   !butrc::save_pattern());
+    network<test_agent> n(100);
+    n.grow(100);
 
-    network<test_agent> n(10);
-    n.initialize_bins(1, 10, 1);
-    n.grow(10);
+    std::vector<std::size_t> v1(100);
+    std::iota(v1.begin(), v1.end(), 0);
+    std::vector<std::size_t> v2(v1.size());
+    std::rotate_copy(v1.begin(), v1.begin() + 50, v1.end(), v2.begin());
 
-    std::mt19937 gen(333);
-    std::uniform_int_distribution<int> di(0, 9);
-    for (auto i = 0; i < 25; ++i)
-    {
-        auto followed = di(gen), follower = di(gen);
-        if (followed != follower && !n.have_connection(followed, follower))
-            n.connect(followed, follower);
-    }
+    for (auto i = 0; i < v1.size(); ++i)
+        if (v1[i] != v2[i] && !n.have_connection(v1[i], v2[i]))
+            n.connect(v1[i], v2[i]);
 
     cout << n;
     BOOST_CHECK(cout.match_pattern());
 }
 
-BOOST_FIXTURE_TEST_CASE(Bins_20_10_1, FOLDER)
-{
-    output_test_stream cout(
-        folder + "network_04.txt"
-    ,   !butrc::save_pattern());
-
-    network<test_agent> n(20);
-    n.initialize_bins(1, 10, 1);
-    n.grow(10);
-
-    std::mt19937 gen(333);
-    std::uniform_int_distribution<int> di(0, 9);
-    for (auto i = 0; i < 25; ++i)
-    {
-        auto followed = di(gen), follower = di(gen);
-        if (followed != follower && !n.have_connection(followed, follower))
-            n.connect(followed, follower);
-    }
-
-    cout << n;
-    BOOST_CHECK(cout.match_pattern());
-}
-
-BOOST_FIXTURE_TEST_CASE(Bins_10_10_2, FOLDER)
-{
-    output_test_stream cout(
-        folder + "network_05.txt"
-    ,   !butrc::save_pattern());
-
-    network<test_agent> n(10);
-    n.initialize_bins(1, 10, 2);
-    n.grow(10);
-
-    std::mt19937 gen(333);
-    std::uniform_int_distribution<int> di(0, 9);
-    for (auto i = 0; i < 25; ++i)
-    {
-        auto followed = di(gen), follower = di(gen);
-        if (followed != follower && !n.have_connection(followed, follower))
-            n.connect(followed, follower);
-    }
-
-    cout << n;
-    BOOST_CHECK(cout.match_pattern());
-}
-
-BOOST_FIXTURE_TEST_CASE(Bins_10_10_3, FOLDER)
-{
-    output_test_stream cout(
-        folder + "network_06.txt"
-    ,   !butrc::save_pattern());
-
-    network<test_agent> n(10);
-    n.initialize_bins(1, 10, 3);
-    n.grow(10);
-
-    std::mt19937 gen(333);
-    std::uniform_int_distribution<int> di(0, 9);
-    for (auto i = 0; i < 25; ++i)
-    {
-        auto followed = di(gen), follower = di(gen);
-        if (followed != follower && !n.have_connection(followed, follower))
-            n.connect(followed, follower);
-    }
-
-    cout << n;
-    BOOST_CHECK(cout.match_pattern());
-}
-
-BOOST_FIXTURE_TEST_CASE(Bins_21_10_3, FOLDER)
-{
-    output_test_stream cout(
-        folder + "network_07.txt"
-    ,   !butrc::save_pattern());
-
-    network<test_agent> n(21);
-    n.initialize_bins(1, 10, 3);
-    n.grow(10);
-
-    std::mt19937 gen(333);
-    std::uniform_int_distribution<int> di(0, 9);
-    for (auto i = 0; i < 25; ++i)
-    {
-        auto followed = di(gen), follower = di(gen);
-        if (followed != follower && !n.have_connection(followed, follower))
-            n.connect(followed, follower);
-    }
-
-    cout << n;
-    BOOST_CHECK(cout.match_pattern());
-}
-
-BOOST_FIXTURE_TEST_CASE(Bins_10_10_2_1_2, FOLDER)
-{
-    output_test_stream cout(
-        folder + "network_08.txt"
-    ,   !butrc::save_pattern());
-
-    network<test_agent> n(10);
-    n.initialize_bins(1, 10, 2, 1, 2);
-    n.grow(10);
-
-    std::mt19937 gen(333);
-    std::uniform_int_distribution<int> di(0, 9);
-    for (auto i = 0; i < 25; ++i)
-    {
-        auto followed = di(gen), follower = di(gen);
-        if (followed != follower && !n.have_connection(followed, follower))
-            n.connect(followed, follower);
-    }
-
-    cout << n;
-    BOOST_CHECK(cout.match_pattern());
-}
-
-BOOST_FIXTURE_TEST_CASE(Bins_10_10_1_2, FOLDER)
-{
-    output_test_stream cout(
-        folder + "network_09.txt"
-    ,   !butrc::save_pattern());
-
-    network<test_agent> n(10);
-    n.initialize_bins(1, 10, 1, 2);
-    n.grow(10);
-
-    std::mt19937 gen(333);
-    std::uniform_int_distribution<int> di(0, 9);
-    for (auto i = 0; i < 25; ++i)
-    {
-        auto followed = di(gen), follower = di(gen);
-        if (followed != follower && !n.have_connection(followed, follower))
-            n.connect(followed, follower);
-    }
-
-    cout << n;
-    BOOST_CHECK(cout.match_pattern());
-}
-
+//BOOST_FIXTURE_TEST_CASE(Bins_10_10_1, FOLDER)
+//{
+//    output_test_stream cout(
+//        folder + "network_03.txt"
+//    ,   !butrc::save_pattern());
+//
+//    network<test_agent> n(10);
+//    n.grow(10);
+//
+//    std::mt19937 gen(333);
+//    std::uniform_int_distribution<int> di(0, 9);
+//    for (auto i = 0; i < 25; ++i)
+//    {
+//        auto followee = di(gen), follower = di(gen);
+//        if (followee != follower && !n.have_connection(followee, follower))
+//            n.connect(followee, follower);
+//    }
+//
+//    cout << n;
+//    BOOST_CHECK(cout.match_pattern());
+//}
+//
+//BOOST_FIXTURE_TEST_CASE(Bins_20_10_1, FOLDER)
+//{
+//    output_test_stream cout(
+//        folder + "network_04.txt"
+//    ,   !butrc::save_pattern());
+//
+//    network<test_agent> n(20);
+//    n.grow(10);
+//
+//    std::mt19937 gen(333);
+//    std::uniform_int_distribution<int> di(0, 9);
+//    for (auto i = 0; i < 25; ++i)
+//    {
+//        auto followee = di(gen), follower = di(gen);
+//        if (followee != follower && !n.have_connection(followee, follower))
+//            n.connect(followee, follower);
+//    }
+//
+//    cout << n;
+//    BOOST_CHECK(cout.match_pattern());
+//}
+//
+//BOOST_FIXTURE_TEST_CASE(Bins_10_10_2, FOLDER)
+//{
+//    output_test_stream cout(
+//        folder + "network_05.txt"
+//    ,   !butrc::save_pattern());
+//
+//    network<test_agent> n(10);
+//    n.grow(10);
+//
+//    std::mt19937 gen(333);
+//    std::uniform_int_distribution<int> di(0, 9);
+//    for (auto i = 0; i < 25; ++i)
+//    {
+//        auto followee = di(gen), follower = di(gen);
+//        if (followee != follower && !n.have_connection(followee, follower))
+//            n.connect(followee, follower);
+//    }
+//
+//    cout << n;
+//    BOOST_CHECK(cout.match_pattern());
+//}
+//
+//BOOST_FIXTURE_TEST_CASE(Bins_10_10_3, FOLDER)
+//{
+//    output_test_stream cout(
+//        folder + "network_06.txt"
+//    ,   !butrc::save_pattern());
+//
+//    network<test_agent> n(10);
+//    n.grow(10);
+//
+//    std::mt19937 gen(333);
+//    std::uniform_int_distribution<int> di(0, 9);
+//    for (auto i = 0; i < 25; ++i)
+//    {
+//        auto followee = di(gen), follower = di(gen);
+//        if (followee != follower && !n.have_connection(followee, follower))
+//            n.connect(followee, follower);
+//    }
+//
+//    cout << n;
+//    BOOST_CHECK(cout.match_pattern());
+//}
+//
+//BOOST_FIXTURE_TEST_CASE(Bins_21_10_3, FOLDER)
+//{
+//    output_test_stream cout(
+//        folder + "network_07.txt"
+//    ,   !butrc::save_pattern());
+//
+//    network<test_agent> n(21);
+//    n.grow(10);
+//
+//    std::mt19937 gen(333);
+//    std::uniform_int_distribution<int> di(0, 9);
+//    for (auto i = 0; i < 25; ++i)
+//    {
+//        auto followee = di(gen), follower = di(gen);
+//        if (followee != follower && !n.have_connection(followee, follower))
+//            n.connect(followee, follower);
+//    }
+//
+//    cout << n;
+//    BOOST_CHECK(cout.match_pattern());
+//}
+//
+//BOOST_FIXTURE_TEST_CASE(Bins_10_10_2_1_2, FOLDER)
+//{
+//    output_test_stream cout(
+//        folder + "network_08.txt"
+//    ,   !butrc::save_pattern());
+//
+//    network<test_agent> n(10);
+//    n.grow(10);
+//
+//    std::mt19937 gen(333);
+//    std::uniform_int_distribution<int> di(0, 9);
+//    for (auto i = 0; i < 25; ++i)
+//    {
+//        auto followee = di(gen), follower = di(gen);
+//        if (followee != follower && !n.have_connection(followee, follower))
+//            n.connect(followee, follower);
+//    }
+//
+//    cout << n;
+//    BOOST_CHECK(cout.match_pattern());
+//}
+//
+//BOOST_FIXTURE_TEST_CASE(Bins_10_10_1_2, FOLDER)
+//{
+//    output_test_stream cout(
+//        folder + "network_09.txt"
+//    ,   !butrc::save_pattern());
+//
+//    network<test_agent> n(10);
+//    n.grow(10);
+//
+//    std::mt19937 gen(333);
+//    std::uniform_int_distribution<int> di(0, 9);
+//    for (auto i = 0; i < 25; ++i)
+//    {
+//        auto followee = di(gen), follower = di(gen);
+//        if (followee != follower && !n.have_connection(followee, follower))
+//            n.connect(followee, follower);
+//    }
+//
+//    cout << n;
+//    BOOST_CHECK(cout.match_pattern());
+//}
