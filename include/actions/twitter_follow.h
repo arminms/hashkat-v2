@@ -56,99 +56,37 @@ class twitter_follow
     typedef typename NetworkType::value_type V;
 
 public:
+    twitter_follow()
+    :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
+    ,   net_ptr_(nullptr)
+    ,   cnt_ptr_(nullptr)
+    ,   cnf_ptr_(nullptr)
+    ,   rng_ptr_(nullptr)
+    {}
+
     twitter_follow(
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
     ,   RngType& rng)
     :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
-    ,   net_(net)
-    ,   cnt_(cnt)
-    ,   cnf_(cnf)
-    ,   rng_(rng)
+    ,   net_ptr_(&net)
+    ,   cnt_ptr_(&cnt)
+    ,   cnf_ptr_(&cnf)
+    ,   rng_ptr_(&rng)
     ,   n_connections_(0)
     ,   kmax_(0)
     {
-        // connecting relevant slots to signals
-        net_.grown().connect(boost::bind(&self_type::agent_added, this, _1));
-
-        // initializing follow models
-        follow_models_ =
-        {
-            boost::bind(&self_type::random_follow_model , this , _1)
-        ,   boost::bind(&self_type::twitter_suggest_follow_model , this, _1)
-        ,   boost::bind(&self_type::agent_follow_model , this , _1 )
-        ,   boost::bind(&self_type::preferential_agent_follow_model, this, _1)
-        ,   boost::bind(&self_type::hashtag_follow_model, this, _1)
-        };
-
-        std::string follow_model = cnf_.template
-            get<std::string>("hashkat.follow_model", "twitter");
-
-        if (follow_model == "random")
-            default_follow_model_ = follow_models_[0];
-        else if (follow_model == "twitter_suggest")
-            default_follow_model_ = follow_models_[1];
-        else if (follow_model == "agent")
-            default_follow_model_ = follow_models_[2];
-        else if (follow_model == "preferential_agent")
-            default_follow_model_ = follow_models_[3];
-        else if (follow_model == "hashtag")
-            default_follow_model_ = follow_models_[4];
-        else if  (follow_model == "twitter")
-            default_follow_model_ = 
-                boost::bind(&self_type::twitter_follow_model , this , _1 );
-        else
-            default_follow_model_ = follow_models_[0];
-
-        if (follow_model == "twitter")
-        {
-            model_weights_[0] = cnf_.template get<T>
-                ("hashkat.twitter_follow_model.weights.random", T(1));
-            model_weights_[1] = cnf_.template get<T>
-                ("hashkat.twitter_follow_model.weights.twitter_suggest", T(1));
-            model_weights_[2] = cnf_.template get<T>
-                ("hashkat.twitter_follow_model.weights.agent", T(1));
-            model_weights_[3] = cnf_.template get<T>
-                ("hashkat.twitter_follow_model.weights.preferential_agent", T(1));
-            model_weights_[4] = cnf_.template get<T>
-                ("hashkat.twitter_follow_model.weights.hashtag", T(1));
-         }
-
-        // initializing bins
-        T spc = cnf_.template get<T>
-            ("hashkat.follow_ranks.bin_spacing", T(1));
-        T min = cnf_.template get<T>
-            ("hashkat.follow_ranks.min", T(1));
-        T max = cnf_.template get<T>
-            ("hashkat.follow_ranks.max", net_.max_size());
-        T inc = cnf_.template get<T>
-            ("hashkat.follow_ranks.increment", T(1));
-        V exp = cnf_.template get<V>
-            ("hashkat.follow_ranks.exponent", V(1.0));
-
-        for (auto i = 1; i < spc; ++i)
-            inc *= inc;
-
-        T count = (max - min) / inc;
-        bins_.reserve(count + 1);
-        weights_.reserve(count + 1);
-        V total_weight = 0;
-        for (auto i = min; i <= max; i += inc)
-        {
-            bins_.emplace_back(std::unordered_set<T>());
-            weights_.push_back(V(std::pow(V(i), exp)));
-            total_weight += weights_.back();
-        }
-        if (total_weight > 0)
-            for (auto i = 0; i < weights_.size(); ++i)
-                weights_[i] /= total_weight;
+        init_slots();
+        init_follow_models();
+        init_bins();
     }
 
     std::ostream& print(std::ostream& out) const
     {
-        out << "# Maximum Number of Agents: " << net_.max_size() << std::endl;
-        out << "# Number of Agents: " << net_.size() << std::endl;
+        out << "# Maximum Number of Agents: " << net_ptr_->max_size()
+            << std::endl;
+        out << "# Number of Agents: " << net_ptr_->size() << std::endl;
         out << "# Number of Bins: " << bins_.size() << std::endl;
         out << "# Number of Connections: " << n_connections_ << std::endl;
         out << "# kmax: " << kmax_ << std::endl;
@@ -170,6 +108,21 @@ public:
 // Implementation
 // everyhting below here is not reliable to count on
 private:
+    virtual void do_init(
+        NetworkType& net
+    ,   ContentsType& cnt
+    ,   ConfigType& cnf
+    ,   RngType& rng)
+    {
+        net_ptr_ = &net;
+        cnt_ptr_ = &cnt;
+        cnf_ptr_ = &cnf;
+        rng_ptr_ = &rng;
+        init_slots();
+        init_follow_models();
+        init_bins();
+    }
+
     virtual bool do_action()
     {
         BOOST_CONSTEXPR_OR_CONST auto failed = std::numeric_limits<T>::max();
@@ -181,16 +134,17 @@ private:
         auto followee = select_followee(follower);
         //while (followee == failed)
         //    followee = select_followee(follower);
-        if (followee == failed || net_.have_connection(followee, follower))
+        if (followee == failed || net_ptr_->have_connection(followee, follower))
             return false;
 
-        auto idx = net_.followers_size(followee) * bins_.size()
-                 / net_.max_size();
+        auto idx = net_ptr_->followers_size(followee) * bins_.size()
+                 / net_ptr_->max_size();
         bins_[idx].erase(followee);
 
-        net_.connect(followee, follower);
+        net_ptr_->connect(followee, follower);
 
-        idx = net_.followers_size(followee) * bins_.size() / net_.max_size();
+        idx = net_ptr_->followers_size(followee) * bins_.size()
+            / net_ptr_->max_size();
         bins_[idx].insert(followee);
         ++n_connections_;
         if (kmax_ < idx)
@@ -199,10 +153,95 @@ private:
         return true;
     }
 
+    // connec relevant slots to signals
+    void init_slots()
+    {
+        net_ptr_->grown().connect(
+            boost::bind(&self_type::agent_added, this, _1));
+    }
+
+    // initialize follow models
+    void init_follow_models()
+    {
+        follow_models_ =
+        {
+            boost::bind(&self_type::random_follow_model , this , _1)
+        ,   boost::bind(&self_type::twitter_suggest_follow_model , this, _1)
+        ,   boost::bind(&self_type::agent_follow_model , this , _1 )
+        ,   boost::bind(&self_type::preferential_agent_follow_model, this, _1)
+        ,   boost::bind(&self_type::hashtag_follow_model, this, _1)
+        };
+
+        std::string follow_model = cnf_ptr_->template
+            get<std::string>("hashkat.follow_model", "twitter");
+
+        if (follow_model == "random")
+            default_follow_model_ = follow_models_[0];
+        else if (follow_model == "twitter_suggest")
+            default_follow_model_ = follow_models_[1];
+        else if (follow_model == "agent")
+            default_follow_model_ = follow_models_[2];
+        else if (follow_model == "preferential_agent")
+            default_follow_model_ = follow_models_[3];
+        else if (follow_model == "hashtag")
+            default_follow_model_ = follow_models_[4];
+        else if  (follow_model == "twitter")
+            default_follow_model_ = 
+                boost::bind(&self_type::twitter_follow_model , this , _1 );
+        else
+            default_follow_model_ = follow_models_[0];
+
+        if (follow_model == "twitter")
+        {
+            model_weights_[0] = cnf_ptr_->template get<T>
+                ("hashkat.twitter_follow_model.weights.random", T(1));
+            model_weights_[1] = cnf_ptr_->template get<T>
+                ("hashkat.twitter_follow_model.weights.twitter_suggest", T(1));
+            model_weights_[2] = cnf_ptr_->template get<T>
+                ("hashkat.twitter_follow_model.weights.agent", T(1));
+            model_weights_[3] = cnf_ptr_->template get<T>
+                ("hashkat.twitter_follow_model.weights.preferential_agent", T(1));
+            model_weights_[4] = cnf_ptr_->template get<T>
+                ("hashkat.twitter_follow_model.weights.hashtag", T(1));
+         }
+    }
+
+    // initialize bins
+    void init_bins()
+    {
+        T spc = cnf_ptr_->template get<T>
+            ("hashkat.follow_ranks.bin_spacing", T(1));
+        T min = cnf_ptr_->template get<T>
+            ("hashkat.follow_ranks.min", T(1));
+        T max = cnf_ptr_->template get<T>
+            ("hashkat.follow_ranks.max", net_ptr_->max_size());
+        T inc = cnf_ptr_->template get<T>
+            ("hashkat.follow_ranks.increment", T(1));
+        V exp = cnf_ptr_->template get<V>
+            ("hashkat.follow_ranks.exponent", V(1.0));
+
+        for (auto i = 1; i < spc; ++i)
+            inc *= inc;
+
+        T count = (max - min) / inc;
+        bins_.reserve(count + 1);
+        weights_.reserve(count + 1);
+        V total_weight = 0;
+        for (auto i = min; i <= max; i += inc)
+        {
+            bins_.emplace_back(std::unordered_set<T>());
+            weights_.push_back(V(std::pow(V(i), exp)));
+            total_weight += weights_.back();
+        }
+        if (total_weight > 0)
+            for (auto i = 0; i < weights_.size(); ++i)
+                weights_[i] /= total_weight;
+    }
+
     T select_follower()
     {
-        std::uniform_int_distribution<T> di(0, net_.size() - 1);
-        return di(rng_);
+        std::uniform_int_distribution<T> di(0, net_ptr_->size() - 1);
+        return di(*rng_ptr_);
     }
 
     T select_followee(T follower)
@@ -214,8 +253,8 @@ private:
 
     T random_follow_model(T follower)
     {
-        std::uniform_int_distribution<T> di(0, net_.size() - 1);
-        return di(rng_);
+        std::uniform_int_distribution<T> di(0, net_ptr_->size() - 1);
+        return di(*rng_ptr_);
     }
 
     T twitter_suggest_follow_model(T follower)
@@ -244,9 +283,8 @@ private:
         //,   [&](double)
         //{   return weights_[i] * bins_[i++].size();    });
 
-        auto followee = bins_[di(rng_)].cbegin();
+        auto followee = bins_[di(*rng_ptr_)].cbegin();
         return *followee;
-
     }
 
     T agent_follow_model(T follower)
@@ -271,7 +309,7 @@ private:
     {
         std::discrete_distribution<T>
             di(model_weights_.begin(), model_weights_.end());
-        return follow_models_[di(rng_)](follower);
+        return follow_models_[di(*rng_ptr_)](follower);
     }
 
     void agent_added(T idx)
@@ -281,10 +319,10 @@ private:
     }
 
 // member variables
-    NetworkType& net_;
-    ContentsType& cnt_;
-    ConfigType& cnf_;
-    RngType& rng_;
+    NetworkType* net_ptr_;
+    ContentsType* cnt_ptr_;
+    ConfigType* cnf_ptr_;
+    RngType* rng_ptr_;
     T n_connections_;
     T kmax_;
     std::vector<std::unordered_set<T>> bins_;

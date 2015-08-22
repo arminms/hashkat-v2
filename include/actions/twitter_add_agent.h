@@ -46,29 +46,44 @@ class twitter_add_agent
 :   public action_base<NetworkType, ContentsType, ConfigType, RngType>
 {
 public:
+    twitter_add_agent()
+    {}
+
     twitter_add_agent(
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
     ,   RngType& rng)
     :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
-    ,   net_(net)
-    ,   cnt_(cnt)
-    ,   cnf_(cnf)
-    ,   rng_(rng)
+    ,   net_ptr_(&net)
+    ,   cnt_ptr_(&cnt)
+    ,   cnf_ptr_(&cnf)
+    ,   rng_ptr_(&rng)
     {}
 
 private:
-    NetworkType& net_;
-    ContentsType& cnt_;
-    ConfigType& cnf_;
-    RngType& rng_;
+    NetworkType* net_ptr_;
+    ContentsType* cnt_ptr_;
+    ConfigType* cnf_ptr_;
+    RngType* rng_ptr_;
+
+    virtual void do_init(
+        NetworkType& net
+    ,   ContentsType& cnt
+    ,   ConfigType& cnf
+    ,   RngType& rng)
+    {
+        net_ptr_ = &net;
+        cnt_ptr_ = &cnt;
+        cnf_ptr_ = &cnf;
+        rng_ptr_ = &rng;
+    }
 
     virtual bool do_action()
     {
-        if (net_.can_grow())
+        if (net_ptr_->can_grow())
         {
-            net_.grow();
+            net_ptr_->grow();
             //rate_++;
             return true;
         }

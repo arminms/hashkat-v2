@@ -50,12 +50,12 @@ public:
     :   rate_(0)
     {}
 
-    //void init(
-    //    NetworkType& net
-    //,   ContentsType& cnt
-    //,   ConfigType& cnf
-    //,   RngType& rng)
-    //{   do_init(net, cnt, cnf, rng);   }
+    void init(
+        NetworkType& net
+    ,   ContentsType& cnt
+    ,   ConfigType& cnf
+    ,   RngType& rng)
+    {   do_init(net, cnt, cnf, rng);   }
 
     rate_type rate() const
     {   return rate_;   }
@@ -71,11 +71,11 @@ protected:
     rate_type rate_;
 
 private:
-    //void do_init(
-    //    NetworkType& net
-    //,   ContentsType& cnt
-    //,   ConfigType& cnf
-    //,   RngType& rng) = 0;
+    virtual void do_init(
+        NetworkType& net
+    ,   ContentsType& cnt
+    ,   ConfigType& cnf
+    ,   RngType& rng) = 0;
 
     virtual bool do_action() = 0;
 };
