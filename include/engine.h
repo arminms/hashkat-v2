@@ -97,7 +97,7 @@ public:
     {
         for (auto i = 0; i < actions_.depot_.size(); ++i)
             actions_.depot_[i]->init(net, cnt, cnf, rng);
-        //for (auto action : actions_.depot_)
+        //for (auto& action : actions_.depot_)
         //    action->init(net_, cnt_, cnf_, rng_);
     }
 
@@ -108,10 +108,19 @@ public:
         weights.reserve(actions_.depot_.size());
         for (auto i = 0; i < actions_.depot_.size(); ++i)
             weights.push_back(actions_.depot_[i]->rate());
-        //for (auto action : actions_.depot_)
+        //for (auto& action : actions_.depot_)
         //    weights.push_back(action->rate());
         std::discrete_distribution<T> di(weights.begin(), weights.end());
         return actions_.depot_[di(rng_)].get();
+    }
+
+    std::ostream& print(std::ostream& out) const
+    {
+        for (auto i = 0; i < actions_.depot_.size(); ++i)
+            out << actions_.depot_[i].get();
+        //for (auto& action : actions_.depot_)
+        //    out << action.get();
+        return out;
     }
 
 private:
@@ -131,6 +140,21 @@ template
 ,   template <class,class,class,class> class ...Act
 >
 action_depot<Nwt,Ctt,Cft,Rgt,Act...> engine<Nwt,Ctt,Cft,Rgt,Act...>::actions_;
+
+template
+<
+    class Nwt
+,   class Ctt
+,   class Cft
+,   class Rgt
+,   template <class,class,class,class> class ...Act
+>
+std::ostream& operator<< (
+    std::ostream& out
+,   const engine<Nwt,Ctt,Cft,Rgt,Act...>& e)
+{
+    return e.print(out);
+}
 
 }    // namespace hashkat
 

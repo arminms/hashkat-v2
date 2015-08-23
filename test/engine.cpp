@@ -108,9 +108,9 @@ BOOST_FIXTURE_TEST_CASE(Engine_01, FOLDERS)
     while (n.can_grow())
         (*eng())();
 
-    //output_test_stream cout(
-    //    ptn_folder + "engine_01.txt"
-    //,   !butrc::save_pattern());
-    //cout << eng;
-    //BOOST_CHECK(cout.match_pattern());
+    output_test_stream cout(
+        ptn_folder + "engine_01.txt"
+    ,   !butrc::save_pattern());
+    cout << eng;
+    BOOST_CHECK(cout.match_pattern());
 }
