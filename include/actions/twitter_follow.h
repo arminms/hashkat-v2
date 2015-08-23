@@ -62,6 +62,7 @@ public:
     ,   cnt_ptr_(nullptr)
     ,   cnf_ptr_(nullptr)
     ,   rng_ptr_(nullptr)
+    ,   count_(0)
     {}
 
     twitter_follow(
@@ -76,6 +77,7 @@ public:
     ,   rng_ptr_(&rng)
     ,   n_connections_(0)
     ,   kmax_(0)
+    ,   count_(0)
     {
         init_slots();
         init_follow_models();
@@ -84,9 +86,8 @@ public:
 
     std::ostream& print(std::ostream& out) const
     {
-        out << "# Maximum Number of Agents: " << net_ptr_->max_size()
-            << std::endl;
-        out << "# Number of Agents: " << net_ptr_->size() << std::endl;
+        out << "# Follow count: " << count_ << std::endl;
+        out << "# Follow rate: " << rate_ << std::endl;
         out << "# Number of Bins: " << bins_.size() << std::endl;
         out << "# Number of Connections: " << n_connections_ << std::endl;
         out << "# kmax: " << kmax_ << std::endl;
@@ -149,7 +150,9 @@ private:
         ++n_connections_;
         if (kmax_ < idx)
             kmax_ = idx;
-        //rate_++;
+
+        ++count_;
+        // TODO - rate_ must be set based on network time
         return true;
     }
 

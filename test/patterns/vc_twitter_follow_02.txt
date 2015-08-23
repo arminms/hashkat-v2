@@ -1,5 +1,5 @@
-# Maximum Number of Agents: 10
-# Number of Agents: 10
+# Follow count: 7
+# Follow rate: 0
 # Number of Bins: 10
 # Number of Connections: 17
 # kmax: 4
