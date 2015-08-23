@@ -62,6 +62,8 @@ public:
     ,   cnt_ptr_(nullptr)
     ,   cnf_ptr_(nullptr)
     ,   rng_ptr_(nullptr)
+    ,   n_connections_(0)
+    ,   kmax_(0)
     ,   count_(0)
     {}
 
@@ -82,28 +84,6 @@ public:
         init_slots();
         init_follow_models();
         init_bins();
-    }
-
-    std::ostream& print(std::ostream& out) const
-    {
-        out << "# Follow count: " << count_ << std::endl;
-        out << "# Follow rate: " << rate_ << std::endl;
-        out << "# Number of Bins: " << bins_.size() << std::endl;
-        out << "# Number of Connections: " << n_connections_ << std::endl;
-        out << "# kmax: " << kmax_ << std::endl;
-        out << "# Bins: " << std::endl;
-        out << "#  K      W       N     Agent IDs" << std::endl;
-        out << std::fixed << std::setprecision(3);
-        for (auto i = 0; i < bins_.size(); ++i)
-        {
-            out << std::setfill('0') << std::setw(7) << i
-                << ' ' << std::setw(5) << weights_[i] << " ["
-                << std::setw(7) << bins_[i].size() << "] ";
-            for (auto followee : bins_[i])
-                out << followee << ',';
-            out << std::endl;
-        }
-        return out;
     }
 
 // Implementation
@@ -156,6 +136,28 @@ private:
         return true;
     }
 
+    virtual std::ostream& do_print(std::ostream& out) const
+    {
+        out << "# Follow count: " << count_ << std::endl;
+        out << "# Follow rate: " << rate_ << std::endl;
+        out << "# Number of Bins: " << bins_.size() << std::endl;
+        out << "# Number of Connections: " << n_connections_ << std::endl;
+        out << "# kmax: " << kmax_ << std::endl;
+        out << "# Bins: " << std::endl;
+        out << "#  K      W       N     Agent IDs" << std::endl;
+        out << std::fixed << std::setprecision(3);
+        for (auto i = 0; i < bins_.size(); ++i)
+        {
+            out << std::setfill('0') << std::setw(7) << i
+                << ' ' << std::setw(5) << weights_[i] << " ["
+                << std::setw(7) << bins_[i].size() << "] ";
+            for (auto followee : bins_[i])
+                out << followee << ',';
+            out << std::endl;
+        }
+        return out;
+    }
+
     // connec relevant slots to signals
     void init_slots()
     {
@@ -166,6 +168,9 @@ private:
     // initialize follow models
     void init_follow_models()
     {
+        rate_ = cnf_ptr_->template get<T>
+            ("hashkat.rates.follow", T(1));
+
         follow_models_ =
         {
             boost::bind(&self_type::random_follow_model , this , _1)

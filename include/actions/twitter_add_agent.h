@@ -73,13 +73,6 @@ public:
     ,   count_(0)
     {}
 
-    std::ostream& print(std::ostream& out) const
-    {
-        out << "# Add count: " << count_ << std::endl;
-        out << "# Add rate: " << rate_ << std::endl;
-        return out;
-    }
-
 private:
     virtual void do_init(
         NetworkType& net
@@ -91,6 +84,9 @@ private:
         cnt_ptr_ = &cnt;
         cnf_ptr_ = &cnf;
         rng_ptr_ = &rng;
+
+        rate_ = cnf_ptr_->template get<T>
+            ("hashkat.rates.add", T(1));
     }
 
     virtual bool do_action()
@@ -104,6 +100,13 @@ private:
         }
         else
             return false;
+    }
+
+    virtual std::ostream& do_print(std::ostream& out) const
+    {
+        out << "# Add count: " << count_ << std::endl;
+        out << "# Add rate: " << rate_ << std::endl;
+        return out;
     }
 
 // member variables
@@ -123,9 +126,9 @@ template
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const twitter_add_agent<NetworkType, ContentsType, ConfigType, RngType>& taa)
+,   const twitter_add_agent<NetworkType, ContentsType, ConfigType, RngType>& aa)
 {
-    return taa.print(out);
+    return aa.print(out);
 }
 
 }    // namespace hashkat

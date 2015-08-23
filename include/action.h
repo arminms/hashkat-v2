@@ -63,6 +63,8 @@ public:
     bool operator()()
     {   return do_action();   }
 
+    std::ostream& print(std::ostream& out) const
+    {   return do_print(out); }
 
 // Implementation
     virtual ~action_base() {};
@@ -76,9 +78,23 @@ private:
     ,   ContentsType& cnt
     ,   ConfigType& cnf
     ,   RngType& rng) = 0;
-
     virtual bool do_action() = 0;
+    virtual std::ostream& do_print(std::ostream& out) const = 0;
 };
+
+template
+<
+    class NetworkType
+,   class ContentsType
+,   class ConfigType
+,   class RngType
+>
+std::ostream& operator<< (
+    std::ostream& out
+,   const action_base<NetworkType, ContentsType, ConfigType, RngType>* ptr)
+{
+    return ptr->print(out);
+}
 
 }    // namespace hashkat
 
