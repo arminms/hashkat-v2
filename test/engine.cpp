@@ -96,7 +96,7 @@ struct FOLDERS
     std::string ptn_folder;
 };
 
-BOOST_FIXTURE_TEST_CASE(Bins_10_10_1, FOLDERS)
+BOOST_FIXTURE_TEST_CASE(Engine_01, FOLDERS)
 {
     dummy mock_cnts;
     test_config conf;
@@ -105,8 +105,8 @@ BOOST_FIXTURE_TEST_CASE(Bins_10_10_1, FOLDERS)
     test_network n(conf);
     test_engine eng(n, mock_cnts, conf, rng);
 
-    for (auto i = 0; i < 100; ++i)
-        eng();
+    while (n.can_grow())
+        (*eng())();
 
     //output_test_stream cout(
     //    ptn_folder + "engine_01.txt"

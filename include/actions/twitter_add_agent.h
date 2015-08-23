@@ -45,8 +45,19 @@ template
 class twitter_add_agent
 :   public action_base<NetworkType, ContentsType, ConfigType, RngType>
 {
+    typedef twitter_add_agent<NetworkType, ContentsType, ConfigType, RngType>
+        self_type;
+    typedef typename NetworkType::type T;
+    typedef typename NetworkType::value_type V;
+
 public:
     twitter_add_agent()
+    :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
+    ,   net_ptr_(nullptr)
+    ,   cnt_ptr_(nullptr)
+    ,   cnf_ptr_(nullptr)
+    ,   rng_ptr_(nullptr)
+    ,   count_(0)
     {}
 
     twitter_add_agent(
@@ -59,14 +70,17 @@ public:
     ,   cnt_ptr_(&cnt)
     ,   cnf_ptr_(&cnf)
     ,   rng_ptr_(&rng)
+    ,   count_(0)
     {}
 
-private:
-    NetworkType* net_ptr_;
-    ContentsType* cnt_ptr_;
-    ConfigType* cnf_ptr_;
-    RngType* rng_ptr_;
+    std::ostream& print(std::ostream& out) const
+    {
+        out << "# Add count: " << count_ << std::endl;
+        out << "# Add rate: " << rate_ << std::endl;
+        return out;
+    }
 
+private:
     virtual void do_init(
         NetworkType& net
     ,   ContentsType& cnt
@@ -84,13 +98,35 @@ private:
         if (net_ptr_->can_grow())
         {
             net_ptr_->grow();
-            //rate_++;
+            ++count_;
+            // TODO - rate_ must be set based on network time
             return true;
         }
         else
             return false;
     }
+
+// member variables
+    NetworkType* net_ptr_;
+    ContentsType* cnt_ptr_;
+    ConfigType* cnf_ptr_;
+    RngType* rng_ptr_;
+    T count_;
 };
+
+template
+<
+    class NetworkType
+,   class ContentsType
+,   class ConfigType
+,   class RngType
+>
+std::ostream& operator<< (
+    std::ostream& out
+,   const twitter_add_agent<NetworkType, ContentsType, ConfigType, RngType>& taa)
+{
+    return taa.print(out);
+}
 
 }    // namespace hashkat
 

@@ -325,6 +325,7 @@ private:
     RngType* rng_ptr_;
     T n_connections_;
     T kmax_;
+    T count_;
     std::vector<std::unordered_set<T>> bins_;
     std::vector<V> weights_;
     std::function<T(T)> default_follow_model_;
