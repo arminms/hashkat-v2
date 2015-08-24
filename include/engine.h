@@ -82,7 +82,6 @@ template
 ,   template <class,class,class,class> class ...Act     // ActionType
 >
 class engine
-:   private boost::noncopyable
 {
 public:
     engine(
