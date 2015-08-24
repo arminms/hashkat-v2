@@ -55,11 +55,15 @@ public:
 
     bool run()
     {
+        std::size_t max_steps = cnf_.get<int>
+            ("hashkat.network.max_time", 1000);
+        std::size_t count = 0;
         start_tp_ = std::chrono::high_resolution_clock::now();
 
-        while (duration() < time_max_)
+        while (count < max_steps && duration() < time_max_)
         {
             (*eng_())();
+            ++count;
             //if (actions_q_.empty())
             //    actions_q_.push(eng_());
             //else

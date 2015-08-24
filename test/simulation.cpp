@@ -112,7 +112,7 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     pt::read_xml(cnf_folder + "config_01.xml", conf);
     test_simulation sim(conf);
     sim.run();
-    std::cout << "Took " << sim.duration().count() << " ms" << std::endl;
+    std::cout << "Elapsed time: " << sim.duration().count() << " ms" << std::endl;
 
     output_test_stream cout(
         ptn_folder + "sim_01.txt"
