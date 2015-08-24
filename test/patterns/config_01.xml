@@ -1,0 +1,20 @@
+<hashkat>
+	<network>
+		<initial_agents>10</initial_agents>
+		<max_agents>20</max_agents>
+		<max_time>100</max_time>
+		<max_real_time>1</max_real_time>
+	</network>
+	<rates>
+		<add>6</add>
+		<follow>4</follow>
+	</rates>
+	<follow_model>twitter_suggest</follow_model>
+	<follow_ranks>
+		<bin_spacing>1</bin_spacing>
+		<min>1</min>
+		<max>20</max>
+		<increment>1</increment>
+		<exponent>1.0</exponent>
+	</follow_ranks>
+</hashkat>

@@ -26,6 +26,9 @@
 #ifndef HASHKAT_SIMULATION_H_
 #define HASHKAT_SIMULATION_H_
 
+#include <chrono>
+//#include <queue>
+
 namespace hashkat {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,27 +48,40 @@ public:
     simulation(const ConfigType& conf)
     :   cnf_(conf)
     ,   net_(cnf_)
-    ,   cnt_(cnf_)
+    ,   cnt_()
     ,   eng_(net_, cnt_, cnf_, rng_)
+    ,   time_max_(cnf_.get<int>("hashkat.network.max_real_time", 1))
     {}
 
-    //bool run()
-    //{
-    //    while (true)
-    //    {
-    //        if (actions_q_.empty())
-    //            actions_q_.push(eng_());
-    //        else
-    //        {
-    //            actions_q_.front()();
-    //            actions_q_.pop();
-    //        }
-    //    };
-    //    return true;
-    //}
+    bool run()
+    {
+        start_tp_ = std::chrono::high_resolution_clock::now();
+
+        while (duration() < time_max_)
+        {
+            (*eng_())();
+            //if (actions_q_.empty())
+            //    actions_q_.push(eng_());
+            //else
+            //{
+            //    actions_q_.front()();
+            //    actions_q_.pop();
+            //}
+        };
+        return true;
+    }
+
+    std::chrono::milliseconds duration() const
+    {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::high_resolution_clock::now() - start_tp_);
+    }
 
     std::ostream& print(std::ostream& out) const
-    {}
+    {
+        out << eng_;
+        return out;
+    }
 
 private:
     RngType      rng_;
@@ -73,7 +89,9 @@ private:
     NetworkType  net_;
     ContentsType cnt_;
     EngineType   eng_;
-    //std::queue<decltype(eng_::operator()) actions_q_;
+    std::chrono::minutes time_max_;
+    std::chrono::high_resolution_clock::time_point start_tp_;
+    //std::queue<decltype(eng_.operator())> actions_q_;
 };
 
 template
