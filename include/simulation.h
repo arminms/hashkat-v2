@@ -28,7 +28,10 @@
 
 #include <chrono>
 #include <thread>
-#include <queue>
+
+#   ifdef _CONCURRENT
+#       include <tbb/concurrent_queue.h>
+#   endif //_CONCURRENT
 
 namespace hashkat {
 
@@ -74,6 +77,7 @@ public:
 
     bool concurrent_run(int n)
     {
+#   ifdef _CONCURRENT
         start_tp_ = std::chrono::high_resolution_clock::now();
 
         std::vector<std::thread> threads(n);
@@ -83,6 +87,10 @@ public:
             thread.join();
 
         return true;
+#   else
+    BOOST_STATIC_ASSERT_MSG(false,
+        "calling concurrent_run() requires _CONCURRENT to be defined :(");
+#   endif //_CONCURRENT
     }
 
     std::chrono::milliseconds duration() const
@@ -98,19 +106,19 @@ public:
     }
 
 private:
+#   ifdef _CONCURRENT
     void action_loop()
     {
         while (duration() < time_max_)
         {
-            if (actions_q_.empty())
-                actions_q_.push(eng_());
+            typename EngineType::action_type* action;
+            if (actions_q_.try_pop(action))
+                (*action)();
             else
-            {
-                (*actions_q_.front())();
-                actions_q_.pop();
-            }
+                actions_q_.push(eng_());
         };
     }
+#   endif //_CONCURRENT
 
     // member variables
     RngType      rng_;
@@ -120,7 +128,9 @@ private:
     EngineType   eng_;
     std::chrono::minutes time_max_;
     std::chrono::high_resolution_clock::time_point start_tp_;
-    std::queue<typename EngineType::action_type*> actions_q_;
+#   ifdef _CONCURRENT
+    tbb::concurrent_queue<typename EngineType::action_type*> actions_q_;
+#   endif //_CONCURRENT
 };
 
 template

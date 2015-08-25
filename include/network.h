@@ -26,6 +26,11 @@
 #ifndef HASHKAT_NETWORK_H_
 #define HASHKAT_NETWORK_H_
 
+#   ifdef _CONCURRENT
+#       include <tbb/concurrent_vector.h>
+#       include <tbb/concurrent_unordered_set.h>
+#   endif //_CONCURRENT
+
 namespace hashkat {
 
 struct dummy
@@ -53,8 +58,13 @@ public:
 private:
     AgentType* agents_;
     T n_agents_, max_agents_;
+#   ifdef _CONCURRENT
+    tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followers_;
+    tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followees_;
+#   else
     std::vector<std::unordered_set<T>> followers_;
     std::vector<std::unordered_set<T>> followees_;
+#   endif //_CONCURRENT
     grown_signal_type grown_signal_;
     connection_added_signal_type connection_added_signal_;
     connection_removed_signal_type connection_removed_signal_;
@@ -95,8 +105,13 @@ public:
     {
         for (auto i = 0; i < n; ++i)
         {
+#       ifdef _CONCURRENT
+            followers_.emplace_back(tbb::concurrent_unordered_set<T>());
+            followees_.emplace_back(tbb::concurrent_unordered_set<T>());
+#       else
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
+#       endif //_CONCURRENT
             ++n_agents_;
             grown_signal_(n_agents_ -1);
         }

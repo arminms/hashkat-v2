@@ -26,6 +26,10 @@
 #ifndef HASHKAT_ACTIONS_TWITTER_FOLLOW_H_
 #define HASHKAT_ACTIONS_TWITTER_FOLLOW_H_
 
+#   ifdef _CONCURRENT
+#       include <tbb/concurrent_unordered_set.h>
+#   endif //_CONCURRENT
+
 #ifndef HASHKAT_ACTION_H_
 #   include "../action.h"
 #endif // HASHKAT_ACTION_H_
@@ -120,7 +124,11 @@ private:
 
         auto idx = net_ptr_->followers_size(followee) * bins_.size()
                  / net_ptr_->max_size();
+#   ifdef _CONCURRENT
+        bins_[idx].unsafe_erase(followee);
+#   else
         bins_[idx].erase(followee);
+#   endif //_CONCURRENT
 
         net_ptr_->connect(followee, follower);
 
@@ -237,7 +245,11 @@ private:
         V total_weight = 0;
         for (auto i = min; i <= max; i += inc)
         {
+#       ifdef _CONCURRENT
+            bins_.emplace_back(tbb::concurrent_unordered_set<T>());
+#       else
             bins_.emplace_back(std::unordered_set<T>());
+#       endif //_CONCURRENT
             weights_.push_back(V(std::pow(V(i), exp)));
             total_weight += weights_.back();
         }
@@ -279,7 +291,11 @@ private:
         ,   weights_.cbegin() + kmax_ + 1
         ,   bins_.cbegin()
         ,   std::back_inserter(weights)
+#   ifdef _CONCURRENT
+        ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
+#   else
         ,   [](V w, const std::unordered_set<T>& b)
+#   endif //_CONCURRENT
         {   return w * b.size();    });
         std::discrete_distribution<T> di(weights.begin(), weights.end());
 
@@ -334,7 +350,11 @@ private:
     T n_connections_;
     T kmax_;
     T count_;
+#   ifdef _CONCURRENT
+    std::vector<tbb::concurrent_unordered_set<T>> bins_;
+#   else
     std::vector<std::unordered_set<T>> bins_;
+#   endif //_CONCURRENT
     std::vector<V> weights_;
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
