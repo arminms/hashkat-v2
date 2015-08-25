@@ -107,7 +107,10 @@ private:
             return true;
         }
         else
+        {
+            rate_ = 0;
             return false;
+        }
     }
 
     virtual std::ostream& do_print(std::ostream& out) const
