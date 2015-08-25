@@ -27,7 +27,8 @@
 #define HASHKAT_SIMULATION_H_
 
 #include <chrono>
-//#include <queue>
+#include <thread>
+#include <queue>
 
 namespace hashkat {
 
@@ -44,6 +45,9 @@ template
 >
 class simulation
 {
+    typedef simulation
+        <NetworkType, ContentsType, ConfigType, EngineType, RngType> self_type;
+
 public:
     simulation(const ConfigType& conf)
     :   cnf_(conf)
@@ -64,14 +68,20 @@ public:
         {
             (*eng_())();
             ++count;
-            //if (actions_q_.empty())
-            //    actions_q_.push(eng_());
-            //else
-            //{
-            //    actions_q_.front()();
-            //    actions_q_.pop();
-            //}
         };
+        return true;
+    }
+
+    bool concurrent_run(int n)
+    {
+        start_tp_ = std::chrono::high_resolution_clock::now();
+
+        std::vector<std::thread> threads(n);
+        for (auto& thread : threads)
+            thread = std::thread(&self_type::action_loop, this);
+        for (auto& thread : threads)
+            thread.join();
+
         return true;
     }
 
@@ -88,6 +98,21 @@ public:
     }
 
 private:
+    void action_loop()
+    {
+        while (duration() < time_max_)
+        {
+            if (actions_q_.empty())
+                actions_q_.push(eng_());
+            else
+            {
+                (*actions_q_.front())();
+                actions_q_.pop();
+            }
+        };
+    }
+
+    // member variables
     RngType      rng_;
     ConfigType   cnf_;
     NetworkType  net_;
@@ -95,7 +120,7 @@ private:
     EngineType   eng_;
     std::chrono::minutes time_max_;
     std::chrono::high_resolution_clock::time_point start_tp_;
-    //std::queue<decltype(eng_.operator())> actions_q_;
+    std::queue<typename EngineType::action_type*> actions_q_;
 };
 
 template

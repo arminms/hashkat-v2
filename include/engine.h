@@ -84,6 +84,8 @@ template
 class engine
 {
 public:
+    typedef action_base<Nwt,Ctt,Cft,Rgt> action_type;
+
     engine(
         Nwt& net
     ,   Ctt& cnt
@@ -103,7 +105,7 @@ public:
         
     }
 
-    action_base<Nwt,Ctt,Cft,Rgt>* operator()()
+    action_type* operator()()
     {
         typedef typename Nwt::type T;
         std::vector<T> weights;
