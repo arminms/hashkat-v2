@@ -57,6 +57,9 @@ public:
     ,   RngType& rng)
     {   do_init(net, cnt, cnf, rng);   }
 
+    void post_init()
+    {   do_post_init(); }
+
     rate_type rate() const
     {   return rate_;   }
 
@@ -78,6 +81,7 @@ private:
     ,   ContentsType& cnt
     ,   ConfigType& cnf
     ,   RngType& rng) = 0;
+    virtual void do_post_init() {};
     virtual bool do_action() = 0;
     virtual std::ostream& do_print(std::ostream& out) const = 0;
 };

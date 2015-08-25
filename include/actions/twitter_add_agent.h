@@ -89,6 +89,14 @@ private:
             ("hashkat.rates.add", T(1));
     }
 
+    virtual void do_post_init()
+    {
+        std::size_t ia = cnf_ptr_->template get<T>
+            ("hashkat.network.initial_agents", T(0));
+        for (auto i = 0; i < ia; ++i)
+            (*this)();
+    }
+
     virtual bool do_action()
     {
         if (net_ptr_->can_grow())

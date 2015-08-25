@@ -158,7 +158,7 @@ private:
         return out;
     }
 
-    // connec relevant slots to signals
+    // connect relevant slots to signals
     void init_slots()
     {
         net_ptr_->grown().connect(

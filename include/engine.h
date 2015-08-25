@@ -94,10 +94,13 @@ public:
     ,   cnf_(cnf)
     ,   rng_(rng)
     {
-        for (auto i = 0; i < actions_.depot_.size(); ++i)
-            actions_.depot_[i]->init(net, cnt, cnf, rng);
-        //for (auto& action : actions_.depot_)
-        //    action->init(net_, cnt_, cnf_, rng_);
+        //for (auto i = 0; i < actions_.depot_.size(); ++i)
+        //    actions_.depot_[i]->init(net, cnt, cnf, rng);
+        for (auto& action : actions_.depot_)
+            action->init(net_, cnt_, cnf_, rng_);
+        for (auto& action : actions_.depot_)
+            action->post_init();
+        
     }
 
     action_base<Nwt,Ctt,Cft,Rgt>* operator()()
@@ -105,20 +108,20 @@ public:
         typedef typename Nwt::type T;
         std::vector<T> weights;
         weights.reserve(actions_.depot_.size());
-        for (auto i = 0; i < actions_.depot_.size(); ++i)
-            weights.push_back(actions_.depot_[i]->rate());
-        //for (auto& action : actions_.depot_)
-        //    weights.push_back(action->rate());
+        //for (auto i = 0; i < actions_.depot_.size(); ++i)
+        //    weights.push_back(actions_.depot_[i]->rate());
+        for (auto& action : actions_.depot_)
+            weights.push_back(action->rate());
         std::discrete_distribution<T> di(weights.begin(), weights.end());
         return actions_.depot_[di(rng_)].get();
     }
 
     std::ostream& print(std::ostream& out) const
     {
-        for (auto i = 0; i < actions_.depot_.size(); ++i)
-            out << actions_.depot_[i].get();
-        //for (auto& action : actions_.depot_)
-        //    out << action.get();
+        //for (auto i = 0; i < actions_.depot_.size(); ++i)
+        //    out << actions_.depot_[i].get();
+        for (auto& action : actions_.depot_)
+            out << action.get();
         return out;
     }
 
