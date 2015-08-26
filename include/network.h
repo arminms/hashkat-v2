@@ -47,6 +47,7 @@ class network
 {
 public:
     typedef T type;
+    typedef ValueType rate_type;
     typedef ValueType value_type;
     typedef AgentType agent_type;
     typedef ConfigType config_type;

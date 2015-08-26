@@ -57,7 +57,6 @@ public:
     ,   cnt_ptr_(nullptr)
     ,   cnf_ptr_(nullptr)
     ,   rng_ptr_(nullptr)
-    ,   count_(0)
     {}
 
     twitter_add_agent(
@@ -70,7 +69,6 @@ public:
     ,   cnt_ptr_(&cnt)
     ,   cnf_ptr_(&cnf)
     ,   rng_ptr_(&rng)
-    ,   count_(0)
     {}
 
 private:
@@ -85,7 +83,7 @@ private:
         cnf_ptr_ = &cnf;
         rng_ptr_ = &rng;
 
-        rate_ = cnf_ptr_->template get<T>
+        weight_ = cnf_ptr_->template get<T>
             ("hashkat.rates.add", T(1));
     }
 
@@ -102,23 +100,21 @@ private:
         if (net_ptr_->can_grow())
         {
             net_ptr_->grow();
-            ++count_;
-            // TODO - rate_ must be set based on network time
-            action_finished_signal_();
+            ++rate_;
+            action_happened_signal_();
             return true;
         }
         else
         {
-            rate_ = 0;
-            action_finished_signal_();
+            //weight_ = 0;
             return false;
         }
     }
 
     virtual std::ostream& do_print(std::ostream& out) const
     {
-        out << "# Add count: " << count_ << std::endl;
         out << "# Add rate: " << rate_ << std::endl;
+        out << "# Add weight: " << weight_ << std::endl;
         return out;
     }
 
@@ -127,7 +123,6 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
-    T count_;
 };
 
 template

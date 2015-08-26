@@ -44,11 +44,13 @@ class action_base
 :   private boost::noncopyable
 {
 public:
-    typedef typename NetworkType::type rate_type;
-    typedef boost::signals2::signal<void()> action_finished_signal_type;
+    typedef typename NetworkType::rate_type rate_type;
+    typedef typename NetworkType::rate_type weight_type;
+    typedef boost::signals2::signal<void()> action_happened_signal_type;
 
     action_base()
     :   rate_(0)
+    ,   weight_(0)
     {}
 
     void init(
@@ -64,11 +66,14 @@ public:
     rate_type rate() const
     {   return rate_;   }
 
+    weight_type weight() const
+    {   return weight_;   }
+
     bool operator()()
     {   return do_action();   }
 
-    action_finished_signal_type& finished()
-    {   return action_finished_signal_;   }
+    action_happened_signal_type& happened()
+    {   return action_happened_signal_;   }
 
     std::ostream& print(std::ostream& out) const
     {   return do_print(out); }
@@ -78,7 +83,8 @@ public:
 
 protected:
     rate_type rate_;
-    action_finished_signal_type action_finished_signal_;
+    weight_type weight_;
+    action_happened_signal_type action_happened_signal_;
 
 private:
     virtual void do_init(

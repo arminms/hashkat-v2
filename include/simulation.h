@@ -57,21 +57,15 @@ public:
     ,   net_(cnf_)
     ,   cnt_()
     ,   eng_(net_, cnt_, cnf_, rng_)
-    ,   time_max_(cnf_.get<int>("hashkat.network.max_real_time", 1))
+    ,   max_time_(cnf_.get<int>("hashkat.network.max_time", 1000))
+    ,   max_real_time_(cnf_.get<int>("hashkat.network.max_real_time", 1))
     {}
 
     bool run()
     {
-        std::size_t max_steps = cnf_.get<int>
-            ("hashkat.network.max_time", 1000);
-        std::size_t count = 0;
         start_tp_ = std::chrono::high_resolution_clock::now();
-
-        while (count < max_steps && duration() < time_max_)
-        {
+        while (eng_.time() < max_time_ && duration() < max_real_time_)
             (*eng_())();
-            ++count;
-        };
         return true;
     }
 
@@ -114,7 +108,7 @@ private:
     {
         try
         {
-            while (duration() < time_max_)
+            while (duration() < max_real_time_)
             {
                 typename EngineType::action_type* action;
                 if (actions_q_.try_pop(action))
@@ -143,7 +137,8 @@ private:
     NetworkType  net_;
     ContentsType cnt_;
     EngineType   eng_;
-    std::chrono::minutes time_max_;
+    typename EngineType::time_type max_time_;
+    std::chrono::minutes max_real_time_;
     std::chrono::high_resolution_clock::time_point start_tp_;
 #   ifdef _CONCURRENT
     tbb::concurrent_queue<typename EngineType::action_type*> actions_q_;

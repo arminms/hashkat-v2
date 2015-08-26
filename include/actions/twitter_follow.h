@@ -69,7 +69,6 @@ public:
     ,   rng_ptr_(nullptr)
     ,   n_connections_(0)
     ,   kmax_(0)
-    ,   count_(0)
     {}
 
     twitter_follow(
@@ -84,7 +83,6 @@ public:
     ,   rng_ptr_(&rng)
     ,   n_connections_(0)
     ,   kmax_(0)
-    ,   count_(0)
     {
         init_slots();
         init_follow_models();
@@ -115,17 +113,11 @@ private:
 
         auto follower = select_follower();
         if (follower == failed)
-        {
-            action_finished_signal_();
             return false;
-        }
 
         auto followee = select_followee(follower);
         if (followee == failed || net_ptr_->have_connection(followee, follower))
-        {
-            action_finished_signal_();
             return false;
-        }
 
         auto idx = net_ptr_->followers_size(followee) * bins_.size()
                  / net_ptr_->max_size();
@@ -141,7 +133,6 @@ private:
         if (!net_ptr_->connect(followee, follower))
         {
             bins_[idx].insert(followee);
-            action_finished_signal_();
             return false;
         }
 
@@ -152,17 +143,16 @@ private:
         if (kmax_ < idx)
             kmax_ = idx;
 
-        ++count_;
-        // TODO - rate_ must be set based on network time
+        ++rate_;;
         
-        action_finished_signal_();
+        action_happened_signal_();
         return true;
     }
 
     virtual std::ostream& do_print(std::ostream& out) const
     {
-        out << "# Follow count: " << count_ << std::endl;
         out << "# Follow rate: " << rate_ << std::endl;
+        out << "# Follow weight: " << weight_ << std::endl;
         out << "# Number of Bins: " << bins_.size() << std::endl;
         out << "# Number of Connections: " << n_connections_ << std::endl;
         out << "# kmax: " << kmax_ << std::endl;
@@ -191,7 +181,7 @@ private:
     // initialize follow models
     void init_follow_models()
     {
-        rate_ = cnf_ptr_->template get<T>
+        weight_ = cnf_ptr_->template get<T>
             ("hashkat.rates.follow", T(1));
 
         follow_models_ =
@@ -371,7 +361,6 @@ private:
     RngType* rng_ptr_;
     T n_connections_;
     T kmax_;
-    T count_;
 #   ifdef _CONCURRENT
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
     std::mutex erase_mutex_;

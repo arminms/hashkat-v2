@@ -28,6 +28,7 @@
 
 #include <vector>
 #include <memory>
+#include <chrono>
 
 #ifndef HASHKAT_ACTION_H_
 #   include "action.h"
@@ -86,6 +87,8 @@ class engine
 public:
     typedef engine<Nwt,Ctt,Cft,Rgt,Act...> self_type;
     typedef action_base<Nwt,Ctt,Cft,Rgt> action_type;
+    typedef std::chrono::duration<double,std::ratio<60>> time_type;
+    typedef typename Nwt::rate_type rate_type;
 
     engine(
         Nwt& net
@@ -96,44 +99,64 @@ public:
     ,   cnt_(cnt)
     ,   cnf_(cnf)
     ,   rng_(rng)
+    ,   n_steps_(0)
+    ,   time_(0)
+    ,   event_rate_(0)
+    ,   random_time_increment_(cnf_.get<bool>
+            ("hashkat.random_time_increment", false))
     {
-        //for (auto i = 0; i < actions_.depot_.size(); ++i)
-        //    actions_.depot_[i]->init(net, cnt, cnf, rng);
         for (auto& action : actions_.depot_)
             action->init(net_, cnt_, cnf_, rng_);
         for (auto& action : actions_.depot_)
         {
             action->post_init();
-            action->finished().connect(
+            action->happened().connect(
                 boost::bind(&self_type::step_time, this));
         }
     }
 
+    std::size_t steps() const
+    {   return n_steps_;   }
+
+    time_type time() const
+    {   return time_;   }
+
     action_type* operator()()
     {
+        ++n_steps_;
         typedef typename Nwt::type T;
         std::vector<T> weights;
         weights.reserve(actions_.depot_.size());
-        //for (auto i = 0; i < actions_.depot_.size(); ++i)
-        //    weights.push_back(actions_.depot_[i]->rate());
         for (auto& action : actions_.depot_)
-            weights.push_back(action->rate());
+            weights.push_back(action->weight());
         std::discrete_distribution<T> di(weights.begin(), weights.end());
         return actions_.depot_[di(rng_)].get();
     }
 
     std::ostream& print(std::ostream& out) const
     {
-        //for (auto i = 0; i < actions_.depot_.size(); ++i)
-        //    out << actions_.depot_[i].get();
-        for (auto& action : actions_.depot_)
+        out << "# Number of steps: " << n_steps_ << std::endl;
+        out << "# Simulation time: " << time_.count() << " min" << std::endl;
+        out << "# Event rate: " << event_rate_ << std::endl;
+         for (auto& action : actions_.depot_)
             out << action.get();
         return out;
     }
 
 private:
     void step_time()
-    {}
+    {
+        ++event_rate_;
+
+        if (random_time_increment_)
+        {
+            std::uniform_real_distribution<double> dr(std::nextafter(0, 1), 1);
+            auto inc = time_type(-std::log(dr(rng_)) / event_rate_);
+            time_ += inc;
+        }
+        else
+            time_ += time_type(1.0 / event_rate_);
+    }
 
     // member variables
     static action_depot<Nwt,Ctt,Cft,Rgt,Act...> actions_;
@@ -141,6 +164,10 @@ private:
     Ctt& cnt_;
     Cft& cnf_;
     Rgt& rng_;
+    std::size_t n_steps_;
+    time_type time_;
+    rate_type event_rate_;
+    bool random_time_increment_;
 };
 
 template
