@@ -84,6 +84,7 @@ template
 class engine
 {
 public:
+    typedef engine<Nwt,Ctt,Cft,Rgt,Act...> self_type;
     typedef action_base<Nwt,Ctt,Cft,Rgt> action_type;
 
     engine(
@@ -101,8 +102,11 @@ public:
         for (auto& action : actions_.depot_)
             action->init(net_, cnt_, cnf_, rng_);
         for (auto& action : actions_.depot_)
+        {
             action->post_init();
-        
+            action->finished().connect(
+                boost::bind(&self_type::step_time, this));
+        }
     }
 
     action_type* operator()()
@@ -128,6 +132,10 @@ public:
     }
 
 private:
+    void step_time()
+    {}
+
+    // member variables
     static action_depot<Nwt,Ctt,Cft,Rgt,Act...> actions_;
     Nwt& net_;
     Ctt& cnt_;

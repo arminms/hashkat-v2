@@ -104,11 +104,13 @@ private:
             net_ptr_->grow();
             ++count_;
             // TODO - rate_ must be set based on network time
+            action_finished_signal_();
             return true;
         }
         else
         {
             rate_ = 0;
+            action_finished_signal_();
             return false;
         }
     }

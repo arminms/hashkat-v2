@@ -115,11 +115,17 @@ private:
 
         auto follower = select_follower();
         if (follower == failed)
+        {
+            action_finished_signal_();
             return false;
+        }
 
         auto followee = select_followee(follower);
         if (followee == failed || net_ptr_->have_connection(followee, follower))
+        {
+            action_finished_signal_();
             return false;
+        }
 
         auto idx = net_ptr_->followers_size(followee) * bins_.size()
                  / net_ptr_->max_size();
@@ -133,7 +139,11 @@ private:
 #   endif //_CONCURRENT
 
         if (!net_ptr_->connect(followee, follower))
+        {
+            bins_[idx].insert(followee);
+            action_finished_signal_();
             return false;
+        }
 
         idx = net_ptr_->followers_size(followee) * bins_.size()
             / net_ptr_->max_size();
@@ -144,6 +154,8 @@ private:
 
         ++count_;
         // TODO - rate_ must be set based on network time
+        
+        action_finished_signal_();
         return true;
     }
 

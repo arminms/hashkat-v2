@@ -113,7 +113,7 @@ public:
             followees_.emplace_back(std::unordered_set<T>());
 #       endif //_CONCURRENT
             ++n_agents_;
-            grown_signal_(n_agents_ -1);
+            grown_signal_(n_agents_ - 1);
         }
     }
 

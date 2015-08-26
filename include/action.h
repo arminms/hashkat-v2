@@ -45,6 +45,7 @@ class action_base
 {
 public:
     typedef typename NetworkType::type rate_type;
+    typedef boost::signals2::signal<void()> action_finished_signal_type;
 
     action_base()
     :   rate_(0)
@@ -66,6 +67,9 @@ public:
     bool operator()()
     {   return do_action();   }
 
+    action_finished_signal_type& finished()
+    {   return action_finished_signal_;   }
+
     std::ostream& print(std::ostream& out) const
     {   return do_print(out); }
 
@@ -74,6 +78,7 @@ public:
 
 protected:
     rate_type rate_;
+    action_finished_signal_type action_finished_signal_;
 
 private:
     virtual void do_init(
