@@ -163,22 +163,25 @@ public:
         return n_agents_ < max_agents_;
     }
 
-    bool have_connection(T followed_id, T follower_id) const
+    bool have_connection(T followee_id, T follower_id) const
     {
-        return (    followers_[followed_id].find(follower_id)
-               !=   followers_[followed_id].end()   );
+        return (    followers_[followee_id].find(follower_id)
+               !=   followers_[followee_id].end()   );
     }
 
-    void connect(T followee_id, T follower_id)
+    bool connect(T followee_id, T follower_id)
     {
         BOOST_ASSERT_MSG(followee_id != follower_id,
             "agent cannot be connected to itself :(");
-        BOOST_ASSERT_MSG(!have_connection(followee_id, follower_id),
-            "already connected :(");
 
-        followers_[followee_id].insert(follower_id);
-        followees_[follower_id].insert(followee_id);
-        connection_added_signal_(followee_id, follower_id);
+        if (followers_[followee_id].insert(follower_id).second)
+        {
+            followees_[follower_id].insert(followee_id);
+            connection_added_signal_(followee_id, follower_id);
+            return true;
+        }
+        else
+            return false;
     }
 
     void disconnect(T unfollowee_id, T unfollower_id)

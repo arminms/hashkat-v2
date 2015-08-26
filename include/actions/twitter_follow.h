@@ -27,6 +27,7 @@
 #define HASHKAT_ACTIONS_TWITTER_FOLLOW_H_
 
 #   ifdef _CONCURRENT
+#       include <mutex>
 #       include <tbb/concurrent_unordered_set.h>
 #   endif //_CONCURRENT
 
@@ -117,20 +118,22 @@ private:
             return false;
 
         auto followee = select_followee(follower);
-        //while (followee == failed)
-        //    followee = select_followee(follower);
         if (followee == failed || net_ptr_->have_connection(followee, follower))
             return false;
 
         auto idx = net_ptr_->followers_size(followee) * bins_.size()
                  / net_ptr_->max_size();
 #   ifdef _CONCURRENT
-        bins_[idx].unsafe_erase(followee);
+        {
+            std::lock_guard<std::mutex> lg(erase_mutex_);
+            bins_[idx].unsafe_erase(followee);
+        }
 #   else
         bins_[idx].erase(followee);
 #   endif //_CONCURRENT
 
-        net_ptr_->connect(followee, follower);
+        if (!net_ptr_->connect(followee, follower))
+            return false;
 
         idx = net_ptr_->followers_size(followee) * bins_.size()
             / net_ptr_->max_size();
@@ -283,7 +286,6 @@ private:
         //for (auto i = 0; i < weights.size(); ++i)
         //    weights[i] *= bins_[i].size();
         //std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
-
         std::vector<V> weights;
         weights.reserve(kmax_ + 1);
         std::transform(
@@ -307,8 +309,16 @@ private:
         //,   [&](double)
         //{   return weights_[i] * bins_[i++].size();    });
 
+#   ifdef _CONCURRENT
+        T idx = di(*rng_ptr_);
+        auto followee = bins_[idx].cbegin();
+        return followee == bins_[idx].cend()
+            ?   std::numeric_limits<T>::max()
+            :   *followee;
+#   else
         auto followee = bins_[di(*rng_ptr_)].cbegin();
         return *followee;
+#   endif //_CONCURRENT
     }
 
     T agent_follow_model(T follower)
@@ -352,6 +362,7 @@ private:
     T count_;
 #   ifdef _CONCURRENT
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
+    std::mutex erase_mutex_;
 #   else
     std::vector<std::unordered_set<T>> bins_;
 #   endif //_CONCURRENT

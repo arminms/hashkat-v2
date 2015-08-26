@@ -112,7 +112,15 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     pt::read_xml(cnf_folder + "config_01.xml", conf);
     test_simulation sim(conf);
     //sim.run();
-    sim.concurrent_run(2);
+    try
+    {
+        sim.concurrent_run(4);
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "EXCEPTION: " << e.what() << std::endl;
+    }
+
     std::cout << "Elapsed time: " << sim.duration().count() << " ms" << std::endl;
 
     output_test_stream cout(

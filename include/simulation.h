@@ -78,11 +78,14 @@ public:
     bool concurrent_run(int n)
     {
 #   ifdef _CONCURRENT
+        if (n < 3)
+            n = 3;
         start_tp_ = std::chrono::high_resolution_clock::now();
 
-        std::vector<std::thread> threads(n);
+        std::vector<std::thread> threads(n - 1);
         for (auto& thread : threads)
             thread = std::thread(&self_type::action_loop, this);
+        action_loop();
         for (auto& thread : threads)
             thread.join();
 
@@ -109,14 +112,28 @@ private:
 #   ifdef _CONCURRENT
     void action_loop()
     {
-        while (duration() < time_max_)
+        try
         {
-            typename EngineType::action_type* action;
-            if (actions_q_.try_pop(action))
-                (*action)();
-            else
-                actions_q_.push(eng_());
-        };
+            while (duration() < time_max_)
+            {
+                typename EngineType::action_type* action;
+                if (actions_q_.try_pop(action))
+                    (*action)();
+                else
+                    actions_q_.push(eng_());
+            };
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << "THREAD-EXCEPTION (thread "
+                      << std::this_thread::get_id()
+                      << "): " << e.what() << std::endl;
+        }
+        catch (...)
+        {
+            std::cerr << "THREAD-EXCEPTION (thread "
+                      << std::this_thread::get_id() << ")" << std::endl;
+        }
     }
 #   endif //_CONCURRENT
 
