@@ -78,8 +78,8 @@ public:
     bool concurrent_run(int n)
     {
 #   ifdef _CONCURRENT
-        if (n < 3)
-            n = 3;
+        if (n < 1)
+            n = 1;
         start_tp_ = std::chrono::high_resolution_clock::now();
 
         std::vector<std::thread> threads(n - 1);
