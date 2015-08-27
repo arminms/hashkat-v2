@@ -146,12 +146,18 @@ private:
         idx = net_ptr_->followers_size(followee) * bins_.size()
             / net_ptr_->max_size();
         bins_[idx].insert(followee);
-        ++n_connections_;
-        if (kmax_ < idx)
-            kmax_ = idx;
+#   ifdef _CONCURRENT
+        {
+            std::lock_guard<std::mutex> lg(action_mutex_);
+#   endif //_CONCURRENT
+            if (kmax_ < idx)
+                kmax_ = idx;
+            ++n_connections_;
+            ++rate_;
+#   ifdef _CONCURRENT
+        }
+#   endif //_CONCURRENT
 
-        ++rate_;;
-        
         action_happened_signal_();
         action_finished_signal_();
         return true;
@@ -358,8 +364,13 @@ private:
 
     void agent_added(T idx)
     {
-        bins_[0].insert(idx);
-        ++n_connections_;
+        if (bins_[0].insert(idx).second)
+        {
+#       ifdef _CONCURRENT
+            std::lock_guard<std::mutex> lg(agent_added_mutex_);
+#       endif //_CONCURRENT
+            ++n_connections_;
+        }
     }
 
 // member variables
@@ -372,6 +383,8 @@ private:
 #   ifdef _CONCURRENT
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
     std::mutex erase_mutex_;
+    std::mutex action_mutex_;
+    std::mutex agent_added_mutex_;
 #   else
     std::vector<std::unordered_set<T>> bins_;
 #   endif //_CONCURRENT
