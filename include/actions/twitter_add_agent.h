@@ -95,7 +95,7 @@ private:
             (*this)();
     }
 
-    virtual bool do_action()
+    virtual void do_action()
     {
         if (net_ptr_->grow())
         {
@@ -108,15 +108,8 @@ private:
             }
 #       endif //_CONCURRENT
             action_happened_signal_();
-            action_finished_signal_();
-            return true;
         }
-        else
-        {
-            //weight_ = 0;
-            action_finished_signal_();
-            return false;
-        }
+        action_finished_signal_();
     }
 
     virtual std::ostream& do_print(std::ostream& out) const

@@ -107,7 +107,7 @@ private:
         init_bins();
     }
 
-    virtual bool do_action()
+    virtual void do_action()
     {
         BOOST_CONSTEXPR_OR_CONST auto failed = std::numeric_limits<T>::max();
 
@@ -115,14 +115,14 @@ private:
         if (follower == failed)
         {
             action_finished_signal_();
-            return false;
+            return;
         }
 
         auto followee = select_followee(follower);
         if (followee == failed || net_ptr_->have_connection(followee, follower))
         {
             action_finished_signal_();
-            return false;
+            return;
         }
 
         auto idx = net_ptr_->followers_size(followee) * bins_.size()
@@ -139,7 +139,7 @@ private:
         else
         {
             action_finished_signal_();
-            return false;
+            return;
         }
 
         idx = net_ptr_->followers_size(followee) * bins_.size()
@@ -160,7 +160,6 @@ private:
 
         action_happened_signal_();
         action_finished_signal_();
-        return true;
     }
 
     virtual std::ostream& do_print(std::ostream& out) const

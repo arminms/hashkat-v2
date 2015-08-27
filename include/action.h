@@ -70,8 +70,8 @@ public:
     weight_type weight() const
     {   return weight_;   }
 
-    bool operator()()
-    {   return do_action();   }
+    void operator()()
+    {   do_action();   }
 
     action_happened_signal_type& happened()
     {   return action_happened_signal_;   }
@@ -98,7 +98,7 @@ private:
     ,   ConfigType& cnf
     ,   RngType& rng) = 0;
     virtual void do_post_init() {};
-    virtual bool do_action() = 0;
+    virtual void do_action() = 0;
     virtual std::ostream& do_print(std::ostream& out) const = 0;
 };
 
