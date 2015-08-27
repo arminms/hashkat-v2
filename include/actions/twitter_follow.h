@@ -127,18 +127,17 @@ private:
 
         auto idx = net_ptr_->followers_size(followee) * bins_.size()
                  / net_ptr_->max_size();
-#   ifdef _CONCURRENT
+        if (net_ptr_->connect(followee, follower))
         {
+#   ifdef _CONCURRENT
             std::lock_guard<std::mutex> lg(erase_mutex_);
             bins_[idx].unsafe_erase(followee);
-        }
 #   else
-        bins_[idx].erase(followee);
+            bins_[idx].erase(followee);
 #   endif //_CONCURRENT
-
-        if (!net_ptr_->connect(followee, follower))
+        }
+        else
         {
-            bins_[idx].insert(followee);
             action_finished_signal_();
             return false;
         }
@@ -146,6 +145,7 @@ private:
         idx = net_ptr_->followers_size(followee) * bins_.size()
             / net_ptr_->max_size();
         bins_[idx].insert(followee);
+
 #   ifdef _CONCURRENT
         {
             std::lock_guard<std::mutex> lg(action_mutex_);

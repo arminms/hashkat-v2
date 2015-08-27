@@ -95,9 +95,9 @@ public:
         if (n_agents_ < max_agents_)
         {
             ++n_agents_;
-            l.unlock();
             followers_.emplace_back(tbb::concurrent_unordered_set<T>());
             followees_.emplace_back(tbb::concurrent_unordered_set<T>());
+            l.unlock();
 #   else
         if (n_agents_ < max_agents_)
         {
@@ -260,6 +260,8 @@ private:
     AgentType* agents_;
     T n_agents_, max_agents_;
 #   ifdef _CONCURRENT
+    //std::vector<tbb::concurrent_unordered_set<T>> followers_;
+    //std::vector<tbb::concurrent_unordered_set<T>> followees_;
     tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followers_;
     tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followees_;
     std::mutex grow_mutex_;
