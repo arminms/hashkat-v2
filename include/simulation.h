@@ -108,7 +108,7 @@ private:
     {
         try
         {
-            while (duration() < max_real_time_)
+            while (eng_.time() < max_time_ && duration() < max_real_time_)
             {
                 typename EngineType::action_type* action;
                 if (actions_q_.try_pop(action))

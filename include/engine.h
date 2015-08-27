@@ -106,13 +106,15 @@ public:
             ("hashkat.random_time_increment", false))
     {
         for (auto& action : actions_.depot_)
-            action->init(net_, cnt_, cnf_, rng_);
-        for (auto& action : actions_.depot_)
         {
-            action->post_init();
+            action->init(net_, cnt_, cnf_, rng_);
             action->happened().connect(
+                boost::bind(&self_type::update_event_rate, this));
+            action->finished().connect(
                 boost::bind(&self_type::step_time, this));
         }
+        for (auto& action : actions_.depot_)
+            action->post_init();
     }
 
     std::size_t steps() const
@@ -123,7 +125,6 @@ public:
 
     action_type* operator()()
     {
-        ++n_steps_;
         typedef typename Nwt::type T;
         std::vector<T> weights;
         weights.reserve(actions_.depot_.size());
@@ -144,10 +145,12 @@ public:
     }
 
 private:
+    void update_event_rate()
+    {   ++event_rate_;     }
+
     void step_time()
     {
-        ++event_rate_;
-
+        ++n_steps_;
         if (random_time_increment_)
         {
             std::uniform_real_distribution<double> dr(std::nextafter(0, 1), 1);

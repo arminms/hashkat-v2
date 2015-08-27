@@ -109,6 +109,7 @@ private:
             //weight_ = 0;
             return false;
         }
+        action_finished_signal_();
     }
 
     virtual std::ostream& do_print(std::ostream& out) const
