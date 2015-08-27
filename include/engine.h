@@ -157,7 +157,7 @@ private:
     {
 #       ifdef _CONCURRENT
         {
-            std::lock_guard<std::mutex> lg(event_rate_mutex_);
+            std::lock_guard<std::mutex> lg(steps_mutex_);
 #       endif //_CONCURRENT
             ++n_steps_;
 #       ifdef _CONCURRENT
