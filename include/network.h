@@ -175,16 +175,31 @@ public:
             return false;
     }
 
-    void disconnect(T unfollowee_id, T unfollower_id)
+    bool disconnect(T unfollowee_id, T unfollower_id)
     {
         BOOST_ASSERT_MSG(unfollowee_id != unfollower_id,
             "agent cannot be disconnected from itself :(");
-        BOOST_ASSERT_MSG(have_connection(unfollowee_id, unfollower_id),
-            "no connection to remove :(");
 
-        followers_[unfollowee_id].erase(unfollower_id);
-        followees_[unfollower_id].erase(unfollowee_id);
-        connection_removed_signal_(unfollowee_id, unfollower_id);
+#   ifdef _CONCURRENT
+        bool r = false;
+        {
+            std::lock_guard<std::mutex> lg(erase_mutex_);
+            r = followers_[unfollowee_id].unsafe_erase(unfollower_id);
+            followees_[unfollower_id].unsafe_erase(unfollowee_id);
+        }
+        if (r)
+            connection_removed_signal_(unfollowee_id, unfollower_id);
+        return r;
+#   else
+        if (followers_[unfollowee_id].erase(unfollower_id))
+        {
+            followees_[unfollower_id].erase(unfollowee_id);
+            connection_removed_signal_(unfollowee_id, unfollower_id);
+            return true;
+        }
+        else
+            return false;
+#   endif //_CONCURRENT
     }
 
     std::ostream& print(std::ostream& out) const
