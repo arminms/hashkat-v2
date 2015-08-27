@@ -27,6 +27,7 @@
 #define HASHKAT_NETWORK_H_
 
 #   ifdef _CONCURRENT
+#       include <mutex>
 #       include <tbb/concurrent_vector.h>
 #       include <tbb/concurrent_unordered_set.h>
 #   endif //_CONCURRENT
@@ -56,21 +57,6 @@ public:
     typedef boost::signals2::signal<void(T, T)> connection_added_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_removed_signal_type;
 
-private:
-    AgentType* agents_;
-    T n_agents_, max_agents_;
-#   ifdef _CONCURRENT
-    tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followers_;
-    tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followees_;
-#   else
-    std::vector<std::unordered_set<T>> followers_;
-    std::vector<std::unordered_set<T>> followees_;
-#   endif //_CONCURRENT
-    grown_signal_type grown_signal_;
-    connection_added_signal_type connection_added_signal_;
-    connection_removed_signal_type connection_removed_signal_;
-
-public:
     network()
     :   agents_(nullptr)
     ,   n_agents_(0)
@@ -109,11 +95,15 @@ public:
 #       ifdef _CONCURRENT
             followers_.emplace_back(tbb::concurrent_unordered_set<T>());
             followees_.emplace_back(tbb::concurrent_unordered_set<T>());
+            {
+                std::lock_guard<std::mutex> lg(grow_mutex_);
+                ++n_agents_;
+            }
 #       else
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
-#       endif //_CONCURRENT
             ++n_agents_;
+#       endif //_CONCURRENT
             grown_signal_(n_agents_ - 1);
         }
     }
@@ -225,6 +215,23 @@ public:
         }
         return out;
     }
+
+private:
+    // member variables
+    AgentType* agents_;
+    T n_agents_, max_agents_;
+#   ifdef _CONCURRENT
+    tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followers_;
+    tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followees_;
+    std::mutex grow_mutex_;
+    std::mutex erase_mutex_;
+#   else
+    std::vector<std::unordered_set<T>> followers_;
+    std::vector<std::unordered_set<T>> followees_;
+#   endif //_CONCURRENT
+    grown_signal_type grown_signal_;
+    connection_added_signal_type connection_added_signal_;
+    connection_removed_signal_type connection_removed_signal_;
 };
 
 template

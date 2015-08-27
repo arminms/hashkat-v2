@@ -112,19 +112,59 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     pt::read_xml(cnf_folder + "config_01.xml", conf);
     test_simulation sim(conf);
     sim.run();
-    //try
-    //{
-    //    sim.concurrent_run(2);
-    //}
-    //catch (const std::exception& e)
-    //{
-    //    std::cerr << "EXCEPTION: " << e.what() << std::endl;
-    //}
-
-    std::cout << "Elapsed time: " << sim.duration().count() << " ms" << std::endl;
+    std::cout << "Elapsed time: " << sim.duration().count()
+              << " ms" << std::endl;
 
     output_test_stream cout(
         ptn_folder + "sim_01.txt"
+    ,   !butrc::save_pattern());
+    cout << sim;
+    BOOST_CHECK(cout.match_pattern());
+}
+
+BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
+{
+    test_config conf;
+    pt::read_xml(cnf_folder + "config_02.xml", conf);
+    test_simulation sim(conf);
+    try
+    {
+        sim.concurrent_run(1);
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "EXCEPTION: " << e.what() << std::endl;
+    }
+
+    std::cout << "Elapsed time: " << sim.duration().count()
+              << " ms" << std::endl;
+
+    output_test_stream cout(
+        ptn_folder + "sim_02.txt"
+    ,   !butrc::save_pattern());
+    cout << sim;
+    BOOST_CHECK(cout.match_pattern());
+}
+
+BOOST_FIXTURE_TEST_CASE(Simulation_03, FOLDERS)
+{
+    test_config conf;
+    pt::read_xml(cnf_folder + "config_02.xml", conf);
+    test_simulation sim(conf);
+    try
+    {
+        sim.concurrent_run(2);
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "EXCEPTION: " << e.what() << std::endl;
+    }
+
+    std::cout << "Elapsed time: " << sim.duration().count()
+              << " ms" << std::endl;
+
+    output_test_stream cout(
+        ptn_folder + "sim_03.txt"
     ,   !butrc::save_pattern());
     cout << sim;
     BOOST_CHECK(cout.match_pattern());
