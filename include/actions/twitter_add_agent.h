@@ -100,7 +100,14 @@ private:
         if (net_ptr_->can_grow())
         {
             net_ptr_->grow();
+#       ifdef _CONCURRENT
+            std::lock_guard<std::mutex> lg(rate_mutex_);
+            {
+#       endif //_CONCURRENT
             ++rate_;
+#       ifdef _CONCURRENT
+            }
+#       endif //_CONCURRENT
             action_happened_signal_();
             return true;
         }
@@ -124,6 +131,9 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
+#   ifdef _CONCURRENT
+    std::mutex rate_mutex_;
+#   endif //_CONCURRENT
 };
 
 template
