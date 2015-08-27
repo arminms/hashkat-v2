@@ -88,25 +88,49 @@ public:
         followees_.reserve(max_agents_);
     }
 
-    void grow(T n = 1)
+    bool grow()
     {
-        for (auto i = 0; i < n; ++i)
+#   ifdef _CONCURRENT
+        std::unique_lock<std::mutex> l(grow_mutex_);
+        if (n_agents_ < max_agents_)
         {
-#       ifdef _CONCURRENT
+            ++n_agents_;
+            l.unlock();
             followers_.emplace_back(tbb::concurrent_unordered_set<T>());
             followees_.emplace_back(tbb::concurrent_unordered_set<T>());
-            {
-                std::lock_guard<std::mutex> lg(grow_mutex_);
-                ++n_agents_;
-            }
-#       else
+#   else
+        if (n_agents_ < max_agents_)
+        {
+            ++n_agents_;
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
-            ++n_agents_;
-#       endif //_CONCURRENT
+#   endif //_CONCURRENT
             grown_signal_(n_agents_ - 1);
+            return true;
         }
+        else 
+            return false;
     }
+
+//    T grow(T n = 1)
+//    {
+//        for (auto i = 0; i < n; ++i)
+//        {
+//#       ifdef _CONCURRENT
+//            followers_.emplace_back(tbb::concurrent_unordered_set<T>());
+//            followees_.emplace_back(tbb::concurrent_unordered_set<T>());
+//            {
+//                std::lock_guard<std::mutex> lg(grow_mutex_);
+//                ++n_agents_;
+//            }
+//#       else
+//            followers_.emplace_back(std::unordered_set<T>());
+//            followees_.emplace_back(std::unordered_set<T>());
+//            ++n_agents_;
+//#       endif //_CONCURRENT
+//            grown_signal_(n_agents_ - 1);
+//        }
+//    }
 
     T size() const
     {   return n_agents_;   }

@@ -97,9 +97,8 @@ private:
 
     virtual bool do_action()
     {
-        if (net_ptr_->can_grow())
+        if (net_ptr_->grow())
         {
-            net_ptr_->grow();
 #       ifdef _CONCURRENT
             std::lock_guard<std::mutex> lg(rate_mutex_);
             {
@@ -109,14 +108,15 @@ private:
             }
 #       endif //_CONCURRENT
             action_happened_signal_();
+            action_finished_signal_();
             return true;
         }
         else
         {
             //weight_ = 0;
+            action_finished_signal_();
             return false;
         }
-        action_finished_signal_();
     }
 
     virtual std::ostream& do_print(std::ostream& out) const
