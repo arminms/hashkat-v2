@@ -18,13 +18,13 @@ FIND_PATH(TBB_INCLUDE_DIR
 
 FIND_LIBRARY(TBB_LIBRARIES
   NAMES
-      tbb tbbmalloc
+    tbb
   PATHS
-      ${TBB_PREFIX}/lib
-      ${USERLIB_PREFIX}/lib
-      /opt/lib
-      /opt/local/lib
-      ~/tbb44_20150728oss/lib
+    ${TBB_PREFIX}/lib
+    ${USERLIB_PREFIX}/lib
+    /opt/lib
+    /opt/local/lib
+    ~/tbb44_20150728oss/lib
 )
 
 IF(TBB_INCLUDE_DIR
