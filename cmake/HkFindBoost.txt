@@ -1,0 +1,6 @@
+# Includes the appropriate boost finder
+IF(HK_BOOST_DISCOVERY)
+  INCLUDE(${HK_SOURCE_DIR}/cmake/HkFindBoost-vintage.txt)
+ELSE(HK_BOOST_DISCOVERY)
+  INCLUDE(${HK_SOURCE_DIR}/cmake/HkFindBoost-cmake.txt)
+ENDIF(HK_BOOST_DISCOVERY)

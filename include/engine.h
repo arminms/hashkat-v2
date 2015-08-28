@@ -102,7 +102,7 @@ public:
     ,   n_steps_(0)
     ,   time_(0)
     ,   event_rate_(0)
-    ,   random_time_increment_(cnf_.get<bool>
+    ,   random_time_increment_(cnf.template get<bool>
             ("hashkat.random_time_increment", false))
     {
         for (auto& action : actions_.depot_)

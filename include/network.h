@@ -112,25 +112,19 @@ public:
             return false;
     }
 
-//    T grow(T n = 1)
-//    {
-//        for (auto i = 0; i < n; ++i)
-//        {
-//#       ifdef _CONCURRENT
-//            followers_.emplace_back(tbb::concurrent_unordered_set<T>());
-//            followees_.emplace_back(tbb::concurrent_unordered_set<T>());
-//            {
-//                std::lock_guard<std::mutex> lg(grow_mutex_);
-//                ++n_agents_;
-//            }
-//#       else
-//            followers_.emplace_back(std::unordered_set<T>());
-//            followees_.emplace_back(std::unordered_set<T>());
-//            ++n_agents_;
-//#       endif //_CONCURRENT
-//            grown_signal_(n_agents_ - 1);
-//        }
-//    }
+    T grow(T n)
+    {
+        for (auto i = 0; i < n; ++i)
+        {
+            if (n_agents_ == max_agents_)
+                return i;
+            followers_.emplace_back(std::unordered_set<T>());
+            followees_.emplace_back(std::unordered_set<T>());
+            ++n_agents_;
+            grown_signal_(n_agents_ - 1);
+        }
+        return n;
+    }
 
     T size() const
     {   return n_agents_;   }

@@ -52,13 +52,13 @@ class simulation
         <NetworkType, ContentsType, ConfigType, EngineType, RngType> self_type;
 
 public:
-    simulation(const ConfigType& conf)
-    :   cnf_(conf)
+    simulation(const ConfigType& cnf)
+    :   cnf_(cnf)
     ,   net_(cnf_)
     ,   cnt_()
     ,   eng_(net_, cnt_, cnf_, rng_)
-    ,   max_time_(cnf_.get<int>("hashkat.network.max_time", 1000))
-    ,   max_real_time_(cnf_.get<int>("hashkat.network.max_real_time", 1))
+    ,   max_time_(cnf.template get<int>("hashkat.network.max_time", 1000))
+    ,   max_real_time_(cnf.template get<int>("hashkat.network.max_real_time", 1))
     {}
 
     bool run()
@@ -85,8 +85,12 @@ public:
 
         return true;
 #   else
-    BOOST_STATIC_ASSERT_MSG(false,
-        "calling concurrent_run() requires _CONCURRENT to be defined :(");
+#       if BOOST_WORKAROUND(__GLIBCXX__, BOOST_TESTED_AT(20130909))
+        return run();
+#       else 
+        BOOST_STATIC_ASSERT_MSG(false,
+            "calling concurrent_run() requires _CONCURRENT to be defined :(");
+#       endif //__GLIBCXX__
 #   endif //_CONCURRENT
     }
 

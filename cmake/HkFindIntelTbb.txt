@@ -1,0 +1,39 @@
+# We set:
+# - TBB_INCLUDE_DIR
+# - TBB_LIBRARIES
+# - TBB_FOUND
+# Taking into account:
+# - TBB_PREFIX
+
+FIND_PATH(TBB_INCLUDE_DIR
+    tbb
+  PATHS
+    ${TBB_PREFIX}/include
+    /usr/include
+    /usr/local/include
+    /opt/include
+    /opt/local/include
+    ~/tbb44_20150728oss/include
+)
+
+FIND_LIBRARY(TBB_LIBRARIES
+  NAMES
+      tbb tbbmalloc
+  PATHS
+      ${TBB_PREFIX}/lib
+      ${USERLIB_PREFIX}/lib
+      /opt/lib
+      /opt/local/lib
+      ~/tbb44_20150728oss/lib
+)
+
+IF(TBB_INCLUDE_DIR
+  AND TBB_LIBRARIES)
+    SET(TBB_FOUND TRUE)
+    MESSAGE(STATUS "Found Intel Threading Building Blocks (Intel TBB) library")
+ELSE(TBB_LIBRARIES)
+    SET(TBB_FOUND FALSE)
+    MESSAGE(STATUS "Intel TBB library not found - set TBB_PREFIX")
+ENDIF(TBB_INCLUDE_DIR
+  AND TBB_LIBRARIES)
+

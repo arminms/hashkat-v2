@@ -47,6 +47,8 @@ class twitter_add_agent
 {
     typedef twitter_add_agent<NetworkType, ContentsType, ConfigType, RngType>
         self_type;
+    typedef action_base<NetworkType, ContentsType, ConfigType, RngType>
+        base_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
 
@@ -83,7 +85,7 @@ private:
         cnf_ptr_ = &cnf;
         rng_ptr_ = &rng;
 
-        weight_ = cnf_ptr_->template get<T>
+        base_type::weight_ = cnf_ptr_->template get<T>
             ("hashkat.rates.add", T(1));
     }
 
@@ -103,19 +105,19 @@ private:
             std::lock_guard<std::mutex> lg(rate_mutex_);
             {
 #       endif //_CONCURRENT
-            ++rate_;
+            ++base_type::rate_;
 #       ifdef _CONCURRENT
             }
 #       endif //_CONCURRENT
-            action_happened_signal_();
+            base_type::action_happened_signal_();
         }
-        action_finished_signal_();
+        base_type::action_finished_signal_();
     }
 
     virtual std::ostream& do_print(std::ostream& out) const
     {
-        out << "# Add rate: " << rate_ << std::endl;
-        out << "# Add weight: " << weight_ << std::endl;
+        out << "# Add rate: " << base_type::rate_ << std::endl;
+        out << "# Add weight: " << base_type::weight_ << std::endl;
         return out;
     }
 

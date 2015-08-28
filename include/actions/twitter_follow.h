@@ -57,6 +57,8 @@ class twitter_follow
 {
     typedef twitter_follow<NetworkType, ContentsType, ConfigType, RngType>
         self_type;
+    typedef action_base<NetworkType, ContentsType, ConfigType, RngType>
+        base_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
 
@@ -114,14 +116,14 @@ private:
         auto follower = select_follower();
         if (follower == failed)
         {
-            action_finished_signal_();
+            base_type::action_finished_signal_();
             return;
         }
 
         auto followee = select_followee(follower);
         if (followee == failed)
         {
-            action_finished_signal_();
+            base_type::action_finished_signal_();
             return;
         }
 
@@ -138,7 +140,7 @@ private:
         }
         else
         {
-            action_finished_signal_();
+            base_type::action_finished_signal_();
             return;
         }
 
@@ -152,7 +154,7 @@ private:
 #   endif //_CONCURRENT
         if (kmax_ < idx)
             kmax_ = idx;
-        ++rate_;
+        ++base_type::rate_;
 #   ifdef _CONCURRENT
         }
 #   endif //_CONCURRENT
@@ -166,14 +168,14 @@ private:
         }
 #   endif //_CONCURRENT
 
-        action_happened_signal_();
-        action_finished_signal_();
+        base_type::action_happened_signal_();
+        base_type::action_finished_signal_();
     }
 
     virtual std::ostream& do_print(std::ostream& out) const
     {
-        out << "# Follow rate: " << rate_ << std::endl;
-        out << "# Follow weight: " << weight_ << std::endl;
+        out << "# Follow rate: " << base_type::rate_ << std::endl;
+        out << "# Follow weight: " << base_type::weight_ << std::endl;
         out << "# Number of Bins: " << bins_.size() << std::endl;
         out << "# Number of Connections: " << n_connections_ << std::endl;
         out << "# kmax: " << kmax_ << std::endl;
@@ -202,7 +204,7 @@ private:
     // initialize follow models
     void init_follow_models()
     {
-        weight_ = cnf_ptr_->template get<T>
+        base_type::weight_ = cnf_ptr_->template get<T>
             ("hashkat.rates.follow", T(1));
 
         follow_models_ =
