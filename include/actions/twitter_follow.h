@@ -119,7 +119,7 @@ private:
         }
 
         auto followee = select_followee(follower);
-        if (followee == failed || net_ptr_->have_connection(followee, follower))
+        if (followee == failed)
         {
             action_finished_signal_();
             return;

@@ -94,16 +94,16 @@ public:
         std::unique_lock<std::mutex> l(grow_mutex_);
         if (n_agents_ < max_agents_)
         {
-            ++n_agents_;
             followers_.emplace_back(tbb::concurrent_unordered_set<T>());
             followees_.emplace_back(tbb::concurrent_unordered_set<T>());
+            ++n_agents_;
             l.unlock();
 #   else
         if (n_agents_ < max_agents_)
         {
-            ++n_agents_;
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
+            ++n_agents_;
 #   endif //_CONCURRENT
             grown_signal_(n_agents_ - 1);
             return true;
@@ -189,9 +189,9 @@ public:
         BOOST_ASSERT_MSG(followee_id != follower_id,
             "agent cannot be connected to itself :(");
 
-        if (followers_[followee_id].insert(follower_id).second)
+        if (followers_[followee_id].insert(follower_id).second
+        &&  followees_[follower_id].insert(followee_id).second)
         {
-            followees_[follower_id].insert(followee_id);
             connection_added_signal_(followee_id, follower_id);
             return true;
         }
