@@ -150,10 +150,18 @@ private:
         {
             std::lock_guard<std::mutex> lg(action_mutex_);
 #   endif //_CONCURRENT
-            if (kmax_ < idx)
-                kmax_ = idx;
-            ++n_connections_;
-            ++rate_;
+        if (kmax_ < idx)
+            kmax_ = idx;
+        ++rate_;
+#   ifdef _CONCURRENT
+        }
+#   endif //_CONCURRENT
+
+#   ifdef _CONCURRENT
+        {
+            std::lock_guard<std::mutex> lg(update_nc_mutex_);
+#   endif //_CONCURRENT
+        ++n_connections_;
 #   ifdef _CONCURRENT
         }
 #   endif //_CONCURRENT
@@ -366,7 +374,7 @@ private:
         if (bins_[0].insert(idx).second)
         {
 #       ifdef _CONCURRENT
-            std::lock_guard<std::mutex> lg(agent_added_mutex_);
+            std::lock_guard<std::mutex> lg(update_nc_mutex_);
 #       endif //_CONCURRENT
             ++n_connections_;
         }
@@ -380,10 +388,11 @@ private:
     T n_connections_;
     T kmax_;
 #   ifdef _CONCURRENT
+    //tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> bins_;
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
     std::mutex erase_mutex_;
     std::mutex action_mutex_;
-    std::mutex agent_added_mutex_;
+    std::mutex update_nc_mutex_;
 #   else
     std::vector<std::unordered_set<T>> bins_;
 #   endif //_CONCURRENT
