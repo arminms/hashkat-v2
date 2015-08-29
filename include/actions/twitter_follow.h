@@ -132,7 +132,7 @@ private:
         if (net_ptr_->connect(followee, follower))
         {
 #   ifdef _CONCURRENT
-            std::lock_guard<std::mutex> lg(erase_mutex_);
+            std::lock_guard<std::mutex> lg(update_binds_mutex_);
             bins_[idx].unsafe_erase(followee);
 #   else
             bins_[idx].erase(followee);
@@ -146,7 +146,12 @@ private:
 
         idx = net_ptr_->followers_size(followee) * bins_.size()
             / net_ptr_->max_size();
-        bins_[idx].insert(followee);
+        {
+#   ifdef _CONCURRENT
+            std::lock_guard<std::mutex> lg(update_binds_mutex_);
+#   endif //_CONCURRENT
+            bins_[idx].insert(followee);
+        }
 
 #   ifdef _CONCURRENT
         {
@@ -324,7 +329,7 @@ private:
         ,   [](V w, const std::unordered_set<T>& b)
 #   endif //_CONCURRENT
         {   return w * b.size();    });
-        std::discrete_distribution<T> di(weights.begin(), weights.end());
+        std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
 
         //std::size_t i(0);
         //std::discrete_distribution<T> di(
@@ -373,13 +378,14 @@ private:
 
     void agent_added(T idx)
     {
-        if (bins_[0].insert(idx).second)
-        {
-#       ifdef _CONCURRENT
-            std::lock_guard<std::mutex> lg(update_nc_mutex_);
-#       endif //_CONCURRENT
-            ++n_connections_;
-        }
+#   ifdef _CONCURRENT
+        std::lock_guard<std::mutex> g1(update_binds_mutex_);
+#   endif //_CONCURRENT
+        bins_[0].insert(idx);
+#   ifdef _CONCURRENT
+        std::lock_guard<std::mutex> g2(update_nc_mutex_);
+#   endif //_CONCURRENT
+        ++n_connections_;
     }
 
 // member variables
@@ -392,7 +398,7 @@ private:
 #   ifdef _CONCURRENT
     //tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> bins_;
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
-    std::mutex erase_mutex_;
+    std::mutex update_binds_mutex_;
     std::mutex action_mutex_;
     std::mutex update_nc_mutex_;
 #   else
