@@ -10,7 +10,6 @@ IF(WIN32)
       tbb
     PATHS
       ${TBB_PREFIX}/include
-      C:/local/tbb44_20150728oss/include
   )
 ELSE(WIN32)
   FIND_PATH(TBB_INCLUDE_DIR
@@ -21,7 +20,6 @@ ELSE(WIN32)
       /usr/local/include
       /opt/include
       /opt/local/include
-      ~/tbb44_20150728oss/include
 )
 ENDIF(WIN32)
 
@@ -30,8 +28,7 @@ IF(WIN32)
     NAMES
       tbb
     PATHS
-      ${TBB_PREFIX}/lib
-      c:/local/tbb44_20150728oss/lib/intel64/vc12
+      ${TBB_PREFIX}/lib/intel64/vc12
   )
 ELSE(WIN32)
   FIND_LIBRARY(TBB_LIBRARIES
@@ -40,9 +37,9 @@ ELSE(WIN32)
     PATHS
       ${TBB_PREFIX}/lib
       ${USERLIB_PREFIX}/lib
+      /usr/local/lib
       /opt/lib
       /opt/local/lib
-      ~/tbb44_20150728oss/lib
   )
 ENDIF(WIN32)
 
