@@ -26,7 +26,7 @@
 #ifndef HASHKAT_ACTION_H_
 #define HASHKAT_ACTION_H_
 
-#include <boost/core/noncopyable.hpp>
+//#include <boost/core/noncopyable.hpp>
 
 namespace hashkat {
 

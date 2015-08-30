@@ -5,27 +5,46 @@
 # Taking into account:
 # - TBB_PREFIX
 
-FIND_PATH(TBB_INCLUDE_DIR
-    tbb
-  PATHS
-    ${TBB_PREFIX}/include
-    /usr/include
-    /usr/local/include
-    /opt/include
-    /opt/local/include
-    ~/tbb44_20150728oss/include
+IF(WIN32)
+  FIND_PATH(TBB_INCLUDE_DIR
+      tbb
+    PATHS
+      ${TBB_PREFIX}/include
+      C:/local/tbb44_20150728oss/include
+  )
+ELSE(WIN32)
+  FIND_PATH(TBB_INCLUDE_DIR
+      tbb
+    PATHS
+      ${TBB_PREFIX}/include
+      /usr/include
+      /usr/local/include
+      /opt/include
+      /opt/local/include
+      ~/tbb44_20150728oss/include
 )
+ENDIF(WIN32)
 
-FIND_LIBRARY(TBB_LIBRARIES
-  NAMES
-    tbb
-  PATHS
-    ${TBB_PREFIX}/lib
-    ${USERLIB_PREFIX}/lib
-    /opt/lib
-    /opt/local/lib
-    ~/tbb44_20150728oss/lib
-)
+IF(WIN32)
+  FIND_LIBRARY(TBB_LIBRARIES
+    NAMES
+      tbb
+    PATHS
+      ${TBB_PREFIX}/lib
+      c:/local/tbb44_20150728oss/lib/intel64/vc12
+  )
+ELSE(WIN32)
+  FIND_LIBRARY(TBB_LIBRARIES
+    NAMES
+      tbb
+    PATHS
+      ${TBB_PREFIX}/lib
+      ${USERLIB_PREFIX}/lib
+      /opt/lib
+      /opt/local/lib
+      ~/tbb44_20150728oss/lib
+  )
+ENDIF(WIN32)
 
 IF(TBB_INCLUDE_DIR
   AND TBB_LIBRARIES)

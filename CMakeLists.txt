@@ -62,7 +62,7 @@ IF(CONCURRENT)
         TARGET_LINK_LIBRARIES(${TBB_LIBRARIES})
         INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIR})
     ELSE(TBB_FOUND)
-        MESSAGE("Building thread version requires Intel TBB library.")
+        MESSAGE("-- Building thread version requires Intel TBB library.")
     ENDIF(TBB_FOUND)
 ENDIF(CONCURRENT)
 

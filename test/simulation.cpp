@@ -122,6 +122,7 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     BOOST_CHECK(cout.match_pattern());
 }
 
+#ifdef _CONCURRENT
 BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
 {
     test_config conf;
@@ -169,3 +170,4 @@ BOOST_FIXTURE_TEST_CASE(Simulation_03, FOLDERS)
     cout << sim;
     BOOST_CHECK(cout.match_pattern());
 }
+#endif  //_CONCURRENT
