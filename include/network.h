@@ -118,8 +118,13 @@ public:
         {
             if (n_agents_ == max_agents_)
                 return i;
+#   ifdef _CONCURRENT
+            followers_.emplace_back(tbb::concurrent_unordered_set<T>());
+            followees_.emplace_back(tbb::concurrent_unordered_set<T>());
+#   else
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
+#   endif //_CONCURRENT
             ++n_agents_;
             grown_signal_(n_agents_ - 1);
         }
