@@ -154,7 +154,7 @@ BOOST_FIXTURE_TEST_CASE(Simulation_03, FOLDERS)
     test_simulation sim(conf);
     try
     {
-        sim.concurrent_run(4);
+        sim.concurrent_run(2);
     }
     catch (const std::exception& e)
     {

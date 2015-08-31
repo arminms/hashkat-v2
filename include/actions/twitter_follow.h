@@ -127,60 +127,13 @@ private:
             return;
         }
 
-        auto idx = net_ptr_->followers_size(followee) * bins_.size()
-                    / net_ptr_->max_size();
-        if (!net_ptr_->connect(followee, follower))
+        if (net_ptr_->connect(followee, follower))
         {
+            base_type::action_happened_signal_();
             base_type::action_finished_signal_();
-            return;
         }
         else
-        {
-#   ifdef _CONCURRENT
-            std::lock_guard<std::mutex> lg(update_bins_mutex_);
-            if (bins_[idx].unsafe_erase(followee))
-                bins_[++idx].insert(followee);
-            else
-            {
-                std::cout << followee << " -> " << idx << ',';
-                idx = net_ptr_->followers_size(followee) * bins_.size()
-                    / net_ptr_->max_size();
-                std::cout << idx;
-                if (bins_[idx].find(followee) == bins_[idx].end())
-                    std::cout << " NOT FOUND" << std::endl;
-                else
-                    std::cout << " FOUND" << std::endl;
-                bins_[idx].unsafe_erase(followee);
-                bins_[++idx].insert(followee);
-            }
-#   else
-            if (bins_[idx].erase(followee))
-                bins_[++idx].insert(followee);
-#   endif //_CONCURRENT
-        }
-
-#   ifdef _CONCURRENT
-        {
-            std::lock_guard<std::mutex> lg(action_mutex_);
-#   endif //_CONCURRENT
-        if (kmax_ < idx)
-            kmax_ = idx;
-        ++base_type::rate_;
-#   ifdef _CONCURRENT
-        }
-#   endif //_CONCURRENT
-
-#   ifdef _CONCURRENT
-        {
-            std::lock_guard<std::mutex> lg(update_nc_mutex_);
-#   endif //_CONCURRENT
-        ++n_connections_;
-#   ifdef _CONCURRENT
-        }
-#   endif //_CONCURRENT
-
-        base_type::action_happened_signal_();
-        base_type::action_finished_signal_();
+            base_type::action_finished_signal_();
     }
 
     virtual std::ostream& do_print(std::ostream& out) const
@@ -210,6 +163,8 @@ private:
     {
         net_ptr_->grown().connect(
             boost::bind(&self_type::agent_added, this, _1));
+        net_ptr_->connection_added().connect(
+            boost::bind(&self_type::update_bins, this, _1, _2));
     }
 
     // initialize follow models
@@ -392,10 +347,36 @@ private:
 
     void agent_added(T idx)
     {
+        {
 #   ifdef _CONCURRENT
         std::lock_guard<std::mutex> g1(update_bins_mutex_);
 #   endif //_CONCURRENT
         bins_[0].insert(idx);
+        }
+#   ifdef _CONCURRENT
+        std::lock_guard<std::mutex> g2(update_nc_mutex_);
+#   endif //_CONCURRENT
+        ++n_connections_;
+    }
+
+    void update_bins(T followee, T follower)
+    {
+        {
+#   ifdef _CONCURRENT
+        std::lock_guard<std::mutex> g1(update_bins_mutex_);
+#   endif //_CONCURRENT
+        auto idx = net_ptr_->followers_size(followee) * bins_.size()
+                 / net_ptr_->max_size();
+        while (bins_[idx].find(followee) == bins_[idx].end())
+            --idx;
+        if (bins_[idx].unsafe_erase(followee))
+            bins_[++idx].insert(followee);
+        else
+            std::cout << "WRONG GUESS" << std::endl;
+        if (kmax_ < idx)
+            kmax_ = idx;
+        ++base_type::rate_;
+        }
 #   ifdef _CONCURRENT
         std::lock_guard<std::mutex> g2(update_nc_mutex_);
 #   endif //_CONCURRENT
@@ -413,7 +394,6 @@ private:
     //tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> bins_;
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
     std::mutex update_bins_mutex_;
-    std::mutex action_mutex_;
     std::mutex update_nc_mutex_;
 #   else
     std::vector<std::unordered_set<T>> bins_;
