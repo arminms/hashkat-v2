@@ -128,29 +128,35 @@ private:
         }
 
         auto idx = net_ptr_->followers_size(followee) * bins_.size()
-                 / net_ptr_->max_size();
-        if (net_ptr_->connect(followee, follower))
-        {
-#   ifdef _CONCURRENT
-            std::lock_guard<std::mutex> lg(update_binds_mutex_);
-            bins_[idx].unsafe_erase(followee);
-#   else
-            bins_[idx].erase(followee);
-#   endif //_CONCURRENT
-        }
-        else
+                    / net_ptr_->max_size();
+        if (!net_ptr_->connect(followee, follower))
         {
             base_type::action_finished_signal_();
             return;
         }
-
-        idx = net_ptr_->followers_size(followee) * bins_.size()
-            / net_ptr_->max_size();
+        else
         {
 #   ifdef _CONCURRENT
-            std::lock_guard<std::mutex> lg(update_binds_mutex_);
+            std::lock_guard<std::mutex> lg(update_bins_mutex_);
+            if (bins_[idx].unsafe_erase(followee))
+                bins_[++idx].insert(followee);
+            else
+            {
+                std::cout << followee << " -> " << idx << ',';
+                idx = net_ptr_->followers_size(followee) * bins_.size()
+                    / net_ptr_->max_size();
+                std::cout << idx;
+                if (bins_[idx].find(followee) == bins_[idx].end())
+                    std::cout << " NOT FOUND" << std::endl;
+                else
+                    std::cout << " FOUND" << std::endl;
+                bins_[idx].unsafe_erase(followee);
+                bins_[++idx].insert(followee);
+            }
+#   else
+            if (bins_[idx].erase(followee))
+                bins_[++idx].insert(followee);
 #   endif //_CONCURRENT
-            bins_[idx].insert(followee);
         }
 
 #   ifdef _CONCURRENT
@@ -316,20 +322,6 @@ private:
         //for (auto i = 0; i < weights.size(); ++i)
         //    weights[i] *= bins_[i].size();
         //std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
-        std::vector<V> weights;
-        weights.reserve(kmax_ + 1);
-        std::transform(
-            weights_.cbegin()
-        ,   weights_.cbegin() + kmax_ + 1
-        ,   bins_.cbegin()
-        ,   std::back_inserter(weights)
-#   ifdef _CONCURRENT
-        ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
-#   else
-        ,   [](V w, const std::unordered_set<T>& b)
-#   endif //_CONCURRENT
-        {   return w * b.size();    });
-        std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
 
         //std::size_t i(0);
         //std::discrete_distribution<T> di(
@@ -339,13 +331,35 @@ private:
         //,   [&](double)
         //{   return weights_[i] * bins_[i++].size();    });
 
+        std::vector<V> weights;
+        auto kmax = kmax_;
+        weights.reserve(kmax + 1);
 #   ifdef _CONCURRENT
-        T idx = di(*rng_ptr_);
-        auto followee = bins_[idx].cbegin();
-        return followee == bins_[idx].cend()
-            ?   std::numeric_limits<T>::max()
-            :   *followee;
+        {
+            std::lock_guard<std::mutex> g1(update_bins_mutex_);
+            std::transform(
+                weights_.cbegin()
+            ,   weights_.cbegin() + kmax + 1
+            ,   bins_.cbegin()
+            ,   std::back_inserter(weights)
+            ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
+            {   return w * b.size();    });
+            std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
+            T idx = di(*rng_ptr_);
+            auto followee = bins_[idx].cbegin();
+            return followee == bins_[idx].cend()
+                ?   std::numeric_limits<T>::max()
+                :   *followee;
+        }
 #   else
+        std::transform(
+            weights_.cbegin()
+        ,   weights_.cbegin() + kmax_ + 1
+        ,   bins_.cbegin()
+        ,   std::back_inserter(weights)
+        ,   [](V w, const std::unordered_set<T>& b)
+        {   return w * b.size();    });
+        std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
         auto followee = bins_[di(*rng_ptr_)].cbegin();
         return *followee;
 #   endif //_CONCURRENT
@@ -379,7 +393,7 @@ private:
     void agent_added(T idx)
     {
 #   ifdef _CONCURRENT
-        std::lock_guard<std::mutex> g1(update_binds_mutex_);
+        std::lock_guard<std::mutex> g1(update_bins_mutex_);
 #   endif //_CONCURRENT
         bins_[0].insert(idx);
 #   ifdef _CONCURRENT
@@ -398,7 +412,7 @@ private:
 #   ifdef _CONCURRENT
     //tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> bins_;
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
-    std::mutex update_binds_mutex_;
+    std::mutex update_bins_mutex_;
     std::mutex action_mutex_;
     std::mutex update_nc_mutex_;
 #   else
