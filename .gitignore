@@ -5,6 +5,7 @@ Makefile
 cmake_install.cmake
 build
 build/*
+.DS_Store
 .libs
 *.a
 *.o

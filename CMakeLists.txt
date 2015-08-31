@@ -42,17 +42,17 @@ ELSE(MSVC)
     ENDIF()
 ENDIF()
 
-IF(WIN32 OR APPLE)
-ADD_LIBRARY(LIBHASHKAT STATIC
-    include/action.h
-    include/engine.h
-    include/network.h
-    include/simulation.h
-    include/actions/twitter_add_agent.h
-    include/actions/twitter_follow.h
-)
-SET_TARGET_PROPERTIES(LIBHASHKAT PROPERTIES LINKER_LANGUAGE CXX)
-ENDIF(WIN32 OR APPLE)
+#IF(WIN32 OR APPLE)
+#ADD_LIBRARY(LIBHASHKAT STATIC
+#    include/action.h
+#    include/engine.h
+#    include/network.h
+#    include/simulation.h
+#    include/actions/twitter_add_agent.h
+#    include/actions/twitter_follow.h
+#)
+#SET_TARGET_PROPERTIES(LIBHASHKAT PROPERTIES LINKER_LANGUAGE CXX)
+#ENDIF(WIN32 OR APPLE)
 
 OPTION(CONCURRENT "Build concurrent version of hashkat-lib usning threads?" ON)
 IF(CONCURRENT)
@@ -60,13 +60,13 @@ IF(CONCURRENT)
     IF(WIN32)
         SET(TBB_PREFIX "C:/local/tbb44_20150728oss")
     ELSE(WIN32)
-        SET(TBB_PREFIX "/home/armin/tbb44_20150728oss")
+        SET(TBB_PREFIX "$ENV{HOME}/tbb44_20150728oss")
     ENDIF(WIN32)
     INCLUDE(cmake/HkFindIntelTbb.txt)
     IF(TBB_FOUND)
         INCLUDE_DIRECTORIES(BEFORE SYSTEM ${TBB_INCLUDE_DIR})
     ELSE(TBB_FOUND)
-        MESSAGE("-- Building thread version requires Intel TBB library.")
+        MESSAGE("-- Building multithreaded version requires Intel TBB library.")
     ENDIF(TBB_FOUND)
 ENDIF(CONCURRENT)
 
@@ -77,6 +77,7 @@ ENDIF(INSTALL_HEADERS)
 
 OPTION(BUILD_TESTS "Build and install all unit tests ?" ON)
 IF(BUILD_TESTS)
+    OPTION(COPY_PATTERNS "Copy pattern files for unit tests ?" ON)
     ADD_SUBDIRECTORY(test)
 ENDIF(BUILD_TESTS)
 

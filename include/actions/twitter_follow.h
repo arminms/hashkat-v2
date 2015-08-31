@@ -291,7 +291,7 @@ private:
         weights.reserve(kmax + 1);
 #   ifdef _CONCURRENT
         {
-            std::lock_guard<std::mutex> g1(update_bins_mutex_);
+            // std::lock_guard<std::mutex> g1(update_bins_mutex_);
             std::transform(
                 weights_.cbegin()
             ,   weights_.cbegin() + kmax + 1
@@ -367,12 +367,23 @@ private:
 #   endif //_CONCURRENT
         auto idx = net_ptr_->followers_size(followee) * bins_.size()
                  / net_ptr_->max_size();
-        while (bins_[idx].find(followee) == bins_[idx].end())
-            --idx;
-        if (bins_[idx].unsafe_erase(followee))
-            bins_[++idx].insert(followee);
+#   ifdef _CONCURRENT
+        if (bins_[idx - 1].unsafe_erase(followee))
+#   else
+        if (bins_[idx - 1].erase(followee))
+#   endif //_CONCURRENT
+            bins_[idx].insert(followee);
         else
-            std::cout << "WRONG GUESS" << std::endl;
+        {
+            while (bins_[idx].find(followee) == bins_[idx].end() && idx > 0)
+                --idx;
+#   ifdef _CONCURRENT
+            bins_[idx].unsafe_erase(followee);
+#   else
+            bins_[idx].erase(followee);
+#   endif //_CONCURRENT
+            bins_[++idx].insert(followee);
+        }
         if (kmax_ < idx)
             kmax_ = idx;
         ++base_type::rate_;
