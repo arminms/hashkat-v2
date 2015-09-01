@@ -41,7 +41,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#include "../include/network.h"
+#include "../include/network_st.hpp"
 
 using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;
@@ -80,7 +80,7 @@ BOOST_FIXTURE_TEST_CASE(Config_Constructor, FOLDER)
     typedef boost::property_tree::ptree config;
     config conf;
     boost::property_tree::read_xml(folder + "network_config.xml", conf);
-    network<test_agent, config> n(conf);
+    network_st<test_agent, config> n(conf);
 
     BOOST_CHECK_EQUAL(n.max_size(), 10000);
 }
@@ -91,7 +91,7 @@ BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, FOLDER)
         folder + "network_01.txt"
     ,   !butrc::save_pattern());
 
-    network<test_agent> n(10);
+    network_st<test_agent> n(10);
     n.grow(10);
     for (auto i = 0; i < n.size(); ++i)
         n[i].id_ = i;
@@ -103,7 +103,7 @@ BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, FOLDER)
 
 BOOST_AUTO_TEST_CASE(Connection)
 {
-    network<test_agent> n(2);
+    network_st<test_agent> n(2);
     n.grow(2);
 
     BOOST_CHECK(!n.have_connection(0, 1));
@@ -132,7 +132,7 @@ BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
         folder + "network_02.txt"
     ,   !butrc::save_pattern());
 
-    network<test_agent> n(100);
+    network_st<test_agent> n(100);
     n.grow(100);
 
     std::vector<std::size_t> v1(100);
@@ -154,7 +154,7 @@ BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
 //        folder + "network_03.txt"
 //    ,   !butrc::save_pattern());
 //
-//    network<test_agent> n(10);
+//    network_st<test_agent> n(10);
 //    n.grow(10);
 //
 //    std::mt19937 gen(333);
@@ -176,7 +176,7 @@ BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
 //        folder + "network_04.txt"
 //    ,   !butrc::save_pattern());
 //
-//    network<test_agent> n(20);
+//    network_st<test_agent> n(20);
 //    n.grow(10);
 //
 //    std::mt19937 gen(333);
@@ -198,7 +198,7 @@ BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
 //        folder + "network_05.txt"
 //    ,   !butrc::save_pattern());
 //
-//    network<test_agent> n(10);
+//    network_st<test_agent> n(10);
 //    n.grow(10);
 //
 //    std::mt19937 gen(333);
@@ -220,7 +220,7 @@ BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
 //        folder + "network_06.txt"
 //    ,   !butrc::save_pattern());
 //
-//    network<test_agent> n(10);
+//    network_st<test_agent> n(10);
 //    n.grow(10);
 //
 //    std::mt19937 gen(333);
@@ -242,7 +242,7 @@ BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
 //        folder + "network_07.txt"
 //    ,   !butrc::save_pattern());
 //
-//    network<test_agent> n(21);
+//    network_st<test_agent> n(21);
 //    n.grow(10);
 //
 //    std::mt19937 gen(333);
@@ -264,7 +264,7 @@ BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
 //        folder + "network_08.txt"
 //    ,   !butrc::save_pattern());
 //
-//    network<test_agent> n(10);
+//    network_st<test_agent> n(10);
 //    n.grow(10);
 //
 //    std::mt19937 gen(333);
@@ -286,7 +286,7 @@ BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
 //        folder + "network_09.txt"
 //    ,   !butrc::save_pattern());
 //
-//    network<test_agent> n(10);
+//    network_st<test_agent> n(10);
 //    n.grow(10);
 //
 //    std::mt19937 gen(333);

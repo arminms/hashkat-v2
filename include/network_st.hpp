@@ -23,14 +23,8 @@
 // of a derivation, subsequent authors.
 //
 
-#ifndef HASHKAT_NETWORK_H_
-#define HASHKAT_NETWORK_H_
-
-#   ifdef _CONCURRENT
-#       include <mutex>
-#       include <tbb/concurrent_vector.h>
-#       include <tbb/concurrent_unordered_set.h>
-#   endif //_CONCURRENT
+#ifndef HASHKAT_NETWORK_ST_H_
+#define HASHKAT_NETWORK_ST_H_
 
 namespace hashkat {
 
@@ -44,7 +38,7 @@ template
 ,   typename T = std::size_t
 ,   typename ValueType = double
 >
-class network
+class network_st
 {
 public:
     typedef T type;
@@ -52,30 +46,30 @@ public:
     typedef ValueType value_type;
     typedef AgentType agent_type;
     typedef ConfigType config_type;
-    typedef network<AgentType, ConfigType, T, ValueType> self_type;
+    typedef network_st<AgentType, ConfigType, T, ValueType> self_type;
     typedef boost::signals2::signal<void(T)> grown_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_added_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_removed_signal_type;
 
-    network()
+    network_st()
     :   agents_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
     {}
 
-    network(const ConfigType& conf)
+    network_st(const ConfigType& conf)
     :   agents_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
     {   allocate(conf.template get<T>("hashkat.network.max_agents", 1000)); }
 
-    network(T n)
+    network_st(T n)
     :   agents_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
     {   allocate(n); }
 
-    ~network()
+    ~network_st()
     {   delete[] agents_;   }
 
     void allocate(T n)
@@ -90,21 +84,11 @@ public:
 
     bool grow()
     {
-#   ifdef _CONCURRENT
-        std::unique_lock<std::mutex> l(grow_mutex_);
-        if (n_agents_ < max_agents_)
-        {
-            followers_.emplace_back(tbb::concurrent_unordered_set<T>());
-            followees_.emplace_back(tbb::concurrent_unordered_set<T>());
-            ++n_agents_;
-            l.unlock();
-#   else
         if (n_agents_ < max_agents_)
         {
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
             ++n_agents_;
-#   endif //_CONCURRENT
             grown_signal_(n_agents_ - 1);
             return true;
         }
@@ -118,13 +102,8 @@ public:
         {
             if (n_agents_ == max_agents_)
                 return i;
-#   ifdef _CONCURRENT
-            followers_.emplace_back(tbb::concurrent_unordered_set<T>());
-            followees_.emplace_back(tbb::concurrent_unordered_set<T>());
-#   else
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
-#   endif //_CONCURRENT
             ++n_agents_;
             grown_signal_(n_agents_ - 1);
         }
@@ -203,17 +182,6 @@ public:
         BOOST_ASSERT_MSG(unfollowee_id != unfollower_id,
             "agent cannot be disconnected from itself :(");
 
-#   ifdef _CONCURRENT
-        bool r = false;
-        {
-            std::lock_guard<std::mutex> lg(erase_mutex_);
-            r = followers_[unfollowee_id].unsafe_erase(unfollower_id);
-            followees_[unfollower_id].unsafe_erase(unfollowee_id);
-        }
-        if (r)
-            connection_removed_signal_(unfollowee_id, unfollower_id);
-        return r;
-#   else
         if (followers_[unfollowee_id].erase(unfollower_id))
         {
             followees_[unfollower_id].erase(unfollowee_id);
@@ -222,7 +190,6 @@ public:
         }
         else
             return false;
-#   endif //_CONCURRENT
     }
 
     std::ostream& print(std::ostream& out) const
@@ -258,17 +225,8 @@ private:
     // member variables
     AgentType* agents_;
     T n_agents_, max_agents_;
-#   ifdef _CONCURRENT
-    //std::vector<tbb::concurrent_unordered_set<T>> followers_;
-    //std::vector<tbb::concurrent_unordered_set<T>> followees_;
-    tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followers_;
-    tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followees_;
-    std::mutex grow_mutex_;
-    std::mutex erase_mutex_;
-#   else
     std::vector<std::unordered_set<T>> followers_;
     std::vector<std::unordered_set<T>> followees_;
-#   endif //_CONCURRENT
     grown_signal_type grown_signal_;
     connection_added_signal_type connection_added_signal_;
     connection_removed_signal_type connection_removed_signal_;
@@ -283,11 +241,11 @@ template
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const network<AgentType, ConfigType, T, ValueType>& n)
+,   const network_st<AgentType, ConfigType, T, ValueType>& n)
 {
     return n.print(out);
 }
 
 }    // namespace hashkat
 
-#endif  // HASHKAT_NETWORK_H_
+#endif  // HASHKAT_NETWORK_ST_H_
