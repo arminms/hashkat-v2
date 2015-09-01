@@ -10,7 +10,7 @@
 		<add>6</add>
 		<follow>4</follow>
 	</rates>
-	<follow_model>random</follow_model>
+	<follow_model>twitter_suggest</follow_model>
 	<follow_ranks>
 		<bin_spacing>1</bin_spacing>
 		<min>1</min>

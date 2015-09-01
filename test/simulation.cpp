@@ -137,6 +137,8 @@ BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
         std::cerr << "EXCEPTION: " << e.what() << std::endl;
     }
 
+    std::cout << "1 out of " << std::thread::hardware_concurrency()
+              << " concurrent threads was used.\n";
     std::cout << "Elapsed time: " << sim.duration().count()
               << " ms" << std::endl;
 
@@ -161,6 +163,8 @@ BOOST_FIXTURE_TEST_CASE(Simulation_03, FOLDERS)
         std::cerr << "EXCEPTION: " << e.what() << std::endl;
     }
 
+    std::cout << "2 out of " << std::thread::hardware_concurrency()
+              << " concurrent threads were used.\n";
     std::cout << "Elapsed time: " << sim.duration().count()
               << " ms" << std::endl;
 
