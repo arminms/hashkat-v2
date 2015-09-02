@@ -147,7 +147,7 @@ BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
     test_simulation sim(conf);
     sim.run();
 
-    std::cout << "02 - Elapsed time: " << sim.duration().count()
+    std::cout << "02 -- Elapsed time: " << sim.duration().count()
               << " ms" << std::endl;
 
     output_test_stream cout(

@@ -174,7 +174,7 @@ private:
     }
 
     // member variables
-    static action_depot<Nwt,Ctt,Cft,Rgt,Act...> actions_;
+    action_depot<Nwt,Ctt,Cft,Rgt,Act...> actions_;
     Nwt& net_;
     Ctt& cnt_;
     Cft& cnf_;
@@ -184,17 +184,6 @@ private:
     rate_type event_rate_;
     bool random_time_increment_;
 };
-
-template
-<
-    class Nwt
-,   class Ctt
-,   class Cft
-,   class Rgt
-,   template <class,class,class,class> class ...Act
->
-action_depot<Nwt,Ctt,Cft,Rgt,Act...>
-    engine_st<Nwt,Ctt,Cft,Rgt,Act...>::actions_;
 
 template
 <

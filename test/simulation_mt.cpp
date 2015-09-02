@@ -114,12 +114,13 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
 {
     test_config conf;
     pt::read_xml(cnf_folder + "config_01.xml", conf);
-    test_simulation sim(conf);
     auto nt = std::thread::hardware_concurrency();
 
     std::cout << "Simulation 01:\n";
     for (unsigned i = 1; i <= nt; ++i)
     {
+        test_simulation sim(conf);
+
         try
         {
             sim.run(i);
@@ -145,37 +146,38 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     }
 }
 
-//BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
-//{
-//    test_config conf;
-//    pt::read_xml(cnf_folder + "config_02.xml", conf);
-//    test_simulation sim(conf);
-//    auto nt = std::thread::hardware_concurrency();
-//
-//    std::cout << "Simulation 01:\n";
-//    for (auto i = 1; i <= nt; ++i)
-//    {
-//        try
-//        {
-//            sim.run(i);
-//        }
-//        catch (const std::exception& e)
-//        {
-//            std::cerr << "EXCEPTION: " << e.what() << std::endl;
-//        }
-//
-//        std::ostringstream s("02 -- ");
-//        s << i << " out of " << nt << " concurrent threads was used. ";
-//        std::cout << s.str();
-//        std::cout << "Elapsed time: " << sim.duration().count()
-//                  << " ms" << std::endl;
-//
-//        s.str("");
-//        s << ptn_folder << "sim_02_" << i << "t.txt";
-//        output_test_stream cout(
-//            s.str()
-//        ,   !butrc::save_pattern());
-//        cout << sim;
-//        BOOST_CHECK(cout.match_pattern());
-//    }
-//}
+BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
+{
+    test_config conf;
+    pt::read_xml(cnf_folder + "config_02.xml", conf);
+    auto nt = std::thread::hardware_concurrency();
+
+    std::cout << "Simulation 02:\n";
+    for (auto i = 1; i <= nt; ++i)
+    {
+        test_simulation sim(conf);
+
+        try
+        {
+            sim.run(i);
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << "EXCEPTION: " << e.what() << std::endl;
+        }
+
+        std::ostringstream s("02 -- ");
+        s << i << " out of " << nt << " concurrent threads was used. ";
+        std::cout << s.str();
+        std::cout << "Elapsed time: " << sim.duration().count()
+                  << " ms" << std::endl;
+
+        s.str("");
+        s << ptn_folder << "sim_02_" << i << "t.txt";
+        output_test_stream cout(
+            s.str()
+        ,   !butrc::save_pattern());
+        cout << sim;
+        BOOST_CHECK(cout.match_pattern());
+    }
+}
