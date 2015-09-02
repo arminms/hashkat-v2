@@ -48,9 +48,10 @@
 #include <boost/property_tree/xml_parser.hpp>
 
 #include "../include/network_st.hpp"
-#include "../include/engine_st.hpp"
 #include "../include/actions/twitter_add_agent_st.hpp"
 #include "../include/actions/twitter_follow_st.hpp"
+#include "../include/engine_st.hpp"
+#include "../include/simulation_st.hpp"
 
 using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;
@@ -72,6 +73,15 @@ typedef engine_st
 ,   twitter_add_agent_st
 ,   twitter_follow_st
 > test_engine;
+
+typedef simulation_st
+<
+    test_network
+,   dummy
+,   test_config
+,   test_engine
+,   test_rng
+> test_simulation;
 
 struct FOLDERS
 {
@@ -99,21 +109,35 @@ struct FOLDERS
     std::string ptn_folder;
 };
 
-BOOST_FIXTURE_TEST_CASE(Engine_01, FOLDERS)
+BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
 {
-    dummy mock_cnts;
     test_config conf;
-    test_rng rng;
-    pt::read_xml(cnf_folder + "engine_config_01.xml", conf);
-    test_network n(conf);
-    test_engine eng(n, mock_cnts, conf, rng);
-
-    while (n.can_grow())
-        (*eng())();
+    pt::read_xml(cnf_folder + "config_01.xml", conf);
+    test_simulation sim(conf);
+    sim.run();
+    std::cout << "01 -- Elapsed time: " << sim.duration().count()
+              << " ms" << std::endl;
 
     output_test_stream cout(
-        ptn_folder + "engine_01.txt"
+        ptn_folder + "sim_01.txt"
     ,   !butrc::save_pattern());
-    cout << eng;
+    cout << sim;
     BOOST_CHECK(cout.match_pattern());
 }
+
+//BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
+//{
+//    test_config conf;
+//    pt::read_xml(cnf_folder + "config_02.xml", conf);
+//    test_simulation sim(conf);
+//    sim.run();
+//
+//    std::cout << "02 - Elapsed time: " << sim.duration().count()
+//              << " ms" << std::endl;
+//
+//    output_test_stream cout(
+//        ptn_folder + "sim_02.txt"
+//    ,   !butrc::save_pattern());
+//    cout << sim;
+//    BOOST_CHECK(cout.match_pattern());
+//}

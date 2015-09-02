@@ -104,6 +104,14 @@ private:
         init_bins();
     }
 
+    //virtual void reset()
+    //{
+    //    net_ptr_ = nullptr;
+    //    cnt_ptr_ = nullptr;
+    //    cnf_ptr_ = nullptr;
+    //    rng_ptr_ = nullptr;
+    //}
+
     virtual void do_action()
     {
         BOOST_CONSTEXPR_OR_CONST auto failed = std::numeric_limits<T>::max();

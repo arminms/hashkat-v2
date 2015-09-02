@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cstdlib>
 #include <array>
 #include <vector>
@@ -47,11 +48,11 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#include "../include/network_st.hpp"
-#include "../include/actions/twitter_add_agent_st.hpp"
-#include "../include/actions/twitter_follow_st.hpp"
-#include "../include/engine_st.hpp"
-#include "../include/simulation_st.hpp"
+#include "../include/network_mt.hpp"
+#include "../include/actions/twitter_add_agent_mt.hpp"
+#include "../include/actions/twitter_follow_mt.hpp"
+#include "../include/engine_mt.hpp"
+#include "../include/simulation_mt.hpp"
 
 using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;
@@ -63,18 +64,18 @@ struct dummy
 
 typedef std::mt19937 test_rng;
 typedef boost::property_tree::ptree test_config;
-typedef network_st<dummy, test_config> test_network;
-typedef engine_st
+typedef network_mt<dummy, test_config> test_network;
+typedef engine_mt
 <
     test_network
 ,   dummy
 ,   test_config
 ,   test_rng
-,   twitter_add_agent_st
-,   twitter_follow_st
+,   twitter_add_agent_mt
+,   twitter_follow_mt
 > test_engine;
 
-typedef simulation_st
+typedef simulation_mt
 <
     test_network
 ,   dummy
@@ -114,65 +115,67 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     test_config conf;
     pt::read_xml(cnf_folder + "config_01.xml", conf);
     test_simulation sim(conf);
-    sim.run();
-    std::cout << "Elapsed time: " << sim.duration().count()
-              << " ms" << std::endl;
+    auto nt = std::thread::hardware_concurrency();
 
-    output_test_stream cout(
-        ptn_folder + "sim_01.txt"
-    ,   !butrc::save_pattern());
-    cout << sim;
-    BOOST_CHECK(cout.match_pattern());
+    std::cout << "Simulation 01:\n";
+    for (auto i = 1; i <= nt; ++i)
+    {
+        try
+        {
+            sim.run(i);
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << "EXCEPTION: " << e.what() << std::endl;
+        }
+
+        std::ostringstream s;
+        s << i << " out of " << nt << " concurrent threads was used. ";
+        std::cout << s.str();
+        std::cout << "Elapsed time: " << sim.duration().count()
+                  << " ms" << std::endl;
+
+        s.str("");
+        s << ptn_folder << "sim_01_" << i << "t.txt";
+        output_test_stream cout(
+            s.str()
+        ,   !butrc::save_pattern());
+        cout << sim;
+        BOOST_CHECK(cout.match_pattern());
+    }
 }
 
-// BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
-// {
-//     test_config conf;
-//     pt::read_xml(cnf_folder + "config_02.xml", conf);
-//     test_simulation sim(conf);
-//     try
-//     {
-//         sim.concurrent_run(1);
-//     }
-//     catch (const std::exception& e)
-//     {
-//         std::cerr << "EXCEPTION: " << e.what() << std::endl;
-//     }
-
-//     std::cout << "1 out of " << std::thread::hardware_concurrency()
-//               << " concurrent threads was used.\n";
-//     std::cout << "Elapsed time: " << sim.duration().count()
-//               << " ms" << std::endl;
-
-//     output_test_stream cout(
-//         ptn_folder + "sim_02.txt"
-//     ,   !butrc::save_pattern());
-//     cout << sim;
-//     BOOST_CHECK(cout.match_pattern());
-// }
-
-// BOOST_FIXTURE_TEST_CASE(Simulation_03, FOLDERS)
-// {
-//     test_config conf;
-//     pt::read_xml(cnf_folder + "config_02.xml", conf);
-//     test_simulation sim(conf);
-//     try
-//     {
-//         sim.concurrent_run(2);
-//     }
-//     catch (const std::exception& e)
-//     {
-//         std::cerr << "EXCEPTION: " << e.what() << std::endl;
-//     }
-
-//     std::cout << "2 out of " << std::thread::hardware_concurrency()
-//               << " concurrent threads were used.\n";
-//     std::cout << "Elapsed time: " << sim.duration().count()
-//               << " ms" << std::endl;
-
-//     output_test_stream cout(
-//         ptn_folder + "sim_03.txt"
-//     ,   !butrc::save_pattern());
-//     cout << sim;
-//     BOOST_CHECK(cout.match_pattern());
-// }
+//BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
+//{
+//    test_config conf;
+//    pt::read_xml(cnf_folder + "config_02.xml", conf);
+//    test_simulation sim(conf);
+//    auto nt = std::thread::hardware_concurrency();
+//
+//    std::cout << "Simulation 01:\n";
+//    for (auto i = 1; i <= nt; ++i)
+//    {
+//        try
+//        {
+//            sim.run(i);
+//        }
+//        catch (const std::exception& e)
+//        {
+//            std::cerr << "EXCEPTION: " << e.what() << std::endl;
+//        }
+//
+//        std::ostringstream s("02 -- ");
+//        s << i << " out of " << nt << " concurrent threads was used. ";
+//        std::cout << s.str();
+//        std::cout << "Elapsed time: " << sim.duration().count()
+//                  << " ms" << std::endl;
+//
+//        s.str("");
+//        s << ptn_folder << "sim_02_" << i << "t.txt";
+//        output_test_stream cout(
+//            s.str()
+//        ,   !butrc::save_pattern());
+//        cout << sim;
+//        BOOST_CHECK(cout.match_pattern());
+//    }
+//}
