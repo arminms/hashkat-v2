@@ -23,20 +23,18 @@
 // of a derivation, subsequent authors.
 //
 
-#ifndef HASHKAT_SIMULATION_H_
-#define HASHKAT_SIMULATION_H_
+#ifndef HASHKAT_SIMULATION_MT_HPP_
+#define HASHKAT_SIMULATION_MT_HPP_
 
 #include <chrono>
 #include <thread>
 
-#   ifdef _CONCURRENT
-#       include <tbb/concurrent_queue.h>
-#   endif //_CONCURRENT
+#include <tbb/concurrent_queue.h>
 
 namespace hashkat {
 
 ////////////////////////////////////////////////////////////////////////////////
-// simulation class
+// simulation_mt class
 
 template
 <
@@ -46,13 +44,13 @@ template
 ,   class EngineType
 ,   class RngType
 >
-class simulation
+class simulation_mt
 {
-    typedef simulation
+    typedef simulation_mt
         <NetworkType, ContentsType, ConfigType, EngineType, RngType> self_type;
 
 public:
-    simulation(const ConfigType& cnf)
+    simulation_mt(const ConfigType& cnf)
     :   cnf_(cnf)
     ,   net_(cnf_)
     ,   cnt_()
@@ -61,19 +59,11 @@ public:
     ,   max_real_time_(cnf.template get<int>("hashkat.network.max_real_time", 1))
     {}
 
-    bool run()
+    bool run(unsigned n = 0)
     {
-        start_tp_ = std::chrono::high_resolution_clock::now();
-        while (eng_.time() < max_time_ && duration() < max_real_time_)
-            (*eng_())();
-        return true;
-    }
+        if (0 == n)
+            n = std::thread::hardware_concurrency();
 
-    bool concurrent_run(int n)
-    {
-#   ifdef _CONCURRENT
-        if (n < 1)
-            n = 1;
         start_tp_ = std::chrono::high_resolution_clock::now();
 
         std::vector<std::thread> threads(n - 1);
@@ -84,14 +74,6 @@ public:
             thread.join();
 
         return true;
-#   else
-#       if BOOST_WORKAROUND(__GLIBCXX__, BOOST_TESTED_AT(20130909))
-        return run();
-#       else 
-        BOOST_STATIC_ASSERT_MSG(false,
-            "calling concurrent_run() requires _CONCURRENT to be defined :(");
-#       endif //__GLIBCXX__
-#   endif //_CONCURRENT
     }
 
     std::chrono::milliseconds duration() const
@@ -107,7 +89,6 @@ public:
     }
 
 private:
-#   ifdef _CONCURRENT
     void action_loop()
     {
         try
@@ -133,7 +114,6 @@ private:
                       << std::this_thread::get_id() << ")" << std::endl;
         }
     }
-#   endif //_CONCURRENT
 
     // member variables
     RngType      rng_;
@@ -144,9 +124,7 @@ private:
     typename EngineType::time_type max_time_;
     std::chrono::minutes max_real_time_;
     std::chrono::high_resolution_clock::time_point start_tp_;
-#   ifdef _CONCURRENT
     tbb::concurrent_queue<typename EngineType::action_type*> actions_q_;
-#   endif //_CONCURRENT
 };
 
 template
@@ -159,7 +137,7 @@ template
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const simulation
+,   const simulation_mt
         <NetworkType, ContentsType, ConfigType, EngineType, RngType>& s)
 {
     return s.print(out);
@@ -167,4 +145,4 @@ std::ostream& operator<< (
 
 }    // namespace hashkat
 
-#endif  // HASHKAT_SIMULATION_H_
+#endif  // HASHKAT_SIMULATION_MT_HPP_

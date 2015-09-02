@@ -50,8 +50,8 @@
 #include "../include/network_st.hpp"
 #include "../include/actions/twitter_add_agent_st.hpp"
 #include "../include/actions/twitter_follow_st.hpp"
-#include "../include/engine.h"
-#include "../include/simulation.h"
+#include "../include/engine_st.hpp"
+#include "../include/simulation_st.hpp"
 
 using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;
@@ -64,7 +64,7 @@ struct dummy
 typedef std::mt19937 test_rng;
 typedef boost::property_tree::ptree test_config;
 typedef network_st<dummy, test_config> test_network;
-typedef engine
+typedef engine_st
 <
     test_network
 ,   dummy
@@ -74,7 +74,7 @@ typedef engine
 ,   twitter_follow_st
 > test_engine;
 
-typedef simulation
+typedef simulation_st
 <
     test_network
 ,   dummy
@@ -125,56 +125,54 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     BOOST_CHECK(cout.match_pattern());
 }
 
-#ifdef _CONCURRENT
-BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
-{
-    test_config conf;
-    pt::read_xml(cnf_folder + "config_02.xml", conf);
-    test_simulation sim(conf);
-    try
-    {
-        sim.concurrent_run(1);
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << "EXCEPTION: " << e.what() << std::endl;
-    }
+// BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
+// {
+//     test_config conf;
+//     pt::read_xml(cnf_folder + "config_02.xml", conf);
+//     test_simulation sim(conf);
+//     try
+//     {
+//         sim.concurrent_run(1);
+//     }
+//     catch (const std::exception& e)
+//     {
+//         std::cerr << "EXCEPTION: " << e.what() << std::endl;
+//     }
 
-    std::cout << "1 out of " << std::thread::hardware_concurrency()
-              << " concurrent threads was used.\n";
-    std::cout << "Elapsed time: " << sim.duration().count()
-              << " ms" << std::endl;
+//     std::cout << "1 out of " << std::thread::hardware_concurrency()
+//               << " concurrent threads was used.\n";
+//     std::cout << "Elapsed time: " << sim.duration().count()
+//               << " ms" << std::endl;
 
-    output_test_stream cout(
-        ptn_folder + "sim_02.txt"
-    ,   !butrc::save_pattern());
-    cout << sim;
-    BOOST_CHECK(cout.match_pattern());
-}
+//     output_test_stream cout(
+//         ptn_folder + "sim_02.txt"
+//     ,   !butrc::save_pattern());
+//     cout << sim;
+//     BOOST_CHECK(cout.match_pattern());
+// }
 
-BOOST_FIXTURE_TEST_CASE(Simulation_03, FOLDERS)
-{
-    test_config conf;
-    pt::read_xml(cnf_folder + "config_02.xml", conf);
-    test_simulation sim(conf);
-    try
-    {
-        sim.concurrent_run(2);
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << "EXCEPTION: " << e.what() << std::endl;
-    }
+// BOOST_FIXTURE_TEST_CASE(Simulation_03, FOLDERS)
+// {
+//     test_config conf;
+//     pt::read_xml(cnf_folder + "config_02.xml", conf);
+//     test_simulation sim(conf);
+//     try
+//     {
+//         sim.concurrent_run(2);
+//     }
+//     catch (const std::exception& e)
+//     {
+//         std::cerr << "EXCEPTION: " << e.what() << std::endl;
+//     }
 
-    std::cout << "2 out of " << std::thread::hardware_concurrency()
-              << " concurrent threads were used.\n";
-    std::cout << "Elapsed time: " << sim.duration().count()
-              << " ms" << std::endl;
+//     std::cout << "2 out of " << std::thread::hardware_concurrency()
+//               << " concurrent threads were used.\n";
+//     std::cout << "Elapsed time: " << sim.duration().count()
+//               << " ms" << std::endl;
 
-    output_test_stream cout(
-        ptn_folder + "sim_03.txt"
-    ,   !butrc::save_pattern());
-    cout << sim;
-    BOOST_CHECK(cout.match_pattern());
-}
-#endif  //_CONCURRENT
+//     output_test_stream cout(
+//         ptn_folder + "sim_03.txt"
+//     ,   !butrc::save_pattern());
+//     cout << sim;
+//     BOOST_CHECK(cout.match_pattern());
+// }
