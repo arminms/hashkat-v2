@@ -50,7 +50,7 @@
 #include "../include/network.hpp"
 #include "../include/engine.h"
 #include "../include/actions/twitter_add_agent_st.hpp"
-#include "../include/actions/twitter_follow.h"
+#include "../include/actions/twitter_follow.hpp"
 
 using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;
@@ -70,7 +70,7 @@ typedef engine
 ,   test_config
 ,   test_rng
 ,   twitter_add_agent_st
-,   twitter_follow
+,   twitter_follow_st
 > test_engine;
 
 struct FOLDERS

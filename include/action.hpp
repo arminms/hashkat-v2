@@ -23,8 +23,8 @@
 // of a derivation, subsequent authors.
 //
 
-#ifndef HASHKAT_ACTION_H_
-#define HASHKAT_ACTION_H_
+#ifndef HASHKAT_ACTION_HPP_
+#define HASHKAT_ACTION_HPP_
 
 namespace hashkat {
 
@@ -116,4 +116,4 @@ std::ostream& operator<< (
 
 }    // namespace hashkat
 
-#endif  // HASHKAT_ACTION_H_
+#endif  // HASHKAT_ACTION_HPP_

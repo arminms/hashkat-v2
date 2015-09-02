@@ -23,12 +23,12 @@
 // of a derivation, subsequent authors.
 //
 
-#ifndef HASHKAT_ACTIONS_TWITTER_ADD_AGENT_MT_H_
-#define HASHKAT_ACTIONS_TWITTER_ADD_AGENT_MT_H_
+#ifndef HASHKAT_ACTIONS_TWITTER_ADD_AGENT_MT_HPP_
+#define HASHKAT_ACTIONS_TWITTER_ADD_AGENT_MT_HPP_
 
-#ifndef HASHKAT_ACTION_H_
-#   include "../action.h"
-#endif // HASHKAT_ACTION_H_
+#ifndef HASHKAT_ACTION_HPP_
+#   include "../action.hpp"
+#endif // HASHKAT_ACTION_HPP_
 
 namespace hashkat {
 
@@ -142,4 +142,4 @@ std::ostream& operator<< (
 
 }    // namespace hashkat
 
-#endif  // HASHKAT_ACTIONS_TWITTER_ADD_AGENT_MT_H_
+#endif  // HASHKAT_ACTIONS_TWITTER_ADD_AGENT_MT_HPP_

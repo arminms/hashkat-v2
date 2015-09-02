@@ -23,22 +23,20 @@
 // of a derivation, subsequent authors.
 //
 
-#ifndef HASHKAT_ACTIONS_TWITTER_FOLLOW_H_
-#define HASHKAT_ACTIONS_TWITTER_FOLLOW_H_
+#ifndef HASHKAT_ACTIONS_TWITTER_FOLLOW_MT_HPP_
+#define HASHKAT_ACTIONS_TWITTER_FOLLOW_MT_HPP_
 
-#   ifdef _CONCURRENT
-#       include <mutex>
-#       include <tbb/concurrent_unordered_set.h>
-#   endif //_CONCURRENT
+#include <mutex>
+#include <tbb/concurrent_unordered_set.h>
 
-#ifndef HASHKAT_ACTION_H_
-#   include "../action.h"
-#endif // HASHKAT_ACTION_H_
+#ifndef HASHKAT_ACTION_HPP_
+#   include "../action.hpp"
+#endif // HASHKAT_ACTION_HPP_
 
 namespace hashkat {
 
 ////////////////////////////////////////////////////////////////////////////////
-// twitter_follow action class
+// twitter_follow_mt action class
 
 #   ifdef _MSC_VER
 #       pragma warning( push )
@@ -52,10 +50,10 @@ template
 ,   class ConfigType
 ,   class RngType
 >
-class twitter_follow
+class twitter_follow_mt
 :   public action_base<NetworkType, ContentsType, ConfigType, RngType>
 {
-    typedef twitter_follow<NetworkType, ContentsType, ConfigType, RngType>
+    typedef twitter_follow_mt<NetworkType, ContentsType, ConfigType, RngType>
         self_type;
     typedef action_base<NetworkType, ContentsType, ConfigType, RngType>
         base_type;
@@ -63,7 +61,7 @@ class twitter_follow
     typedef typename NetworkType::value_type V;
 
 public:
-    twitter_follow()
+    twitter_follow_mt()
     :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
     ,   net_ptr_(nullptr)
     ,   cnt_ptr_(nullptr)
@@ -73,7 +71,7 @@ public:
     ,   kmax_(0)
     {}
 
-    twitter_follow(
+    twitter_follow_mt(
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
@@ -170,8 +168,8 @@ private:
     // initialize follow models
     void init_follow_models()
     {
-        base_type::weight_ = cnf_ptr_->template get<T>
-            ("hashkat.rates.follow", T(1));
+        base_type::weight_ = cnf_ptr_->template get<base_type::weight_type>
+            ("hashkat.rates.follow", 1);
 
         follow_models_ =
         {
@@ -239,11 +237,7 @@ private:
         V total_weight = 0;
         for (auto i = min; i <= max; i += inc)
         {
-#       ifdef _CONCURRENT
             bins_.emplace_back(tbb::concurrent_unordered_set<T>());
-#       else
-            bins_.emplace_back(std::unordered_set<T>());
-#       endif //_CONCURRENT
             weights_.push_back(V(std::pow(V(i), exp)));
             total_weight += weights_.back();
         }
@@ -273,23 +267,9 @@ private:
 
     T twitter_suggest_follow_model(T follower)
     {
-        //std::vector<V> weights(weights_);
-        //for (auto i = 0; i < weights.size(); ++i)
-        //    weights[i] *= bins_[i].size();
-        //std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
-
-        //std::size_t i(0);
-        //std::discrete_distribution<T> di(
-        //    kmax_ + 1
-        //,   0
-        //,   double(kmax_ + 1) 
-        //,   [&](double)
-        //{   return weights_[i] * bins_[i++].size();    });
-
         std::vector<V> weights;
         auto kmax = kmax_;
         weights.reserve(kmax + 1);
-#   ifdef _CONCURRENT
         {
             // std::lock_guard<std::mutex> g1(update_bins_mutex_);
             std::transform(
@@ -302,22 +282,10 @@ private:
             std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
             T idx = di(*rng_ptr_);
             auto followee = bins_[idx].cbegin();
-            return followee == bins_[idx].cend()
+            return  followee == bins_[idx].cend()
                 ?   std::numeric_limits<T>::max()
                 :   *followee;
         }
-#   else
-        std::transform(
-            weights_.cbegin()
-        ,   weights_.cbegin() + kmax_ + 1
-        ,   bins_.cbegin()
-        ,   std::back_inserter(weights)
-        ,   [](V w, const std::unordered_set<T>& b)
-        {   return w * b.size();    });
-        std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
-        auto followee = bins_[di(*rng_ptr_)].cbegin();
-        return *followee;
-#   endif //_CONCURRENT
     }
 
     T agent_follow_model(T follower)
@@ -348,49 +316,34 @@ private:
     void agent_added(T idx)
     {
         {
-#   ifdef _CONCURRENT
-        std::lock_guard<std::mutex> g1(update_bins_mutex_);
-#   endif //_CONCURRENT
-        bins_[0].insert(idx);
+            std::lock_guard<std::mutex> g(update_bins_mutex_);
+            bins_[0].insert(idx);
         }
-#   ifdef _CONCURRENT
-        std::lock_guard<std::mutex> g2(update_nc_mutex_);
-#   endif //_CONCURRENT
+        std::lock_guard<std::mutex> g(update_nc_mutex_);
         ++n_connections_;
     }
 
     void update_bins(T followee, T follower)
     {
         {
-#   ifdef _CONCURRENT
-        std::lock_guard<std::mutex> g1(update_bins_mutex_);
-#   endif //_CONCURRENT
-        auto idx = net_ptr_->followers_size(followee) * bins_.size()
-                 / net_ptr_->max_size();
-#   ifdef _CONCURRENT
-        if (bins_[idx - 1].unsafe_erase(followee))
-#   else
-        if (bins_[idx - 1].erase(followee))
-#   endif //_CONCURRENT
-            bins_[idx].insert(followee);
-        else
-        {
-            while (bins_[idx].find(followee) == bins_[idx].end() && idx > 0)
-                --idx;
-#   ifdef _CONCURRENT
-            bins_[idx].unsafe_erase(followee);
-#   else
-            bins_[idx].erase(followee);
-#   endif //_CONCURRENT
-            bins_[++idx].insert(followee);
+            std::lock_guard<std::mutex> g(update_bins_mutex_);
+            T idx = net_ptr_->followers_size(followee) * bins_.size()
+                     / net_ptr_->max_size();
+            if (bins_[idx - 1].unsafe_erase(followee))
+                bins_[idx].insert(followee);
+            else
+            {
+                while (bins_[idx].find(followee) == bins_[idx].end() && idx > 0)
+                    --idx;
+                bins_[idx].unsafe_erase(followee);
+                bins_[++idx].insert(followee);
+            }
+            if (kmax_ < idx)
+                kmax_ = idx;
+            ++base_type::rate_;
         }
-        if (kmax_ < idx)
-            kmax_ = idx;
-        ++base_type::rate_;
-        }
-#   ifdef _CONCURRENT
-        std::lock_guard<std::mutex> g2(update_nc_mutex_);
-#   endif //_CONCURRENT
+
+        std::lock_guard<std::mutex> g(update_nc_mutex_);
         ++n_connections_;
     }
 
@@ -401,14 +354,10 @@ private:
     RngType* rng_ptr_;
     T n_connections_;
     T kmax_;
-#   ifdef _CONCURRENT
     //tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> bins_;
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
     std::mutex update_bins_mutex_;
     std::mutex update_nc_mutex_;
-#   else
-    std::vector<std::unordered_set<T>> bins_;
-#   endif //_CONCURRENT
     std::vector<V> weights_;
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
@@ -424,7 +373,8 @@ template
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const twitter_follow<NetworkType, ContentsType, ConfigType, RngType>& tfa)
+,   const twitter_follow_mt
+        <NetworkType, ContentsType, ConfigType, RngType>& tfa)
 {
     return tfa.print(out);
 }
@@ -435,4 +385,4 @@ std::ostream& operator<< (
 
 }    // namespace hashkat
 
-#endif  // HASHKAT_ACTIONS_TWITTER_FOLLOW_H_
+#endif  // HASHKAT_ACTIONS_TWITTER_FOLLOW_MT_HPP_

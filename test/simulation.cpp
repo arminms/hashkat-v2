@@ -49,7 +49,7 @@
 
 #include "../include/network_st.hpp"
 #include "../include/actions/twitter_add_agent_st.hpp"
-#include "../include/actions/twitter_follow.h"
+#include "../include/actions/twitter_follow_st.hpp"
 #include "../include/engine.h"
 #include "../include/simulation.h"
 
@@ -71,7 +71,7 @@ typedef engine
 ,   test_config
 ,   test_rng
 ,   twitter_add_agent_st
-,   twitter_follow
+,   twitter_follow_st
 > test_engine;
 
 typedef simulation

@@ -47,18 +47,21 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#include "../include/network.h"
-#include "../include/actions/twitter_follow.h"
+#include "../include/network_st.hpp"
+#include "../include/actions/twitter_follow_st.hpp"
 
 using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;
 namespace pt = boost::property_tree;
 using namespace hashkat;
 
+struct dummy
+{};
+
 typedef std::mt19937 test_rng;
 typedef boost::property_tree::ptree test_config;
-typedef network<dummy, test_config> test_network;
-typedef twitter_follow<test_network, dummy, test_config, test_rng>
+typedef network_st<dummy, test_config> test_network;
+typedef twitter_follow_st<test_network, dummy, test_config, test_rng>
     test_twitter_follow;
 
 struct FOLDERS

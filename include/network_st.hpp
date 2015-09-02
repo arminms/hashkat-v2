@@ -23,8 +23,8 @@
 // of a derivation, subsequent authors.
 //
 
-#ifndef HASHKAT_NETWORK_ST_H_
-#define HASHKAT_NETWORK_ST_H_
+#ifndef HASHKAT_NETWORK_ST_HPP_
+#define HASHKAT_NETWORK_ST_HPP_
 
 namespace hashkat {
 
@@ -245,4 +245,4 @@ std::ostream& operator<< (
 
 }    // namespace hashkat
 
-#endif  // HASHKAT_NETWORK_ST_H_
+#endif  // HASHKAT_NETWORK_ST_HPP_

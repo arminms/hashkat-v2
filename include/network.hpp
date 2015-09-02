@@ -23,10 +23,10 @@
 // of a derivation, subsequent authors.
 //
 
-#ifndef HASHKAT_NETWORK_H_
-#define HASHKAT_NETWORK_H_
+#ifndef HASHKAT_NETWORK_HPP_
+#define HASHKAT_NETWORK_HPP_
 
 #include "network_st.hpp"
 #include "network_mt.hpp"
 
-#endif  // HASHKAT_NETWORK_H_
+#endif  // HASHKAT_NETWORK_HPP_
