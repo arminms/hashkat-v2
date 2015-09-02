@@ -62,8 +62,8 @@ public:
     void post_init()
     {   do_post_init(); }
 
-    //void reset()
-    //{   do_reset(); }
+    void reset()
+    {   do_reset(); }
 
     rate_type rate() const
     {   return rate_;   }
@@ -98,8 +98,8 @@ private:
     ,   ContentsType& cnt
     ,   ConfigType& cnf
     ,   RngType& rng) = 0;
-    virtual void do_post_init() {};
-    //virtual void do_reset() = 0;
+    virtual void do_post_init() = 0;
+    virtual void do_reset() = 0;
     virtual void do_action() = 0;
     virtual std::ostream& do_print(std::ostream& out) const = 0;
 };

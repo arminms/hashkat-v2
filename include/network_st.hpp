@@ -57,7 +57,6 @@ public:
     network_st(const ConfigType& conf)
     :   agents_(nullptr)
     ,   n_agents_(0)
-    ,   max_agents_(0)
     {   allocate(conf.template get<T>("hashkat.network.max_agents", 1000)); }
 
     network_st(T n)
@@ -68,6 +67,13 @@ public:
 
     ~network_st()
     {   delete[] agents_;   }
+
+    void reset()
+    {
+        n_agents_ = 0;
+        followers_.clear();
+        followees_.clear();
+    }
 
     void allocate(T n)
     {

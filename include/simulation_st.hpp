@@ -56,6 +56,16 @@ public:
     ,   max_real_time_(cnf.template get<int>("hashkat.network.max_real_time", 1))
     {}
 
+    void reset()
+    {
+        net_.reset();
+        //cnt_.reset();
+        eng_.reset();
+    }
+
+    RngType& rng()
+    {   return rng_;    }
+
     bool run()
     {
         start_tp_ = std::chrono::high_resolution_clock::now();

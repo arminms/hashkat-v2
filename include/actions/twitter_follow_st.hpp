@@ -64,8 +64,6 @@ public:
     ,   cnt_ptr_(nullptr)
     ,   cnf_ptr_(nullptr)
     ,   rng_ptr_(nullptr)
-    ,   n_connections_(0)
-    ,   kmax_(0)
     {}
 
     twitter_follow_st(
@@ -78,8 +76,6 @@ public:
     ,   cnt_ptr_(&cnt)
     ,   cnf_ptr_(&cnf)
     ,   rng_ptr_(&rng)
-    ,   n_connections_(0)
-    ,   kmax_(0)
     {
         init_slots();
         init_follow_models();
@@ -104,13 +100,21 @@ private:
         init_bins();
     }
 
-    //virtual void reset()
-    //{
-    //    net_ptr_ = nullptr;
-    //    cnt_ptr_ = nullptr;
-    //    cnf_ptr_ = nullptr;
-    //    rng_ptr_ = nullptr;
-    //}
+    virtual void do_post_init()
+    {
+        base_type::rate_ = 0;
+        base_type::weight_ = cnf_ptr_->template get<base_type::weight_type>
+            ("hashkat.rates.follow", 1);
+        n_connections_ = 0;
+    }
+
+    virtual void do_reset()
+    {
+        bins_.clear();
+        weights_.clear();
+        init_bins();
+        do_post_init();
+    }
 
     virtual void do_action()
     {
@@ -173,9 +177,6 @@ private:
     // initialize follow models
     void init_follow_models()
     {
-        base_type::weight_ = cnf_ptr_->template get<base_type::weight_type>
-            ("hashkat.rates.follow", 1);
-
         follow_models_ =
         {
             boost::bind(&self_type::random_follow_model , this , _1)
@@ -222,6 +223,8 @@ private:
     // initialize bins
     void init_bins()
     {
+        kmax_ = 0;
+
         T spc = cnf_ptr_->template get<T>
             ("hashkat.follow_ranks.bin_spacing", T(1));
         T min = cnf_ptr_->template get<T>

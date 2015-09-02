@@ -118,7 +118,7 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     auto nt = std::thread::hardware_concurrency();
 
     std::cout << "Simulation 01:\n";
-    for (auto i = 1; i <= nt; ++i)
+    for (unsigned i = 1; i <= nt; ++i)
     {
         try
         {

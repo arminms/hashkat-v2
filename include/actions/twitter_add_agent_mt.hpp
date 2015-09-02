@@ -97,6 +97,11 @@ private:
             (*this)();
     }
 
+    virtual void do_reset()
+    {
+        do_post_init();
+    }
+
     virtual void do_action()
     {
         if (net_ptr_->grow())

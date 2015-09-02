@@ -109,6 +109,21 @@ struct FOLDERS
     std::string ptn_folder;
 };
 
+//BOOST_FIXTURE_TEST_CASE(Reset, FOLDERS)
+//{
+//    test_config conf;
+//    pt::read_xml(cnf_folder + "config_01.xml", conf);
+//    test_simulation sim(conf);
+//    sim.run();
+//
+//    output_test_stream cout(ptn_folder + "sim_01.txt");
+//    sim.rng().seed(333);
+//    sim.reset();
+//    sim.run();
+//    cout << sim;
+//    BOOST_CHECK(cout.match_pattern());
+//}
+
 BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
 {
     test_config conf;
@@ -125,19 +140,19 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     BOOST_CHECK(cout.match_pattern());
 }
 
-//BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
-//{
-//    test_config conf;
-//    pt::read_xml(cnf_folder + "config_02.xml", conf);
-//    test_simulation sim(conf);
-//    sim.run();
-//
-//    std::cout << "02 - Elapsed time: " << sim.duration().count()
-//              << " ms" << std::endl;
-//
-//    output_test_stream cout(
-//        ptn_folder + "sim_02.txt"
-//    ,   !butrc::save_pattern());
-//    cout << sim;
-//    BOOST_CHECK(cout.match_pattern());
-//}
+BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
+{
+    test_config conf;
+    pt::read_xml(cnf_folder + "config_02.xml", conf);
+    test_simulation sim(conf);
+    sim.run();
+
+    std::cout << "02 - Elapsed time: " << sim.duration().count()
+              << " ms" << std::endl;
+
+    output_test_stream cout(
+        ptn_folder + "sim_02.txt"
+    ,   !butrc::save_pattern());
+    cout << sim;
+    BOOST_CHECK(cout.match_pattern());
+}

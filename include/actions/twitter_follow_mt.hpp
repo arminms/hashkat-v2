@@ -107,6 +107,22 @@ private:
         init_bins();
     }
 
+    virtual void do_post_init()
+    {
+        base_type::rate_ = 0;
+        base_type::weight_ = cnf_ptr_->template get<base_type::weight_type>
+            ("hashkat.rates.follow", 1);
+        n_connections_ = 0;
+    }
+
+    virtual void do_reset()
+    {
+        bins_.clear();
+        weights_.clear();
+        init_bins();
+        do_post_init();
+    }
+
     virtual void do_action()
     {
         BOOST_CONSTEXPR_OR_CONST auto failed = std::numeric_limits<T>::max();

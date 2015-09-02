@@ -126,7 +126,7 @@ public:
     action_type* operator()()
     {
         typedef typename Nwt::type T;
-        std::vector<T> weights;
+        std::vector<typename action_type::weight_type> weights;
         weights.reserve(actions_.depot_.size());
         for (auto& action : actions_.depot_)
             weights.push_back(action->weight());

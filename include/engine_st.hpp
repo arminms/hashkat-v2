@@ -117,6 +117,15 @@ public:
             action->post_init();
     }
 
+    void reset()
+    {
+        n_steps_ = 0;
+        time_ = time_type::zero();
+        event_rate_ = 0;
+        for (auto& action : actions_.depot_)
+            action->reset();
+    }
+
     std::size_t steps() const
     {   return n_steps_;   }
 
@@ -126,7 +135,7 @@ public:
     action_type* operator()()
     {
         typedef typename Nwt::type T;
-        std::vector<T> weights;
+        std::vector<typename action_type::weight_type> weights;
         weights.reserve(actions_.depot_.size());
         for (auto& action : actions_.depot_)
             weights.push_back(action->weight());
