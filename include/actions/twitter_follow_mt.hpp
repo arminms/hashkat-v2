@@ -110,8 +110,8 @@ private:
     virtual void do_post_init()
     {
         base_type::rate_ = 0;
-        base_type::weight_ = cnf_ptr_->template get<base_type::weight_type>
-            ("hashkat.rates.follow", 1);
+        base_type::weight_ = cnf_ptr_->template
+        get<typename base_type::weight_type>("hashkat.rates.follow", 1);
         n_connections_ = 0;
     }
 
@@ -184,8 +184,8 @@ private:
     // initialize follow models
     void init_follow_models()
     {
-        base_type::weight_ = cnf_ptr_->template get<base_type::weight_type>
-            ("hashkat.rates.follow", 1);
+        base_type::weight_ = cnf_ptr_->template
+            get<typename base_type::weight_type>("hashkat.rates.follow", 1);
 
         follow_models_ =
         {

@@ -89,8 +89,8 @@ private:
     virtual void do_post_init()
     {
         base_type::rate_ = 0;
-        base_type::weight_ = cnf_ptr_->template get<base_type::weight_type>
-            ("hashkat.rates.add", 1);
+        base_type::weight_ = cnf_ptr_->template
+            get<typename base_type::weight_type>("hashkat.rates.add", 1);
         T ia = cnf_ptr_->template get<T>
             ("hashkat.network.initial_agents", T(0));
         for (auto i = 0; i < ia; ++i)
