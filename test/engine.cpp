@@ -48,9 +48,9 @@
 #include <boost/property_tree/xml_parser.hpp>
 
 #include "../include/network.hpp"
-#include "../include/engine.h"
+#include "../include/engine_st.hpp"
 #include "../include/actions/twitter_add_agent_st.hpp"
-#include "../include/actions/twitter_follow.hpp"
+#include "../include/actions/twitter_follow_st.hpp"
 
 using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;
@@ -63,7 +63,7 @@ struct dummy
 typedef std::mt19937 test_rng;
 typedef boost::property_tree::ptree test_config;
 typedef network_st<dummy, test_config> test_network;
-typedef engine
+typedef engine_st
 <
     test_network
 ,   dummy
