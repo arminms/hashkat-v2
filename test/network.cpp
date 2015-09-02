@@ -47,6 +47,9 @@ using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;
 using namespace hashkat;
 
+struct test_conf
+{};
+
 struct test_agent
 {
     std::size_t id_;
@@ -91,7 +94,7 @@ BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, FOLDER)
         folder + "network_01.txt"
     ,   !butrc::save_pattern());
 
-    network_st<test_agent> n(10);
+    network_st<test_agent, test_conf> n(10);
     n.grow(10);
     for (auto i = 0; i < n.size(); ++i)
         n[i].id_ = i;
@@ -103,7 +106,7 @@ BOOST_FIXTURE_TEST_CASE(Range_Based_Loop, FOLDER)
 
 BOOST_AUTO_TEST_CASE(Connection)
 {
-    network_st<test_agent> n(2);
+    network_st<test_agent, test_conf> n(2);
     n.grow(2);
 
     BOOST_CHECK(!n.have_connection(0, 1));
@@ -132,7 +135,7 @@ BOOST_FIXTURE_TEST_CASE(Print, FOLDER)
         folder + "network_02.txt"
     ,   !butrc::save_pattern());
 
-    network_st<test_agent> n(100);
+    network_st<test_agent, test_conf> n(100);
     n.grow(100);
 
     std::vector<std::size_t> v1(100);

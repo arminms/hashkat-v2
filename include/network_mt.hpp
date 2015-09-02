@@ -32,13 +32,10 @@
 
 namespace hashkat {
 
-struct dummy
-{};
-
 template
 <
     class    AgentType
-,   class    ConfigType = dummy
+,   class    ConfigType
 ,   typename T = std::size_t
 ,   typename ValueType = double
 >
