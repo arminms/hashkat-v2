@@ -108,7 +108,7 @@ private:
         base_type::rate_.store(0);
         follow_rate_ = cnf_ptr_->template
             get<typename base_type::rate_type>("hashkat.rates.follow", 0.01);
-        n_connections_ = 0;
+        n_connections_.store(0);
     }
 
     virtual void do_reset()
@@ -226,7 +226,7 @@ private:
     // initialize bins
     void init_bins()
     {
-        kmax_ = 0;
+        kmax_.store(0);
 
         T spc = cnf_ptr_->template get<T>
             ("hashkat.follow_ranks.bin_spacing", T(1));
@@ -279,7 +279,7 @@ private:
     T twitter_suggest_follow_model(T follower)
     {
         std::vector<V> weights;
-        auto kmax = kmax_;
+        auto kmax = kmax_.load();
         weights.reserve(kmax + 1);
         {
             // std::lock_guard<std::mutex> g1(update_bins_mutex_);
@@ -332,17 +332,16 @@ private:
             std::lock_guard<std::mutex> g(update_bins_mutex_);
             bins_[0].insert(idx);
         }
-        {
-            std::lock_guard<std::mutex> g(update_nc_mutex_);
-            ++n_connections_;
-        }
+
+        ++n_connections_;
     }
 
     void update_bins(T followee, T follower)
     {
+        T idx;
         {
             std::lock_guard<std::mutex> g(update_bins_mutex_);
-            T idx = net_ptr_->followers_size(followee) * bins_.size()
+            idx = net_ptr_->followers_size(followee) * bins_.size()
                      / net_ptr_->max_size();
             if (bins_[idx - 1].unsafe_erase(followee))
                 bins_[idx].insert(followee);
@@ -353,12 +352,11 @@ private:
                 bins_[idx].unsafe_erase(followee);
                 bins_[++idx].insert(followee);
             }
-            if (kmax_ < idx)
-                kmax_ = idx;
-            ++base_type::rate_;
         }
 
-        std::lock_guard<std::mutex> g(update_nc_mutex_);
+        if (kmax_ < idx)
+            kmax_.store(idx);
+        ++base_type::rate_;
         ++n_connections_;
     }
 
@@ -368,12 +366,11 @@ private:
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
     typename base_type::rate_type follow_rate_;
-    T n_connections_;
-    T kmax_;
+    std::atomic<T> n_connections_;
+    std::atomic<T> kmax_;
     //tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> bins_;
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
     std::mutex update_bins_mutex_;
-    std::mutex update_nc_mutex_;
     std::vector<V> weights_;
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
