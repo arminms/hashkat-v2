@@ -26,6 +26,8 @@
 #ifndef HASHKAT_ACTION_MT_HPP_
 #define HASHKAT_ACTION_MT_HPP_
 
+#include <atomic>
+
 namespace hashkat {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +89,8 @@ public:
     virtual ~action_base() {};
 
 protected:
-    rate_type rate_;
+    std::atomic<unsigned long long> rate_;
+    //std::atomic<weight_type> weight_;
     weight_type weight_;
     action_happened_signal_type action_happened_signal_;
     action_happened_signal_type action_finished_signal_;

@@ -181,7 +181,7 @@ private:
     Rgt& rng_;
     std::size_t n_steps_;
     time_type time_;
-    rate_type event_rate_;
+    unsigned long long event_rate_;
     bool random_time_increment_;
 };
 

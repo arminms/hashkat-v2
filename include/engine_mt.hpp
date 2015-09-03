@@ -189,7 +189,7 @@ private:
     Rgt& rng_;
     std::size_t n_steps_;
     time_type time_;
-    rate_type event_rate_;
+    unsigned long long event_rate_;
     std::mutex steps_mutex_;
     std::mutex time_mutex_;
     std::mutex event_rate_mutex_;

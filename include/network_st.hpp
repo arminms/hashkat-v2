@@ -32,7 +32,7 @@ template
 <
     class    AgentType
 ,   class    ConfigType
-,   typename T = std::size_t
+,   typename T = std::uint32_t
 ,   typename ValueType = double
 >
 class network_st
