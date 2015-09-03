@@ -100,8 +100,8 @@ public:
     ,   cnf_(cnf)
     ,   rng_(rng)
     ,   n_steps_(0)
-    ,   time_(0)
     ,   event_rate_(0)
+    ,   time_(0)
     ,   random_time_increment_(cnf.template get<bool>
             ("hashkat.random_time_increment", false))
     {
@@ -156,16 +156,12 @@ public:
 private:
     void update_event_rate()
     {
-        std::lock_guard<std::mutex> lg(event_rate_mutex_);
         ++event_rate_;
     }
 
     void step_time()
     {
-        {
-            std::lock_guard<std::mutex> lg(steps_mutex_);
-            ++n_steps_;
-        }
+        ++n_steps_;
 
         if (random_time_increment_)
         {
@@ -187,12 +183,10 @@ private:
     Ctt& cnt_;
     Cft& cnf_;
     Rgt& rng_;
-    std::size_t n_steps_;
+    std::atomic<unsigned long long> n_steps_;
+    std::atomic<unsigned long long> event_rate_;
     time_type time_;
-    unsigned long long event_rate_;
-    std::mutex steps_mutex_;
     std::mutex time_mutex_;
-    std::mutex event_rate_mutex_;
     bool random_time_increment_;
 };
 
