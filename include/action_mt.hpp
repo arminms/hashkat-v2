@@ -90,8 +90,7 @@ public:
 
 protected:
     std::atomic<unsigned long long> rate_;
-    //std::atomic<weight_type> weight_;
-    weight_type weight_;
+    std::atomic<weight_type> weight_;
     action_happened_signal_type action_happened_signal_;
     action_happened_signal_type action_finished_signal_;
 

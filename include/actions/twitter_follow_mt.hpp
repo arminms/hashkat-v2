@@ -326,10 +326,8 @@ private:
 
     void agent_added(T idx)
     {
-        {
-            std::lock_guard<std::mutex> g(update_weight_mutex_);
-            base_type::weight_ = follow_rate_ * net_ptr_->size();
-        }
+        base_type::weight_.store(follow_rate_ * net_ptr_->size());
+
         {
             std::lock_guard<std::mutex> g(update_bins_mutex_);
             bins_[0].insert(idx);
@@ -374,7 +372,6 @@ private:
     T kmax_;
     //tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> bins_;
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
-    std::mutex update_weight_mutex_;
     std::mutex update_bins_mutex_;
     std::mutex update_nc_mutex_;
     std::vector<V> weights_;
