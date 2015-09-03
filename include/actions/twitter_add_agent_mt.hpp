@@ -106,10 +106,7 @@ private:
     {
         if (net_ptr_->grow())
         {
-            {
-                std::lock_guard<std::mutex> lg(rate_mutex_);
-                ++base_type::rate_;
-            }
+            ++base_type::rate_;
             base_type::action_happened_signal_();
         }
         base_type::action_finished_signal_();
@@ -127,7 +124,6 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
-    std::mutex rate_mutex_;
 };
 
 template
