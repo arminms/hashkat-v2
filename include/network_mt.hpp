@@ -76,7 +76,7 @@ public:
 
     void reset()
     {
-        n_agents_ = 0;
+        n_agents_.store(0);
         followers_.clear();
         followees_.clear();
     }
@@ -93,7 +93,7 @@ public:
 
     bool grow()
     {
-        if (n_agents_ < max_agents_)
+        if (n_agents_.load() < max_agents_)
         {
             {
                 std::lock_guard<std::mutex> lg(grow_mutex_);

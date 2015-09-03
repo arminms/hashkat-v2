@@ -87,7 +87,7 @@ public:
     virtual ~action_base() {};
 
 protected:
-    unsigned long long rate_;
+    std::size_t rate_;
     weight_type weight_;
     action_happened_signal_type action_happened_signal_;
     action_happened_signal_type action_finished_signal_;

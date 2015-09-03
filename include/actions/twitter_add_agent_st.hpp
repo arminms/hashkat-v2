@@ -93,7 +93,7 @@ private:
             get<typename base_type::weight_type>("hashkat.rates.add", 1);
         T ia = cnf_ptr_->template get<T>
             ("hashkat.network.initial_agents", T(0));
-        for (auto i = 0; i < ia; ++i)
+        for (T i = 0; i < ia; ++i)
             (*this)();
     }
 

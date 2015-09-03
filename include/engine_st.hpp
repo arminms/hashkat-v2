@@ -99,8 +99,8 @@ public:
     ,   cnt_(cnt)
     ,   cnf_(cnf)
     ,   rng_(rng)
-    ,   n_steps_(0)
     ,   time_(0)
+    ,   n_steps_(0)
     ,   event_rate_(0)
     ,   random_time_increment_(cnf.template get<bool>
             ("hashkat.random_time_increment", false))
@@ -119,8 +119,8 @@ public:
 
     void reset()
     {
-        n_steps_ = 0;
         time_ = time_type::zero();
+        n_steps_ = 0;
         event_rate_ = 0;
         for (auto& action : actions_.depot_)
             action->reset();
@@ -179,9 +179,9 @@ private:
     Ctt& cnt_;
     Cft& cnf_;
     Rgt& rng_;
-    std::size_t n_steps_;
     time_type time_;
-    unsigned long long event_rate_;
+    std::size_t n_steps_;
+    std::size_t event_rate_;
     bool random_time_increment_;
 };
 

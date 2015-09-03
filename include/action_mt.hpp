@@ -89,7 +89,7 @@ public:
     virtual ~action_base() {};
 
 protected:
-    std::atomic<unsigned long long> rate_;
+    std::atomic<std::size_t> rate_;
     std::atomic<weight_type> weight_;
     action_happened_signal_type action_happened_signal_;
     action_happened_signal_type action_finished_signal_;
