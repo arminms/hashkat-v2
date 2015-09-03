@@ -117,6 +117,15 @@ public:
             action->post_init();
     }
 
+    void reset()
+    {
+        n_steps_ = 0;
+        time_ = time_type::zero();
+        event_rate_ = 0;
+        for (auto& action : actions_.depot_)
+            action->reset();
+    }
+
     std::size_t steps() const
     {   return n_steps_;   }
 

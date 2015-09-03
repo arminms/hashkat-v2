@@ -67,8 +67,6 @@ public:
     ,   cnt_ptr_(nullptr)
     ,   cnf_ptr_(nullptr)
     ,   rng_ptr_(nullptr)
-    ,   n_connections_(0)
-    ,   kmax_(0)
     {}
 
     twitter_follow_mt(
@@ -81,8 +79,6 @@ public:
     ,   cnt_ptr_(&cnt)
     ,   cnf_ptr_(&cnf)
     ,   rng_ptr_(&rng)
-    ,   n_connections_(0)
-    ,   kmax_(0)
     {
         init_slots();
         init_follow_models();
@@ -110,8 +106,8 @@ private:
     virtual void do_post_init()
     {
         base_type::rate_ = 0;
-        base_type::weight_ = cnf_ptr_->template
-        get<typename base_type::weight_type>("hashkat.rates.follow", 1);
+        follow_rate_ = cnf_ptr_->template
+            get<typename base_type::rate_type>("hashkat.rates.follow", 0.01);
         n_connections_ = 0;
     }
 
@@ -184,9 +180,6 @@ private:
     // initialize follow models
     void init_follow_models()
     {
-        base_type::weight_ = cnf_ptr_->template
-            get<typename base_type::weight_type>("hashkat.rates.follow", 1);
-
         follow_models_ =
         {
             boost::bind(&self_type::random_follow_model , this , _1)
@@ -233,6 +226,8 @@ private:
     // initialize bins
     void init_bins()
     {
+        kmax_ = 0;
+
         T spc = cnf_ptr_->template get<T>
             ("hashkat.follow_ranks.bin_spacing", T(1));
         T min = cnf_ptr_->template get<T>
@@ -332,11 +327,17 @@ private:
     void agent_added(T idx)
     {
         {
+            std::lock_guard<std::mutex> g(update_weight_mutex_);
+            base_type::weight_ = follow_rate_ * net_ptr_->size();
+        }
+        {
             std::lock_guard<std::mutex> g(update_bins_mutex_);
             bins_[0].insert(idx);
         }
-        std::lock_guard<std::mutex> g(update_nc_mutex_);
-        ++n_connections_;
+        {
+            std::lock_guard<std::mutex> g(update_nc_mutex_);
+            ++n_connections_;
+        }
     }
 
     void update_bins(T followee, T follower)
@@ -368,10 +369,12 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
+    typename base_type::rate_type follow_rate_;
     T n_connections_;
     T kmax_;
     //tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> bins_;
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
+    std::mutex update_weight_mutex_;
     std::mutex update_bins_mutex_;
     std::mutex update_nc_mutex_;
     std::vector<V> weights_;

@@ -14,7 +14,7 @@
 		<!-- The maximum real-time for the simulation. Once it has elapsed, the
 		simulation halts. Note that interacting with the simulation DOES detract
 		from this time. In minutes. -->
-		<max_real_time>60</max_real_time>
+		<max_real_time>1</max_real_time>
 	</network>
 	<rates>
 		<add>1.0</add>

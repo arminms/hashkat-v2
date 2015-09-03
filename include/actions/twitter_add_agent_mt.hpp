@@ -84,14 +84,14 @@ private:
         cnt_ptr_ = &cnt;
         cnf_ptr_ = &cnf;
         rng_ptr_ = &rng;
-
-        base_type::weight_ = cnf_ptr_->template get<T>
-            ("hashkat.rates.add", T(1));
     }
 
     virtual void do_post_init()
     {
-        std::size_t ia = cnf_ptr_->template get<T>
+        base_type::rate_ = 0;
+        base_type::weight_ = cnf_ptr_->template
+            get<typename base_type::weight_type>("hashkat.rates.add", 1);
+        T ia = cnf_ptr_->template get<T>
             ("hashkat.network.initial_agents", T(0));
         for (auto i = 0; i < ia; ++i)
             (*this)();

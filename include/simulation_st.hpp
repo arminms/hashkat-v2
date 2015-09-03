@@ -68,7 +68,7 @@ public:
     RngType& rng()
     {   return rng_;    }
 
-    bool run()
+    bool run(unsigned n = 0)
     {
         start_tp_ = std::chrono::high_resolution_clock::now();
         while (eng_.time() < max_time_ && duration() < max_real_time_)

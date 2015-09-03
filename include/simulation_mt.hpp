@@ -61,6 +61,16 @@ public:
             ("hashkat.network.max_real_time", 1))
     {}
 
+    void reset()
+    {
+        net_.reset();
+        //cnt_.reset();
+        eng_.reset();
+    }
+
+    RngType& rng()
+    {   return rng_;    }
+
     bool run(unsigned n = 0)
     {
         if (0 == n)

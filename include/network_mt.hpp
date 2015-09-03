@@ -73,6 +73,13 @@ public:
     ~network_mt()
     {   delete[] agents_;   }
 
+    void reset()
+    {
+        n_agents_ = 0;
+        followers_.clear();
+        followees_.clear();
+    }
+
     void allocate(T n)
     {
         if (agents_)
