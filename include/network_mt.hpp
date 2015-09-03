@@ -27,6 +27,7 @@
 #define HASHKAT_NETWORK_MT_H_
 
 #include <mutex>
+#include <atomic>
 #include <tbb/concurrent_vector.h>
 #include <tbb/concurrent_unordered_set.h>
 
@@ -92,13 +93,14 @@ public:
 
     bool grow()
     {
-        std::unique_lock<std::mutex> l(grow_mutex_);
         if (n_agents_ < max_agents_)
         {
-            followers_.emplace_back(tbb::concurrent_unordered_set<T>());
-            followees_.emplace_back(tbb::concurrent_unordered_set<T>());
+            {
+                std::lock_guard<std::mutex> lg(grow_mutex_);
+                followers_.emplace_back(tbb::concurrent_unordered_set<T>());
+                followees_.emplace_back(tbb::concurrent_unordered_set<T>());
+            }
             ++n_agents_;
-            l.unlock();
             grown_signal_(n_agents_ - 1);
             return true;
         }
@@ -235,7 +237,8 @@ public:
 private:
     // member variables
     AgentType* agents_;
-    T n_agents_, max_agents_;
+    std::atomic<T> n_agents_;
+    T max_agents_;
     //std::vector<tbb::concurrent_unordered_set<T>> followers_;
     //std::vector<tbb::concurrent_unordered_set<T>> followees_;
     tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followers_;
