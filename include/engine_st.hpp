@@ -30,9 +30,9 @@
 #include <memory>
 #include <chrono>
 
-#ifndef HASHKAT_ACTION_HPP_
-#   include "action.hpp"
-#endif // HASHKAT_ACTION_HPP_
+#ifndef HASHKAT_ACTION_ST_HPP_
+#   include "action_st.hpp"
+#endif // HASHKAT_ACTION_ST_HPP_
 
 namespace hashkat {
 

@@ -29,9 +29,9 @@
 #include <mutex>
 #include <tbb/concurrent_unordered_set.h>
 
-#ifndef HASHKAT_ACTION_HPP_
-#   include "../action.hpp"
-#endif // HASHKAT_ACTION_HPP_
+#ifndef HASHKAT_ACTION_MT_HPP_
+#   include "../action_mt.hpp"
+#endif // HASHKAT_ACTION_MT_HPP_
 
 namespace hashkat {
 
