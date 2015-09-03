@@ -103,8 +103,8 @@ private:
     virtual void do_post_init()
     {
         base_type::rate_ = 0;
-        base_type::weight_ = cnf_ptr_->template
-            get<typename base_type::weight_type>("hashkat.rates.follow", 1);
+        follow_rate_ = cnf_ptr_->template
+            get<typename base_type::rate_type>("hashkat.rates.follow", 0.01);
         n_connections_ = 0;
     }
 
@@ -330,6 +330,7 @@ private:
 
     void agent_added(T idx)
     {
+        base_type::weight_ = follow_rate_ * net_ptr_->size();
         bins_[0].insert(idx);
         ++n_connections_;
     }
@@ -356,6 +357,7 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
+    typename base_type::rate_type follow_rate_;
     T n_connections_;
     T kmax_;
     std::vector<std::unordered_set<T>> bins_;

@@ -1,14 +1,24 @@
 <hashkat>
 	<random_time_increment>0</random_time_increment>
 	<network>
+		<!-- The initial agent amount to create. -->
 		<initial_agents>10</initial_agents>
+		<!-- The maximum amount of agents for which to allocate. Once the
+		 network has grown to this amount, the agent add rate will artifically
+		 drop to 0. -->
 		<max_agents>10000</max_agents>
-		<max_time>20</max_time>
-		<max_real_time>1</max_real_time>
+		<!-- The maximum simulation-time for the simulation. Once it has
+		elapsed, the simulation halts. Interacting with the simulation does not
+		alter the simulation-time. In simulated minutes. -->
+		<max_time>13.985</max_time>
+		<!-- The maximum real-time for the simulation. Once it has elapsed, the
+		simulation halts. Note that interacting with the simulation DOES detract
+		from this time. In minutes. -->
+		<max_real_time>60</max_real_time>
 	</network>
 	<rates>
-		<add>6</add>
-		<follow>4</follow>
+		<add>1.0</add>
+		<follow>0.01</follow>
 	</rates>
 	<follow_model>twitter_suggest</follow_model>
 	<follow_ranks>
