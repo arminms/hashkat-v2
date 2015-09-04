@@ -103,6 +103,7 @@ private:
     virtual void do_post_init()
     {
         base_type::rate_ = 0;
+        base_type::weight_ = 0;
         follow_rate_ = cnf_ptr_->template
             get<typename base_type::rate_type>("hashkat.rates.follow", 0.01);
         n_connections_ = 0;

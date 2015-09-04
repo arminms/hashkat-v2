@@ -282,22 +282,19 @@ private:
         std::vector<V> weights;
         auto kmax = kmax_.load();
         weights.reserve(kmax + 1);
-        {
-            // std::lock_guard<std::mutex> g1(update_bins_mutex_);
-            std::transform(
-                weights_.cbegin()
-            ,   weights_.cbegin() + kmax + 1
-            ,   bins_.cbegin()
-            ,   std::back_inserter(weights)
-            ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
-            {   return w * b.size();    });
-            std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
-            T idx = di(*rng_ptr_);
-            auto followee = bins_[idx].cbegin();
-            return  followee == bins_[idx].cend()
-                ?   std::numeric_limits<T>::max()
-                :   *followee;
-        }
+        std::transform(
+            weights_.cbegin()
+        ,   weights_.cbegin() + kmax + 1
+        ,   bins_.cbegin()
+        ,   std::back_inserter(weights)
+        ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
+        {   return w * b.size();    });
+        std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
+        T idx = di(*rng_ptr_);
+        auto followee = bins_[idx].cbegin();
+        return  followee == bins_[idx].cend()
+            ?   std::numeric_limits<T>::max()
+            :   *followee;
     }
 
     T agent_follow_model(T follower)
