@@ -144,12 +144,12 @@ public:
     connection_removed_signal_type& connection_removed()
     {   return connection_removed_signal_;  }
 
-    T followees_size(T id) const
+    std::size_t followees_size(std::size_t id) const
     {
         return followees_[id].size();
     }
 
-    T followers_size(T id) const
+    std::size_t followers_size(std::size_t id) const
     {
         return followers_[id].size();
     }

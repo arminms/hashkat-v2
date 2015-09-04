@@ -35,11 +35,6 @@ namespace hashkat {
 ////////////////////////////////////////////////////////////////////////////////
 // twitter_follow_st action class
 
-#   ifdef _MSC_VER
-#       pragma warning( push )
-#       pragma warning( disable: 4503 )
-#   endif  // _MSC_VER
-
 template
 <
     class NetworkType
@@ -237,21 +232,21 @@ private:
         V exp = cnf_ptr_->template get<V>
             ("hashkat.follow_ranks.exponent", V(1.0));
 
-        for (auto i = 1; i < spc; ++i)
+        for (T i = 1; i < spc; ++i)
             inc *= inc;
 
         T count = (max - min) / inc;
         bins_.reserve(count + 1);
         weights_.reserve(count + 1);
         V total_weight = 0;
-        for (auto i = min; i <= max; i += inc)
+        for (T i = min; i <= max; i += inc)
         {
             bins_.emplace_back(std::unordered_set<T>());
             weights_.push_back(V(std::pow(V(i), exp)));
             total_weight += weights_.back();
         }
         if (total_weight > 0)
-            for (auto i = 0; i < weights_.size(); ++i)
+            for (T i = 0; i < weights_.size(); ++i)
                 weights_[i] /= total_weight;
     }
 
@@ -338,7 +333,7 @@ private:
 
     void update_bins(T followee, T follower)
     {
-        T idx = net_ptr_->followers_size(followee) * bins_.size()
+        std::size_t idx = net_ptr_->followers_size(followee) * bins_.size()
                  / net_ptr_->max_size();
         if (bins_[idx - 1].erase(followee))
             bins_[idx].insert(followee);
@@ -359,8 +354,8 @@ private:
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
     typename base_type::rate_type follow_rate_;
-    T n_connections_;
-    T kmax_;
+    std::size_t n_connections_;
+    std::size_t kmax_;
     std::vector<std::unordered_set<T>> bins_;
     std::vector<V> weights_;
     std::function<T(T)> default_follow_model_;
@@ -382,10 +377,6 @@ std::ostream& operator<< (
 {
     return tfa.print(out);
 }
-
-#   ifdef _MSC_VER
-#       pragma warning( pop )
-#   endif  // _MSC_VER
 
 }    // namespace hashkat
 
