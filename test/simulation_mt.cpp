@@ -110,13 +110,13 @@ struct FOLDERS
     std::string ptn_folder;
 };
 
-BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
+BOOST_FIXTURE_TEST_CASE(sim_01, FOLDERS)
 {
     test_config conf;
     pt::read_xml(cnf_folder + "config_01.xml", conf);
     auto nt = std::thread::hardware_concurrency();
 
-    std::cout << "Simulation 01:\n";
+    std::cout << "Random Follow Model:\n";
     for (unsigned i = 1; i <= nt; ++i)
     {
         test_simulation sim(conf);
@@ -146,13 +146,13 @@ BOOST_FIXTURE_TEST_CASE(Simulation_01, FOLDERS)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(Simulation_02, FOLDERS)
+BOOST_FIXTURE_TEST_CASE(sim_02, FOLDERS)
 {
     test_config conf;
     pt::read_xml(cnf_folder + "config_02.xml", conf);
     auto nt = std::thread::hardware_concurrency();
 
-    std::cout << "Simulation 02:\n";
+    std::cout << "Twitter Suggest Follow Model:\n";
     for (unsigned i = 1; i <= nt; ++i)
     {
         test_simulation sim(conf);

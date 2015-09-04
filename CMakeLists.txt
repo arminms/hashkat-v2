@@ -42,19 +42,6 @@ ELSE(MSVC)
     ENDIF()
 ENDIF()
 
-#IF(WIN32 OR APPLE)
-#ADD_LIBRARY(LIBHASHKAT STATIC
-#    include/action.h
-#    include/engine.h
-#    include/network.h
-#    include/simulation.h
-#    include/actions/twitter_add_agent.h
-#    include/actions/twitter_follow.h
-#)
-#SET_TARGET_PROPERTIES(LIBHASHKAT PROPERTIES LINKER_LANGUAGE CXX)
-#ENDIF(WIN32 OR APPLE)
-
-
 OPTION(CONCURRENT "Build concurrent version of hashkat-lib usning threads?" OFF)
 IF(CONCURRENT)
     OPTION(TRY_FINDING_INTEL_TBB "Try finding Intel TBB library ?" OFF)
@@ -74,33 +61,13 @@ IF(CONCURRENT)
     ENDIF(TRY_FINDING_INTEL_TBB)
 ENDIF(CONCURRENT)
 
-OPTION(INSTALL_HEADERS "Install header files ?" ON)
+OPTION(INSTALL_HEADERS "Install header files ?" OFF)
 IF(INSTALL_HEADERS)
     FILE(COPY "include" DESTINATION ".")
 ENDIF(INSTALL_HEADERS)
 
 OPTION(BUILD_TESTS "Build and install all unit tests ?" ON)
 IF(BUILD_TESTS)
-    OPTION(COPY_PATTERNS "Copy pattern files for unit tests ?" ON)
+    OPTION(COPY_PATTERNS "Copy pattern files for unit tests ?" OFF)
     ADD_SUBDIRECTORY(test)
 ENDIF(BUILD_TESTS)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
