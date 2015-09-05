@@ -81,17 +81,17 @@ int main(int argc, char* argv[])
 
     options_description visible(
         "usage: hashkat [options]\n"
-        "               [[-c|--config-file] config.xml]\n"
+        "               [[-i|--config-file] config.xml]\n"
         "               [[-o|--output-file] out.dat]\n\n"
         "Allowed options");
     visible.add_options()
     ("help,h", "display this help and exit")
     ("version,v", "output version information and exit")
-    ("silent,s", "activate silent mode");
+    ("silent,s", "switch to silent mode");
 
     options_description hidden("Hidden options");
     hidden.add_options()
-    ("config-file,c", value<std::string>(&config_file), "config file")
+    ("config-file,i", value<std::string>(&config_file), "config file")
     ("output-file,o", value<std::string>(&output_file), "output file");
 
     positional_options_description p;
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
 
         if (vm.count("version"))
         {
-            std::cout << "hashkat version 0.1.0.0" << std::endl;
+            std::cout << "Hashkat version 0.1.0.0" << std::endl;
             return 0;
         }
 
@@ -146,28 +146,24 @@ int main(int argc, char* argv[])
         UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
         std::cout << "Invalid command line syntax!" << std::endl;
-        return 1;
     }
     catch (unknown_option& e)
     {
         UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
         std::cout << "Unrecognized option!" << std::endl;
-        return 1;
     }
     catch (too_many_positional_options_error& e)
     {
         UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
         std::cout << "Too many output files!" << std::endl;
-        return 1;
     }
     catch (invalid_option_value& e)
     {
         UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
         std::cout << "Invalid option value!" << std::endl;
-        return 1;
     }
     catch (std::exception& e)
     {
@@ -175,6 +171,4 @@ int main(int argc, char* argv[])
         std::cout << visible << std::endl;
         std::cerr << "Error: " << e.what() << std::endl;
     }
-
-    return 0;
 }
