@@ -66,8 +66,10 @@ IF(INSTALL_HEADERS)
     FILE(COPY "include" DESTINATION ".")
 ENDIF(INSTALL_HEADERS)
 
-OPTION(BUILD_TESTS "Build and install all unit tests ?" ON)
+OPTION(BUILD_TESTS "Build and install all unit tests ?" OFF)
 IF(BUILD_TESTS)
     OPTION(COPY_PATTERNS "Copy pattern files for unit tests ?" OFF)
     ADD_SUBDIRECTORY(test)
 ENDIF(BUILD_TESTS)
+
+ADD_SUBDIRECTORY(src)

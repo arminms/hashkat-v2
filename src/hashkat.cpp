@@ -43,6 +43,8 @@
 #include "../include/engine_st.hpp"
 #include "../include/simulation_st.hpp"
 
+#define UNREFERENCED_PARAMETER(P) (P)
+
 namespace pt = boost::property_tree;
 using namespace boost::program_options;
 using namespace hashkat;
@@ -76,15 +78,16 @@ int main(int argc, char* argv[])
 {
     std::string config_file = "config.xml";
     std::string output_file = "out.dat";
-    bool show_duration;
 
     options_description visible(
-        "Usage: hashkat [OPTIONS] [[-c|--config-file] CONFIG]"
-        " [[-o|--output-file] OUTPUT]\n\nAllowed options");
+        "usage: hashkat [options]\n"
+        "               [[-c|--config-file] config.xml]\n"
+        "               [[-o|--output-file] out.dat]\n\n"
+        "Allowed options");
     visible.add_options()
     ("help,h", "display this help and exit")
     ("version,v", "output version information and exit")
-    ("show-duration,t", value<bool>(&show_duration)->default_value(true), "show duration");
+    ("silent,s", "activate silent mode");
 
     options_description hidden("Hidden options");
     hidden.add_options()
@@ -102,7 +105,8 @@ int main(int argc, char* argv[])
 
     try
     {
-        store(command_line_parser(argc, argv).options(all).positional(p).run(), vm);
+        store(command_line_parser(argc, argv).options(all).positional(p).run()
+        ,     vm);
 
         if (vm.count("version"))
         {
@@ -123,40 +127,51 @@ int main(int argc, char* argv[])
         pt::read_xml(config_file, conf);
         hk_simulation sim(conf);
         sim.run();
-        if (show_duration)
+
+        if (!vm.count("silent"))
+        {
             std::cout << "Elapsed time: " << sim.duration().count()
                       << " ms" << std::endl;
-        std::cout << "Saving output to " << output_file << " ...\n";
+            std::cout << "Saving output -> " << output_file << std::endl;
+        }
+
         std::ofstream out(output_file, std::ofstream::out);
         out << sim;
-        std::cout << "Done!\n";
+
+        if (!vm.count("silent"))
+            std::cout << "Done!\n";
     }
     catch (invalid_command_line_syntax& e)
     {
+        UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
         std::cout << "Invalid command line syntax!" << std::endl;
         return 1;
     }
     catch (unknown_option& e)
     {
+        UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
         std::cout << "Unrecognized option!" << std::endl;
         return 1;
     }
     catch (too_many_positional_options_error& e)
     {
+        UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
         std::cout << "Too many output files!" << std::endl;
         return 1;
     }
     catch (invalid_option_value& e)
     {
+        UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
         std::cout << "Invalid option value!" << std::endl;
         return 1;
     }
     catch (std::exception& e)
     {
+        UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
         std::cerr << "Error: " << e.what() << std::endl;
     }
