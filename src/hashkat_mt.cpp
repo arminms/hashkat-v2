@@ -88,6 +88,7 @@ int main(int argc, char* argv[])
     ("help,h", "display this help and exit")
     ("version,v", "output version information and exit")
     ("threads,n", value<unsigned>(&nt), "number of threads to use")
+    ("scaling-benchmark,b", "run parallel scalability benchmark")
     ("silent,s", "switch to silent mode");
 
     options_description hidden("Hidden options");
@@ -124,30 +125,53 @@ int main(int argc, char* argv[])
         // having notify after -v and -h options...
         notify(vm);
 
-        if (!vm.count("silent"))
-        {
-            auto max_nt = std::thread::hardware_concurrency();
-            std::cout << "Using " << (nt ? nt : max_nt) << " out of " 
-                      << max_nt << " concurrent threads.\n";
-        }
-
         hk_config conf;
         pt::read_xml(config_file, conf);
-        hk_simulation sim(conf);
-        sim.run(nt);
+        auto max_nt = std::thread::hardware_concurrency();
 
-        if (!vm.count("silent"))
+        if (vm.count("scaling-benchmark"))
         {
-            std::cout << "Elapsed time: " << sim.duration().count()
-                      << " ms" << std::endl;
-            std::cout << "Saving output -> " << output_file << std::endl;
+            auto found = output_file.find_last_of('.');
+            std::string base = 
+                found ? output_file.substr(0, found) : output_file;
+            std::string ext = 
+                found ? output_file.substr(found + 1) : "dat";
+            for (unsigned i = 1; i <= max_nt; ++i)
+            {
+                if (!vm.count("silent"))
+                    std::cout << "Using " << i << " out of " 
+                              << max_nt << " concurrent threads...";
+                hk_simulation sim(conf);
+                sim.run(i);
+                if (!vm.count("silent"))
+                    std::cout << "\b\b\b -> Elapsed time: "
+                              << sim.duration().count()
+                              << " ms" << std::endl;
+                std::ostringstream s;
+                s << base << '_'
+                  << std::setfill('0') << std::setw(2) << i
+                  << '.' << ext;
+                std::ofstream out(s.str(), std::ofstream::out);
+                out << sim;
+            }
         }
-
-        std::ofstream out(output_file, std::ofstream::out);
-        out << sim;
-
-        if (!vm.count("silent"))
-            std::cout << "Done!\n";
+        else
+        {
+            if (!vm.count("silent"))
+                std::cout << "Using " << (nt ? nt : max_nt) << " out of " 
+                          << max_nt << " concurrent threads...";
+            hk_simulation sim(conf);
+            sim.run(nt);
+            if (!vm.count("silent"))
+                std::cout << "\b\b\b -> Elapsed time: "
+                          << sim.duration().count()
+                          << " ms" << std::endl
+                          << "Saving output -> " << output_file << std::endl;
+            std::ofstream out(output_file, std::ofstream::out);
+            out << sim;
+            if (!vm.count("silent"))
+                std::cout << "Done!\n";
+        }
     }
     catch (invalid_command_line_syntax& e)
     {
