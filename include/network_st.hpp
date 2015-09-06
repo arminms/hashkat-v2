@@ -201,24 +201,28 @@ public:
         out << "# Number of Agents: " << n_agents_ << std::endl;
         out << "# Network: " << std::endl;
 
-        for (auto i = 0; i < n_agents_; ++i)
+        for (unsigned i = 0; i < n_agents_; ++i)
         {
-            out << std::setfill('0') << std::setw(7) << i << std::endl;
+            out << std::setfill('0') << std::setw(8) << i << std::endl;
 
-            out << "    +---[in]" << std::endl
-                << "        \\--- "
-                << followers_[i].size()
-                << " -> ";
-            for (auto follower : followers_[i])
-                out << follower << ',';
+            out << std::setw(7) << followers_[i].size()
+                << '<';
+            if (followers_[i].size())
+            {
+                out << ' ';
+                for (auto follower : followers_[i])
+                    out << follower << ',';
+            }
             out << std::endl;
 
-            out << "    +---[out]" << std::endl
-                << "        \\--- "
-                << followees_[i].size()
-                << " -> ";
-            for (auto following : followees_[i])
-                out << following << ',';
+            out << std::setw(7) << followees_[i].size()
+                << '>';
+            if (followees_[i].size())
+            {
+                out << ' ';
+                for (auto following : followees_[i])
+                    out << following << ',';
+            }
             out << std::endl;
         }
         return out;

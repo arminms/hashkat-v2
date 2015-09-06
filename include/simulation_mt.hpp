@@ -100,7 +100,7 @@ public:
         out << "# Elapsed time: " << duration().count() << " ms" << std::endl;
         out << "# " << nt_ << " out of " << std::thread::hardware_concurrency()
             << " concurrent threads used\n";
-        out << eng_;
+        out << eng_ << net_;
         return out;
     }
 

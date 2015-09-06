@@ -147,15 +147,19 @@ private:
         out << "# Number of Connections: " << n_connections_ << std::endl;
         out << "# kmax: " << kmax_ << std::endl;
         out << "# Bins: " << std::endl;
-        out << "#  K      W       N     Agent IDs" << std::endl;
-        out << std::fixed << std::setprecision(3);
+        out << "#   K        W         N     Agent IDs" << std::endl;
+        out << std::scientific << std::setprecision(2);
         for (auto i = 0; i < bins_.size(); ++i)
         {
-            out << std::setfill('0') << std::setw(7) << i
+            out << std::setfill('0') << std::setw(8) << i
                 << ' ' << std::setw(5) << weights_[i] << " ["
-                << std::setw(7) << bins_[i].size() << "] ";
-            for (auto followee : bins_[i])
-                out << followee << ',';
+                << std::setw(8) << bins_[i].size() << "]";
+            if (bins_[i].size())
+            {
+                out << ' ';
+                for (auto followee : bins_[i])
+                    out << followee << ',';
+            }
             out << std::endl;
         }
         return out;
