@@ -55,6 +55,7 @@ public:
     ,   net_(cnf_)
     ,   cnt_()
     ,   eng_(net_, cnt_, cnf_, rng_)
+    ,   nt_(0)
     ,   max_time_(cnf.template get<double>
             ("hashkat.network.max_time", 10))
     ,   max_real_time_(cnf.template get<unsigned>
@@ -75,7 +76,7 @@ public:
     {
         if (0 == n)
             n = std::thread::hardware_concurrency();
-
+        nt_ = n;
         start_tp_ = std::chrono::high_resolution_clock::now();
 
         std::vector<std::thread> threads(n - 1);
@@ -96,6 +97,9 @@ public:
 
     std::ostream& print(std::ostream& out) const
     {
+        out << "# Elapsed time: " << duration().count() << " ms" << std::endl;
+        out << "# " << nt_ << " out of " << std::thread::hardware_concurrency()
+            << " concurrent threads used\n";
         out << eng_;
         return out;
     }
@@ -133,6 +137,7 @@ private:
     NetworkType  net_;
     ContentsType cnt_;
     EngineType   eng_;
+    unsigned nt_;
     typename EngineType::time_type max_time_;
     std::chrono::minutes max_real_time_;
     std::chrono::high_resolution_clock::time_point start_tp_;

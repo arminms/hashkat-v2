@@ -84,6 +84,7 @@ public:
 
     std::ostream& print(std::ostream& out) const
     {
+        out << "# Elapsed time: " << duration().count() << " ms" << std::endl;
         out << eng_;
         return out;
     }
