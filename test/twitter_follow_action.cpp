@@ -52,6 +52,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 
 #include <hashkat/network_st.hpp>
+#incdlue <hashkat/action_st.hpp>
 #include <hashkat/actions/twitter_follow_st.hpp>
 
 using boost::test_tools::output_test_stream;
