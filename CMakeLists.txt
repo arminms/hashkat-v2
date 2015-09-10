@@ -61,17 +61,17 @@ IF(CONCURRENT)
     ENDIF(TRY_FINDING_INTEL_TBB)
 ENDIF(CONCURRENT)
 
-OPTION(INSTALL_HEADERS "Install header files ?" OFF)
+OPTION(INSTALL_HEADERS "Install header files ?" ON)
 IF(INSTALL_HEADERS)
-    FILE(COPY "include" DESTINATION ".")
+    INSTALL(DIRECTORY include/ DESTINATION include/hashkat)
 ENDIF(INSTALL_HEADERS)
 
-OPTION(BUILD_TESTS "Build and install all unit tests ?" OFF)
+OPTION(BUILD_TESTS "Build and install unit tests ?" OFF)
 IF(BUILD_TESTS)
-    OPTION(COPY_PATTERNS "Copy pattern files for unit tests ?" OFF)
     ADD_SUBDIRECTORY(test)
 ENDIF(BUILD_TESTS)
 
-INSTALL(DIRECTORY include/ DESTINATION include/hashkat)
+INSTALL(FILES test/patterns/config_02.xml DESTINATION share/hashkat
+    RENAME config.xml)
 
 ADD_SUBDIRECTORY(src)
