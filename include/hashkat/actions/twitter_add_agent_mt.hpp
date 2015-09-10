@@ -26,10 +26,6 @@
 #ifndef HASHKAT_ACTIONS_TWITTER_ADD_AGENT_MT_HPP_
 #define HASHKAT_ACTIONS_TWITTER_ADD_AGENT_MT_HPP_
 
-#ifndef HASHKAT_ACTION_MT_HPP_
-#   include "../action_mt.hpp"
-#endif // HASHKAT_ACTION_MT_HPP_
-
 namespace hashkat {
 
 ////////////////////////////////////////////////////////////////////////////////

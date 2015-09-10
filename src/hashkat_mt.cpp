@@ -32,7 +32,6 @@
 #include <numeric>
 #include <limits>
 
-#include <boost/signals2.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>

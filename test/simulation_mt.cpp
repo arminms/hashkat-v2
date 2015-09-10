@@ -48,7 +48,6 @@
 #       include <boost/test/detail/unit_test_parameters.hpp>
 #   endif  //BOOST_VERSION
 
-#include <boost/signals2.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 

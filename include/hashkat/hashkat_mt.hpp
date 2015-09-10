@@ -26,6 +26,8 @@
 #ifndef HASHKAT_HASHKAT_MT_HPP_
 #define HASHKAT_HASHKAT_MT_HPP_
 
+#include <boost/signals2.hpp>
+
 #include "network_mt.hpp"
 #include "engine_mt.hpp"
 #include "simulation_mt.hpp"
