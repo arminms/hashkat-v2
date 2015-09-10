@@ -43,17 +43,18 @@ Building and installing the hashkat-lib library
     $ ccmake .
 
     Note that multi-threaded version is OFF by default. Variables that you
-    may set to configure multithreaded version  are:
+    may set to configure multithreaded version are:
 
     CONCURRENT
-        It is OFF by default. By changing it to ON other variables will
-        appear.
+        It is OFF by default. By changing it to ON other variables may
+        appear (e.g. FIND_INTEL_TBB).
 
-    TRY_FINDING_INTEL_TBB
+    FIND_INTEL_TBB
         Tries to find Intel® TBB. If it couldn't find it in system
-        directories, it tries to find it at $HOME/tbb44_20150728oss.
-        You can download the latest version of Intel® TBB for various
-        plateforms from https://www.threadingbuildingblocks.org/download.
+        directories, it tries to find it at $HOME/tbb44_20150728oss
+        (C:\local\tbb44_20150728oss on Windows plateform). You can download
+        the latest version of Intel® TBB for various plateforms from
+        https://www.threadingbuildingblocks.org/download.
 
     To change any entry, use [Enter]. To save and quit, do [c] followed by
     [g].
@@ -67,4 +68,4 @@ Building and installing the hashkat-lib library
     $ make install
 
     This will install hashkat and hashkat_mt to $INSTALL_PREFIX/bin. The
-    later (i.e. hashkat_mt) is multi-threaded version.
+    later (i.e. hashkat_mt) is the multi-threaded version.
