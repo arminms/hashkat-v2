@@ -42,17 +42,17 @@
 #define BOOST_TEST_MAIN
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/output_test_stream.hpp>
-#include <boost/test/detail/unit_test_parameters.hpp>
+#   if (BOOST_VERSION >= 105900)
+#       include <boost/test/unit_test_parameters.hpp>
+#   else
+#       include <boost/test/detail/unit_test_parameters.hpp>
+#   endif  //BOOST_VERSION
 
 #include <boost/signals2.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#include "../include/network_mt.hpp"
-#include "../include/actions/twitter_add_agent_mt.hpp"
-#include "../include/actions/twitter_follow_mt.hpp"
-#include "../include/engine_mt.hpp"
-#include "../include/simulation_mt.hpp"
+#include <hashkat/hashkat_mt.hpp>
 
 using boost::test_tools::output_test_stream;
 namespace butrc = boost::unit_test::runtime_config;

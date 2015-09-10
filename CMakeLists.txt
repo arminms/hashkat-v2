@@ -63,7 +63,7 @@ ENDIF(CONCURRENT)
 
 OPTION(INSTALL_HEADERS "Install header files ?" ON)
 IF(INSTALL_HEADERS)
-    INSTALL(DIRECTORY include/ DESTINATION include/hashkat)
+    INSTALL(DIRECTORY include/hashkat DESTINATION include)
 ENDIF(INSTALL_HEADERS)
 
 OPTION(BUILD_TESTS "Build and install unit tests ?" OFF)

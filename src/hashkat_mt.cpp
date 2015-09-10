@@ -37,11 +37,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#include "../include/network_mt.hpp"
-#include "../include/actions/twitter_add_agent_mt.hpp"
-#include "../include/actions/twitter_follow_mt.hpp"
-#include "../include/engine_mt.hpp"
-#include "../include/simulation_mt.hpp"
+#include <hashkat/hashkat_mt.hpp>
 
 #define UNREFERENCED_PARAMETER(P) (P)
 
