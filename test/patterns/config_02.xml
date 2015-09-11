@@ -20,7 +20,18 @@
 		<add>1.0</add>
 		<follow>0.01</follow>
 	</rates>
+	<!-- Accepted models: 'random', 'twitter_suggest', 'twitter' -->
 	<follow_model>twitter_suggest</follow_model>
+	<!-- Only if 'twitter' selected as follow model the following tag will be
+	considered -->
+	<twitter_follow_model>
+		<!-- model weights ONLY necessary for follow method 'twitter'
+		 educated guesses for the follow models -->
+		<weights>
+			<random>1.0</random>
+			<twitter_suggest>0.0</twitter_suggest>
+		</weights>
+	</twitter_follow_model>
 	<follow_ranks>
 		<bin_spacing>1</bin_spacing>
 		<min>1</min>
