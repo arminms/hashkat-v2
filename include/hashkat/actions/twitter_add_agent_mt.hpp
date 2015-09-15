@@ -55,6 +55,7 @@ public:
     ,   cnt_ptr_(nullptr)
     ,   cnf_ptr_(nullptr)
     ,   rng_ptr_(nullptr)
+    ,   approx_month_(30 * 24 * 60)
     {}
 
     twitter_add_agent_mt(
@@ -84,9 +85,33 @@ private:
 
     virtual void do_post_init()
     {
+        typedef typename base_type::weight_type weight_type;
         base_type::rate_.store(0);
-        base_type::weight_ = cnf_ptr_->template
-            get<typename base_type::weight_type>("hashkat.rates.add", 1);
+
+        unsigned months = (unsigned)cnf_ptr_->template get<double>
+            ("hashkat.network.max_time", 10) / approx_month_;
+        monthly_weights_.reserve(months);
+        std::string f_type = cnf_ptr_->template get<std::string>
+            ("hashkat.rates.add_function", "constant");
+
+        if (f_type == "linear" )
+        {
+             weight_type y_intercept = cnf_ptr_->template
+                 get<weight_type>("hashkat.rates.add_y_intercept", 1);
+             weight_type slope = cnf_ptr_->template
+                 get<weight_type>("hashkat.rates.add_y_slope", 0.5);
+            for (unsigned i = 0; i <= months; ++i)
+                monthly_weights_.push_back(y_intercept + i * slope);
+            base_type::weight_ = monthly_weights_[0];
+        }
+        else
+        {
+            base_type::weight_ = cnf_ptr_->template get
+                <weight_type>("hashkat.rates.add_rate", 1);
+            for (unsigned i = 0; i <= months; ++i)
+                monthly_weights_.push_back(base_type::weight_);
+        }
+
         T ia = cnf_ptr_->template get<T>
             ("hashkat.network.initial_agents", T(0));
         for (T i = 0; i < ia; ++i)
@@ -120,6 +145,8 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
+    const int approx_month_;
+    std::vector<typename base_type::weight_type> monthly_weights_;
 };
 
 template
