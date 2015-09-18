@@ -63,8 +63,7 @@ public:
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
-    ,   RngType& rng
-    ,   const TimeType& time)
+    ,   RngType& rng)
     :   action_base<NetworkType, ContentsType, ConfigType, RngType, TimeType>()
     ,   net_ptr_(&net)
     ,   cnt_ptr_(&cnt)
@@ -92,7 +91,7 @@ private:
 
         unsigned months = (unsigned)cnf_ptr_->template get<double>
             ("hashkat.network.max_time", 10) / approx_month_;
-        monthly_weights_.reserve(months);
+        monthly_weights_.reserve(months + 1);
         std::string f_type = cnf_ptr_->template get<std::string>
             ("hashkat.rates.add_function", "constant");
 

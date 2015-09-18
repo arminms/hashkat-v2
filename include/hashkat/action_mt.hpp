@@ -39,6 +39,7 @@ template
 ,   class ContentsType
 ,   class ConfigType
 ,   class RngType
+,   class TimeType
 >
 class action_base
 :   private boost::noncopyable
@@ -61,20 +62,24 @@ public:
     ,   RngType& rng)
     {   do_init(net, cnt, cnf, rng);   }
 
-    void post_init()
-    {   do_post_init(); }
-
-    void reset()
-    {   do_reset(); }
-
     rate_type rate() const
     {   return rate_;   }
 
     weight_type weight() const
     {   return weight_;   }
 
+    void post_init()
+    {   do_post_init(); }
+
+    void reset()
+    {   do_reset(); }
+    void update_weight(const TimeType& time)
+    {   do_update_weight(time);   }
+
     void operator()()
     {   do_action();   }
+    std::ostream& print(std::ostream& out) const
+    {   return do_print(out); }
 
     action_happened_signal_type& happened()
     {   return action_happened_signal_;   }
@@ -82,8 +87,6 @@ public:
     action_finished_signal_type& finished()
     {   return action_finished_signal_;   }
 
-    std::ostream& print(std::ostream& out) const
-    {   return do_print(out); }
 
 // Implementation
     virtual ~action_base() {};
@@ -102,6 +105,7 @@ private:
     ,   RngType& rng) = 0;
     virtual void do_post_init() = 0;
     virtual void do_reset() = 0;
+    virtual void do_update_weight(const TimeType& time) = 0;
     virtual void do_action() = 0;
     virtual std::ostream& do_print(std::ostream& out) const = 0;
 };
@@ -112,10 +116,11 @@ template
 ,   class ContentsType
 ,   class ConfigType
 ,   class RngType
+,   class TimeType
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const action_base<NetworkType, ContentsType, ConfigType, RngType>* ptr)
+,   const action_base<NetworkType, ContentsType, ConfigType, RngType, TimeType>* ptr)
 {
     return ptr->print(out);
 }

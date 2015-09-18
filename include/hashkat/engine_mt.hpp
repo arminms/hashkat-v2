@@ -45,28 +45,29 @@ template
 ,   class Ctt   // ContentsType
 ,   class Cft   // ConfigType
 ,   class Rgt   // RngType
-,   template <class,class,class,class> class ...Act     // ActionType
+,   class Tmt   // TimeType
+,   template <class,class,class,class,class> class ...Act     // ActionType
 >
 struct action_depot
 {
     action_depot()
-    {   push_back(new Act<Nwt,Ctt,Cft,Rgt>...);   }
+    {   push_back(new Act<Nwt,Ctt,Cft,Rgt,Tmt>...);   }
 
-    std::vector<std::unique_ptr<action_base<Nwt,Ctt,Cft,Rgt>>> depot_;
+    std::vector<std::unique_ptr<action_base<Nwt,Ctt,Cft,Rgt,Tmt>>> depot_;
 
 private:
     template <typename T>
     void push_back(T* t)
     {
         depot_.push_back(
-            std::unique_ptr<action_base<Nwt,Ctt,Cft,Rgt>>(t));
+            std::unique_ptr<action_base<Nwt,Ctt,Cft,Rgt,Tmt>>(t));
     }
 
     template<typename First, typename ...Rest>
     void push_back(First* first, Rest* ...rest)
     {
         depot_.push_back(
-            std::unique_ptr<action_base<Nwt,Ctt,Cft,Rgt>>(first));
+            std::unique_ptr<action_base<Nwt,Ctt,Cft,Rgt,Tmt>>(first));
         push_back(rest...);
     }
 };
@@ -80,14 +81,14 @@ template
 ,   class Ctt   // ContentsType
 ,   class Cft   // ConfigType
 ,   class Rgt   // RngType
-,   template <class,class,class,class> class ...Act     // ActionType
+,   template <class,class,class,class,class> class ...Act     // ActionType
 >
 class engine_mt
 {
 public:
-    typedef engine_mt<Nwt,Ctt,Cft,Rgt,Act...> self_type;
-    typedef action_base<Nwt,Ctt,Cft,Rgt> action_type;
     typedef std::chrono::duration<double,std::ratio<60>> time_type;
+    typedef engine_mt<Nwt,Ctt,Cft,Rgt,Act...> self_type;
+    typedef action_base<Nwt,Ctt,Cft,Rgt,time_type> action_type;
     typedef typename Nwt::rate_type rate_type;
 
     engine_mt(
@@ -138,7 +139,10 @@ public:
         std::vector<typename action_type::weight_type> weights;
         weights.reserve(actions_.depot_.size());
         for (auto& action : actions_.depot_)
+        {
+            action->update_weight(time_);
             weights.push_back(action->weight());
+        }
         std::discrete_distribution<T> di(weights.begin(), weights.end());
         return actions_.depot_[di(rng_)].get();
     }
@@ -178,7 +182,7 @@ private:
     }
 
     // member variables
-    action_depot<Nwt,Ctt,Cft,Rgt,Act...> actions_;
+    action_depot<Nwt,Ctt,Cft,Rgt,time_type,Act...> actions_;
     Nwt& net_;
     Ctt& cnt_;
     Cft& cnf_;
@@ -196,7 +200,7 @@ template
 ,   class Ctt
 ,   class Cft
 ,   class Rgt
-,   template <class,class,class,class> class ...Act
+,   template <class,class,class,class,class> class ...Act
 >
 std::ostream& operator<< (
     std::ostream& out
