@@ -17,6 +17,7 @@
 		<max_real_time>1</max_real_time>
 	</network>
 	<rates>
+		<!-- The rate function for adding agents to the network. -->
 		<add_function>constant</add_function>
 		<add_rate>1.0</add_rate>
 		<follow>0.01</follow>

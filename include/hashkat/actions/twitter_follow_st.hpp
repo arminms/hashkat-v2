@@ -37,20 +37,21 @@ template
 ,   class ContentsType
 ,   class ConfigType
 ,   class RngType
+,   class TimeType
 >
 class twitter_follow_st
-:   public action_base<NetworkType, ContentsType, ConfigType, RngType>
+:   public action_base<NetworkType, ContentsType, ConfigType, RngType, TimeType>
 {
-    typedef twitter_follow_st<NetworkType, ContentsType, ConfigType, RngType>
-        self_type;
-    typedef action_base<NetworkType, ContentsType, ConfigType, RngType>
-        base_type;
+    typedef twitter_follow_st
+        <NetworkType, ContentsType, ConfigType, RngType, TimeType> self_type;
+    typedef action_base
+        <NetworkType, ContentsType, ConfigType, RngType, TimeType> base_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
 
 public:
     twitter_follow_st()
-    :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
+    :   action_base<NetworkType, ContentsType, ConfigType, RngType, TimeType>()
     ,   net_ptr_(nullptr)
     ,   cnt_ptr_(nullptr)
     ,   cnf_ptr_(nullptr)
@@ -62,7 +63,7 @@ public:
     ,   ContentsType& cnt
     ,   ConfigType& cnf
     ,   RngType& rng)
-    :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
+    :   action_base<NetworkType, ContentsType, ConfigType, RngType, TimeType>()
     ,   net_ptr_(&net)
     ,   cnt_ptr_(&cnt)
     ,   cnf_ptr_(&cnf)
@@ -82,10 +83,10 @@ private:
     ,   ConfigType& cnf
     ,   RngType& rng)
     {
-        net_ptr_ = &net;
-        cnt_ptr_ = &cnt;
-        cnf_ptr_ = &cnf;
-        rng_ptr_ = &rng;
+        net_ptr_  = &net;
+        cnt_ptr_  = &cnt;
+        cnf_ptr_  = &cnf;
+        rng_ptr_  = &rng;
         init_slots();
         init_follow_models();
         init_bins();
@@ -107,6 +108,9 @@ private:
         init_bins();
         do_post_init();
     }
+
+    virtual void do_update_weight(const TimeType& time)
+    {}
 
     virtual void do_action()
     {
@@ -369,11 +373,12 @@ template
 ,   class ContentsType
 ,   class ConfigType
 ,   class RngType
+,   class TimeType
 >
 std::ostream& operator<< (
     std::ostream& out
 ,   const twitter_follow_st
-        <NetworkType, ContentsType, ConfigType, RngType>& tfa)
+        <NetworkType, ContentsType, ConfigType, RngType, TimeType>& tfa)
 {
     return tfa.print(out);
 }

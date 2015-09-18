@@ -37,33 +37,35 @@ template
 ,   class ContentsType
 ,   class ConfigType
 ,   class RngType
+,   class TimeType
 >
 class twitter_add_agent_st
-:   public action_base<NetworkType, ContentsType, ConfigType, RngType>
+:   public action_base<NetworkType, ContentsType, ConfigType, RngType, TimeType>
 {
-    typedef twitter_add_agent_st<NetworkType, ContentsType, ConfigType, RngType>
-        self_type;
-    typedef action_base<NetworkType, ContentsType, ConfigType, RngType>
-        base_type;
+    typedef twitter_add_agent_st
+        <NetworkType, ContentsType, ConfigType, RngType, TimeType> self_type;
+    typedef action_base
+        <NetworkType, ContentsType, ConfigType, RngType, TimeType> base_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
 
 public:
     twitter_add_agent_st()
-    :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
+    :   action_base<NetworkType, ContentsType, ConfigType, RngType, TimeType>()
     ,   net_ptr_(nullptr)
     ,   cnt_ptr_(nullptr)
     ,   cnf_ptr_(nullptr)
     ,   rng_ptr_(nullptr)
-    ,   approx_month_(30 * 24 * 60)
+    ,   approx_month_(30 * 24 * 60) // 30 days, 24 hours, 60 minutes
     {}
 
     twitter_add_agent_st(
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
-    ,   RngType& rng)
-    :   action_base<NetworkType, ContentsType, ConfigType, RngType>()
+    ,   RngType& rng
+    ,   const TimeType& time)
+    :   action_base<NetworkType, ContentsType, ConfigType, RngType, TimeType>()
     ,   net_ptr_(&net)
     ,   cnt_ptr_(&cnt)
     ,   cnf_ptr_(&cnf)
@@ -77,10 +79,10 @@ private:
     ,   ConfigType& cnf
     ,   RngType& rng)
     {
-        net_ptr_ = &net;
-        cnt_ptr_ = &cnt;
-        cnf_ptr_ = &cnf;
-        rng_ptr_ = &rng;
+        net_ptr_  = &net;
+        cnt_ptr_  = &cnt;
+        cnf_ptr_  = &cnf;
+        rng_ptr_  = &rng;
     }
 
     virtual void do_post_init()
@@ -123,6 +125,12 @@ private:
         do_post_init();
     }
 
+    virtual void do_update_weight(const TimeType& time)
+    {
+        base_type::weight_ =
+            monthly_weights_[std::size_t(time.count() / approx_month_)]; 
+    }
+
     virtual void do_action()
     {
         if (net_ptr_->grow())
@@ -155,11 +163,12 @@ template
 ,   class ContentsType
 ,   class ConfigType
 ,   class RngType
+,   class TimeType
 >
 std::ostream& operator<< (
     std::ostream& out
 ,   const twitter_add_agent_st
-        <NetworkType, ContentsType, ConfigType, RngType>& aa)
+        <NetworkType, ContentsType, ConfigType, RngType, TimeType>& aa)
 {
     return aa.print(out);
 }
