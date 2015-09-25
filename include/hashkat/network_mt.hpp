@@ -63,7 +63,7 @@ public:
     :   agents_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
-    {   allocate(conf.template get<T>("hashkat.network.max_agents", 1000)); }
+    {   allocate(conf.template get<T>("analysis.max_agents", 1000)); }
 
     network_mt(T n)
     :   agents_(nullptr)

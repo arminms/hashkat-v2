@@ -57,7 +57,7 @@ public:
     network_st(const ConfigType& conf)
     :   agents_(nullptr)
     ,   n_agents_(0)
-    {   allocate(conf.template get<T>("hashkat.network.max_agents", 1000)); }
+    {   allocate(conf.template get<T>("analysis.max_agents", 1000)); }
 
     network_st(T n)
     :   agents_(nullptr)

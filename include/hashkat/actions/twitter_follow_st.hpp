@@ -97,7 +97,7 @@ private:
         base_type::rate_ = 0;
         base_type::weight_ = 0;
         base_type::weight_ = cnf_ptr_->template
-            get<typename base_type::weight_type>("hashkat.rates.follow", 0.0001);
+            get<typename base_type::weight_type>("agents.rates.follow", 0.0001);
         n_connections_ = 0;
     }
 
@@ -187,7 +187,7 @@ private:
         };
 
         std::string follow_model = cnf_ptr_->template
-            get<std::string>("hashkat.follow_model", "twitter");
+            get<std::string>("analysis.follow_model", "twitter");
 
         if (follow_model == "random")
             default_follow_model_ = follow_models_[0];
@@ -208,15 +208,15 @@ private:
         if (follow_model == "twitter")
         {
             model_weights_[0] = cnf_ptr_->template get<T>
-                ("hashkat.twitter_follow_model.weights.random", T(1));
+                ("analysis.model_weights.random", T(1));
             model_weights_[1] = cnf_ptr_->template get<T>
-                ("hashkat.twitter_follow_model.weights.twitter_suggest", T(1));
+                ("analysis.model_weights.twitter_suggest", T(1));
             model_weights_[2] = cnf_ptr_->template get<T>
-                ("hashkat.twitter_follow_model.weights.agent", T(1));
+                ("analysis.model_weights.weights.agent", T(1));
             model_weights_[3] = cnf_ptr_->template get<T>
-                ("hashkat.twitter_follow_model.weights.preferential_agent", T(1));
+                ("analysis.model_weights.preferential_agent", T(1));
             model_weights_[4] = cnf_ptr_->template get<T>
-                ("hashkat.twitter_follow_model.weights.hashtag", T(1));
+                ("analysis.model_weights.hashtag", T(1));
          }
     }
 
@@ -226,15 +226,15 @@ private:
         kmax_ = 0;
 
         T spc = cnf_ptr_->template get<T>
-            ("hashkat.follow_ranks.bin_spacing", T(1));
+            ("follow_ranks.weights.bin_spacing", T(1));
         T min = cnf_ptr_->template get<T>
-            ("hashkat.follow_ranks.min", T(1));
+            ("follow_ranks.weights.min", T(1));
         T max = cnf_ptr_->template get<T>
-            ("hashkat.follow_ranks.max", net_ptr_->max_size());
+            ("follow_ranks.weights.max", net_ptr_->max_size());
         T inc = cnf_ptr_->template get<T>
-            ("hashkat.follow_ranks.increment", T(1));
+            ("follow_ranks.weights.increment", T(1));
         V exp = cnf_ptr_->template get<V>
-            ("hashkat.follow_ranks.exponent", V(1.0));
+            ("follow_ranks.weights.exponent", V(1.0));
 
         for (T i = 1; i < spc; ++i)
             inc *= inc;

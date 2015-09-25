@@ -57,9 +57,9 @@ public:
     ,   eng_(net_, cnt_, cnf_, rng_)
     ,   nt_(0)
     ,   max_time_(cnf.template get<double>
-            ("hashkat.network.max_time", 10))
+            ("analysis.max_time", 1000))
     ,   max_real_time_(cnf.template get<unsigned>
-            ("hashkat.network.max_real_time", 1))
+            ("analysis.max_real_time", 1))
     {}
 
     void reset()
