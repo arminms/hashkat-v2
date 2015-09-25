@@ -71,7 +71,6 @@ IF(BUILD_TESTS)
     ADD_SUBDIRECTORY(test)
 ENDIF(BUILD_TESTS)
 
-INSTALL(FILES test/patterns/config_02.xml DESTINATION share/hashkat
-    RENAME config.xml)
+INSTALL(FILES src/INFILE.xml DESTINATION share/hashkat)
 
 ADD_SUBDIRECTORY(src)
