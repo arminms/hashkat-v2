@@ -71,12 +71,12 @@ typedef simulation_st
 
 int main(int argc, char* argv[])
 {
-    std::string config_file = "config.xml";
+    std::string config_file = "INFILE.xml";
     std::string output_file = "out.dat";
 
     options_description visible(
         "usage: hashkat [options]\n"
-        "               [[-i|--config-file] config.xml]\n"
+        "               [[-i|--input-file] INFILE.xml]\n"
         "               [[-o|--output-file] out.dat]\n\n"
         "Allowed options");
     visible.add_options()
@@ -86,11 +86,11 @@ int main(int argc, char* argv[])
 
     options_description hidden("Hidden options");
     hidden.add_options()
-    ("config-file,i", value<std::string>(&config_file), "config file")
+    ("input-file,i", value<std::string>(&config_file), "input file")
     ("output-file,o", value<std::string>(&output_file), "output file");
 
     positional_options_description p;
-    p.add("config-file", 1);
+    p.add("input-file", 1);
     p.add("output-file", 1);
 
     options_description all("Allowed options");
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 
         if (vm.count("version"))
         {
-            std::cout << "Hashkat version 0.2.1.0" << std::endl;
+            std::cout << "Hashkat version 0.3.0.0" << std::endl;
             return 0;
         }
 
