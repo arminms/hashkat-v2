@@ -71,7 +71,7 @@ typedef simulation_st
 
 int main(int argc, char* argv[])
 {
-    std::string config_file = "INFILE.xml";
+    std::string input_file = "INFILE.xml";
     std::string output_file = "out.dat";
 
     options_description visible(
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
 
     options_description hidden("Hidden options");
     hidden.add_options()
-    ("input-file,i", value<std::string>(&config_file), "input file")
+    ("input-file,i", value<std::string>(&input_file), "input file")
     ("output-file,o", value<std::string>(&output_file), "output file");
 
     positional_options_description p;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
         notify(vm);
 
         hk_config conf;
-        pt::read_xml(config_file, conf);
+        pt::read_xml(input_file, conf);
         hk_simulation sim(conf);
         sim.run();
 

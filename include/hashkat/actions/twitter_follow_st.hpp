@@ -96,8 +96,10 @@ private:
     {
         base_type::rate_ = 0;
         base_type::weight_ = 0;
-        base_type::weight_ = cnf_ptr_->template
-            get<typename base_type::weight_type>("agents.rates.follow", 0.0001);
+        follow_rate_ = cnf_ptr_->template
+            get<typename base_type::rate_type>("agents.rates.follow", 0.0001);
+        //base_type::weight_ = cnf_ptr_->template
+        //    get<typename base_type::weight_type>("agents.rates.follow", 0.0001);
         n_connections_ = 0;
     }
 
@@ -110,7 +112,9 @@ private:
     }
 
     virtual void do_update_weight(const TimeType& time)
-    {}
+    {
+        base_type::weight_ = follow_rate_ * net_ptr_->size();
+    }
 
     virtual void do_action()
     {
@@ -356,6 +360,7 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
+    typename base_type::rate_type follow_rate_;
     std::size_t n_connections_;
     std::size_t kmax_;
     std::vector<std::unordered_set<T>> bins_;
