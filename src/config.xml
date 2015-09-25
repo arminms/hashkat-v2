@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<analysis>
+    <initial_agents>10</initial_agents>
+    <max_agents>1000</max_agents>
+    <max_time>100000</max_time>
+    <max_analysis_steps>unlimited</max_analysis_steps>
+    <max_real_time>1</max_real_time>
+    <enable_interactive_mode>false</enable_interactive_mode>
+    <enable_lua_hooks>false</enable_lua_hooks>
+    <lua_script>INTERACT.lua</lua_script>
+    <use_barabasi>false</use_barabasi>
+    <barabasi_connections>100</barabasi_connections>
+    <barabasi_exponent>1</barabasi_exponent>
+    <use_random_time_increment>true</use_random_time_increment>
+    <use_followback>false</use_followback>
+    <use_follow_via_retweets>false</use_follow_via_retweets>
+    <follow_model>random</follow_model>
+    <model_weights>
+        <random>0</random>
+        <twitter_suggest>0</twitter_suggest>
+        <agent>0</agent>
+        <preferential_agent>0</preferential_agent>
+        <hashtag>0</hashtag>
+    </model_weights>
+    <stage1_unfollow>false</stage1_unfollow>
+    <unfollow_tweet_rate>10000</unfollow_tweet_rate>
+    <use_hashtag_probability>0.5</use_hashtag_probability>
+</analysis>
+<rates>
+    <add>
+        <function>constant</function>
+        <value>0</value>
+    </add>
+</rates>
+<output>
+    <save_network_on_timeout>true</save_network_on_timeout>
+    <load_network_on_startup>true</load_network_on_startup>
+    <ignore_load_config_check>true</ignore_load_config_check>
+    <save_file>network_state.dat</save_file>
+    <stdout_basic>true</stdout_basic>
+    <stdout_summary>true</stdout_summary>
+    <summary_output_rate>1</summary_output_rate>
+    <visualize>true</visualize>
+    <agent_stats>true</agent_stats>
+    <degree_distributions>true</degree_distributions>
+    <tweet_analysis>true</tweet_analysis>
+    <retweet_visualization>true</retweet_visualization>
+    <main_statistics>true</main_statistics>
+    <degree_distribution_by_follow_model>true</degree_distribution_by_follow_model>
+    <region_connection_matrix>true</region_connection_matrix>
+    <categories_distro>true</categories_distro>
+    <most_popular_tweet_content>true</most_popular_tweet_content>
+</output>
+<tweet_ranks>
+    <thresholds>
+        <bin_spacing>linear</bin_spacing>
+        <min>10</min>
+        <max>500</max>
+        <increment>10</increment>
+    </thresholds>
+</tweet_ranks>
+<retweet_ranks>
+    <thresholds>
+        <bin_spacing>linear</bin_spacing>
+        <min>10</min>
+        <max>500</max>
+        <increment>10</increment>
+    </thresholds>
+</retweet_ranks>
+<follow_ranks>
+    <thresholds>
+        <bin_spacing>linear</bin_spacing>
+        <min>0</min>
+        <max>10000</max>
+        <increment>1</increment>
+    </thresholds>
+    <weights>
+        <bin_spacing>linear</bin_spacing>
+        <min>1</min>
+        <max>10001</max>
+        <increment>1</increment>
+    </weights>
+</follow_ranks>
+<tweet_observation>
+    <density_function>2.45 / (x)**1.1</density_function>
+    <x_start>1</x_start>
+    <x_end>600</x_end>
+    <initial_resolution>1</initial_resolution>
+    <resolution_growth_factor>1.05</resolution_growth_factor>
+    <time_span>8*hour</time_span>
+</tweet_observation>
+<ideologies>
+    <name>Red</name>
+</ideologies>
+<ideologies>
+    <name>Blue</name>
+</ideologies>
+<ideologies>
+    <name>Green</name>
+</ideologies>
+<ideologies>
+    <name>Orange</name>
+</ideologies>
+<regions>
+    <name>Ontario</name>
+    <add_weight>5</add_weight>
+    <preference_class_weights>
+        <NoRetweetPref>100</NoRetweetPref>
+    </preference_class_weights>
+    <ideology_weights>
+        <Red>100</Red>
+        <Blue>100</Blue>
+        <Green>100</Green>
+        <Orange>100</Orange>
+    </ideology_weights>
+    <language_weights>
+        <English>100</English>
+        <French>0</French>
+        <Spanish>0</Spanish>
+        <French+English>0</French+English>
+    </language_weights>
+</regions>
+<regions>
+    <name>Quebec</name>
+    <add_weight>0</add_weight>
+    <preference_class_weights>
+        <NoRetweetPref>100</NoRetweetPref>
+    </preference_class_weights>
+    <ideology_weights>
+        <Red>100</Red>
+        <Blue>100</Blue>
+        <Green>100</Green>
+        <Orange>100</Orange>
+    </ideology_weights>
+    <language_weights>
+        <English>0</English>
+        <French>100</French>
+        <Spanish>0</Spanish>
+        <French+English>0</French+English>
+    </language_weights>
+</regions>
+<regions>
+    <name>Mexico</name>
+    <add_weight>0</add_weight>
+    <preference_class_weights>
+        <NoRetweetPref>100</NoRetweetPref>
+    </preference_class_weights>
+    <ideology_weights>
+        <Red>100</Red>
+        <Blue>100</Blue>
+        <Green>100</Green>
+        <Orange>100</Orange>
+    </ideology_weights>
+    <language_weights>
+        <English>0</English>
+        <French>0</French>
+        <Spanish>100</Spanish>
+        <French+English>0</French+English>
+    </language_weights>
+</regions>
+<preference_classes>
+    <name>StandardPref</name>
+    <tweet_transmission>
+        <plain>
+            <Standard>0.01</Standard>
+            <Celebrity>0.01</Celebrity>
+            <else>0.01</else>
+        </plain>
+        <different_ideology>
+            <Standard>0</Standard>
+            <Celebrity>0</Celebrity>
+            <else>0</else>
+        </different_ideology>
+        <same_ideology>
+            <Standard>0.01</Standard>
+            <Celebrity>0.01</Celebrity>
+            <else>0.01</else>
+        </same_ideology>
+        <humorous>
+            <Standard>0.02</Standard>
+            <Celebrity>0.02</Celebrity>
+            <else>0.02</else>
+        </humorous>
+    </tweet_transmission>
+</preference_classes>
+<preference_classes>
+    <name>NoRetweetPref</name>
+    <tweet_transmission>
+        <plain>
+            <Standard>0</Standard>
+            <Celebrity>0</Celebrity>
+            <else>0</else>
+        </plain>
+        <different_ideology>
+            <Standard>0</Standard>
+            <Celebrity>0</Celebrity>
+            <else>0</else>
+        </different_ideology>
+        <same_ideology>
+            <Standard>0</Standard>
+            <Celebrity>0</Celebrity>
+            <else>0</else>
+        </same_ideology>
+        <humorous>
+            <Standard>0</Standard>
+            <Celebrity>0</Celebrity>
+            <else>0</else>
+        </humorous>
+    </tweet_transmission>
+</preference_classes>
+<agents>
+    <name>Standard</name>
+    <weights>
+        <add>100</add>
+        <follow>5</follow>
+        <tweet_type>
+            <ideological>1</ideological>
+            <plain>1</plain>
+            <musical>1</musical>
+            <humorous>1</humorous>
+        </tweet_type>
+    </weights>
+    <followback_probability>0.44</followback_probability>
+    <hashtag_follow_options>
+        <care_about_region>false</care_about_region>
+        <care_about_ideology>false</care_about_ideology>
+    </hashtag_follow_options>
+    <rates>
+        <follow>
+            <function>constant</function>
+            <value>0.0001</value>
+        </follow>
+        <tweet>
+            <function>constant</function>
+            <value>0.001</value>
+        </tweet>
+    </rates>
+</agents>
