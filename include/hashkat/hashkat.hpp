@@ -28,6 +28,7 @@
 
 #include <boost/signals2.hpp>
 
+#include "config.hpp"
 #include "network_st.hpp"
 #include "engine_st.hpp"
 #include "simulation_st.hpp"

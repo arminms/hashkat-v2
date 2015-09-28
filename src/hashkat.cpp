@@ -33,8 +33,6 @@
 #include <limits>
 
 #include <boost/program_options.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 
 #include <hashkat/hashkat.hpp>
 

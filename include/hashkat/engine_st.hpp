@@ -104,7 +104,7 @@ public:
     ,   n_steps_(0)
     ,   event_rate_(0)
     ,   random_time_increment_(cnf.template get<bool>
-            ("analysis.random_time_increment", true))
+            ("analysis.use_random_time_increment", true))
     {
         for (auto& action : actions_.depot_)
         {
