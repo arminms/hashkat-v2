@@ -36,7 +36,7 @@ template
 class stereotype
 {
     std::string name_;
-}
+};
 
 }    // namespace hashkat
 
