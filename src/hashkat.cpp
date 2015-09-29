@@ -38,34 +38,32 @@
 
 #define UNREFERENCED_PARAMETER(P) (P)
 
-namespace pt = boost::property_tree;
 using namespace boost::program_options;
 using namespace hashkat;
 
 struct dummy
 {};
 
-typedef std::mt19937 hk_rng;
-typedef boost::property_tree::ptree hk_config;
-typedef network_st<dummy, hk_config> hk_network;
+typedef std::mt19937 rng;
+typedef network_st<dummy, configuration> network;
 typedef engine_st
 <
-    hk_network
+    network
 ,   dummy
-,   hk_config
-,   hk_rng
+,   configuration
+,   rng
 ,   twitter_add_agent_st
 ,   twitter_follow_st
 > kmc_engine;
 
 typedef simulation_st
 <
-    hk_network
+    network
 ,   dummy
-,   hk_config
+,   configuration
 ,   kmc_engine
-,   hk_rng
-> hk_simulation;
+,   rng
+> simulation;
 
 int main(int argc, char* argv[])
 {
@@ -73,9 +71,9 @@ int main(int argc, char* argv[])
     std::string output_file = "out.dat";
 
     options_description visible(
-        "usage: hashkat [options]\n"
-        "               [[-i|--input-file] INFILE.xml]\n"
-        "               [[-o|--output-file] out.dat]\n\n"
+        "usage: hashkat [ options ]\n"
+        "               [ [-i|--input-file] INFILE.xml ]\n"
+        "               [ [-o|--output-file] out.dat ]\n\n"
         "Allowed options");
     visible.add_options()
     ("help,h", "display this help and exit")
@@ -116,9 +114,9 @@ int main(int argc, char* argv[])
         // having notify after -v and -h options...
         notify(vm);
 
-        hk_config conf;
-        pt::read_xml(input_file, conf);
-        hk_simulation sim(conf);
+        configuration conf;
+        config::read_xml(input_file, conf);
+        simulation sim(conf);
         sim.run();
 
         if (!vm.count("silent"))

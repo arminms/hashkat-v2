@@ -33,41 +33,37 @@
 #include <limits>
 
 #include <boost/program_options.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 
 #include <hashkat/hashkat_mt.hpp>
 
 #define UNREFERENCED_PARAMETER(P) (P)
 
-namespace pt = boost::property_tree;
 using namespace boost::program_options;
 using namespace hashkat;
 
 struct dummy
 {};
 
-typedef std::mt19937 hk_rng;
-typedef boost::property_tree::ptree hk_config;
-typedef network_mt<dummy, hk_config> hk_network;
+typedef std::mt19937 rng;
+typedef network_mt<dummy, configuration> network;
 typedef engine_mt
 <
-    hk_network
+    network
 ,   dummy
-,   hk_config
-,   hk_rng
+,   configuration
+,   rng
 ,   twitter_add_agent_mt
 ,   twitter_follow_mt
 > kmc_engine;
 
 typedef simulation_mt
 <
-    hk_network
+    network
 ,   dummy
-,   hk_config
+,   configuration
 ,   kmc_engine
-,   hk_rng
-> hk_simulation;
+,   rng
+> simulation;
 
 int main(int argc, char* argv[])
 {
@@ -120,8 +116,8 @@ int main(int argc, char* argv[])
         // having notify after -v and -h options...
         notify(vm);
 
-        hk_config conf;
-        pt::read_xml(input_file, conf);
+        configuration conf;
+        config::read_xml(input_file, conf);
         auto max_nt = std::thread::hardware_concurrency();
 
         if (vm.count("scaling-benchmark"))
@@ -136,7 +132,7 @@ int main(int argc, char* argv[])
                 if (!vm.count("silent"))
                     std::cout << "Using " << i << " out of " 
                               << max_nt << " concurrent threads...";
-                hk_simulation sim(conf);
+                simulation sim(conf);
                 sim.run(i);
                 if (!vm.count("silent"))
                     std::cout << "\b\b\b -> Elapsed time: "
@@ -155,7 +151,7 @@ int main(int argc, char* argv[])
             if (!vm.count("silent"))
                 std::cout << "Using " << (nt ? nt : max_nt) << " out of " 
                           << max_nt << " concurrent threads...";
-            hk_simulation sim(conf);
+            simulation sim(conf);
             sim.run(nt);
             if (!vm.count("silent"))
                 std::cout << "\b\b\b -> Elapsed time: "

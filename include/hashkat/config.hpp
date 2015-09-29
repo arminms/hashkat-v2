@@ -30,6 +30,8 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
+namespace hashkat {
+
 // Custom translator for bool (only supports std::string)
 struct bool_translator
 {
@@ -59,12 +61,20 @@ struct bool_translator
     }
 };
 
+typedef boost::property_tree::iptree configuration;
+
+namespace config = boost::property_tree;
+
+}    // namespace hashkat
+
 namespace boost { namespace property_tree {
 
-template<typename Ch, typename Traits, typename Alloc> 
-    struct translator_between<std::basic_string< Ch, Traits, Alloc >, bool>
+//template<typename Ch, typename Traits, typename Alloc> 
+//struct translator_between<std::basic_string<Ch, Traits, Alloc>, bool>
+template<> 
+struct translator_between<std::string, bool>
 {
-    typedef bool_translator type;
+    typedef hashkat::bool_translator type;
 };
 
 }} // namespace property_tree // namespace boost

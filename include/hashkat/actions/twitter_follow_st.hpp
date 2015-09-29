@@ -234,7 +234,7 @@ private:
         T min = cnf_ptr_->template get<T>
             ("follow_ranks.weights.min", T(1));
         T max = cnf_ptr_->template get<T>
-            ("follow_ranks.weights.max", net_ptr_->max_size());
+            ("follow_ranks.weights.max", net_ptr_->max_size() + 1);
         T inc = cnf_ptr_->template get<T>
             ("follow_ranks.weights.increment", T(1));
         V exp = cnf_ptr_->template get<V>
