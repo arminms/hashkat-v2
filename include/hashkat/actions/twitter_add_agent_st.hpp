@@ -69,6 +69,7 @@ public:
     ,   cnt_ptr_(&cnt)
     ,   cnf_ptr_(&cnf)
     ,   rng_ptr_(&rng)
+    ,   approx_month_(30 * 24 * 60) // 30 days, 24 hours, 60 minutes
     {}
 
 private:

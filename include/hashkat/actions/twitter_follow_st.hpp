@@ -56,6 +56,7 @@ public:
     ,   cnt_ptr_(nullptr)
     ,   cnf_ptr_(nullptr)
     ,   rng_ptr_(nullptr)
+    ,   approx_month_(30 * 24 * 60) // 30 days, 24 hours, 60 minutes
     {}
 
     twitter_follow_st(
@@ -68,6 +69,7 @@ public:
     ,   cnt_ptr_(&cnt)
     ,   cnf_ptr_(&cnf)
     ,   rng_ptr_(&rng)
+    ,   approx_month_(30 * 24 * 60) // 30 days, 24 hours, 60 minutes
     {
         init_slots();
         init_follow_models();
@@ -368,6 +370,18 @@ private:
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<T, 5> model_weights_;
+    const int approx_month_;
+    // agent stereotype name
+    std::vector<std::string> ast_name_;
+    // agent stereotype monthly follow weights
+    std::vector<std::vector<typename base_type::weight_type>>
+        ast_monthly_weights_;
+    // agent stereotype follow weight ONLY for 'agent' follow model
+    std::vector<typename base_type::weight_type> ast_af_weight_;
+    // agent stereotype region care flag
+    std::vector<bool> ast_care_about_region_;
+    // agent stereotype ideology care flag
+    std::vector<bool> ast_care_about_ideology_;
 };
 
 template
