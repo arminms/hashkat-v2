@@ -191,7 +191,6 @@ int main(int argc, char* argv[])
     catch (std::exception& e)
     {
         UNREFERENCED_PARAMETER(e);
-        std::cout << visible << std::endl;
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }

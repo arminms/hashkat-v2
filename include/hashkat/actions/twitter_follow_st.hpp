@@ -92,6 +92,7 @@ private:
         init_slots();
         init_follow_models();
         init_bins();
+        init_agent_stereotypes();
     }
 
     virtual void do_post_init()
@@ -258,6 +259,23 @@ private:
         if (total_weight > 0)
             for (T i = 0; i < weights_.size(); ++i)
                 weights_[i] /= total_weight;
+    }
+
+    // initialize bins
+    void init_agent_stereotypes()
+    {
+        for (auto const& v : *cnf_ptr_)
+        {
+            if (v.first == "agents")
+            {
+                ast_name_.emplace_back(v.second.get<std::string>("name"));
+                auto const& w = v.second.get_child("weights");
+                ast_af_weight_.emplace_back(w.get<double>("follow"));
+                //auto const& weights = v.second.get<typename ConfigType::value_type>("weights");
+                //if (v.first == "weights")
+                //    ast_af_weight_.emplace_back(v.second.get<double>("follow"));
+            }
+        }
     }
 
     T select_follower()
