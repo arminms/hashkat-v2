@@ -269,14 +269,12 @@ private:
             if (v.first == "agents")
             {
                 ast_name_.emplace_back(v.second.get<std::string>("name"));
-                auto const& w = v.second.get_child_optional("weights");
-                ast_af_weight_.emplace_back(w.get<double>("follow", 5));
-                auto const& hfo = v.second.get_child
-                    ("hashtag_follow_options");
-                ast_care_about_region_.emplace_back(hfo.get<bool>
-                    ("care_about_region", false));
-                ast_care_about_ideology_.emplace_back(hfo.get<bool>
-                    ("care_about_ideology", false));
+                ast_af_weight_.emplace_back(v.second.get<double>
+                    ("weights.follow", 5));
+                ast_care_about_region_.emplace_back(v.second.get<bool>
+                    ("hashtag_follow_options.care_about_region", false));
+                ast_care_about_ideology_.emplace_back(v.second.get<bool>
+                    ("hashtag_follow_options.care_about_ideology", false));
 
                 //unsigned months = (unsigned)cnf_ptr_->template get<double>
                 //    ("analysis.max_time", 1000) / approx_month_;
