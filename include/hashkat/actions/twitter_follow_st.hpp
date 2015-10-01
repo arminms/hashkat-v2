@@ -261,7 +261,7 @@ private:
                 weights_[i] /= total_weight;
     }
 
-    // initialize bins
+    // initialize agent stereotypes
     void init_agent_stereotypes()
     {
         for (auto const& v : *cnf_ptr_)
@@ -276,31 +276,36 @@ private:
                 ast_care_about_ideology_.emplace_back(v.second.get<bool>
                     ("hashtag_follow_options.care_about_ideology", false));
 
-                //unsigned months = (unsigned)cnf_ptr_->template get<double>
-                //    ("analysis.max_time", 1000) / approx_month_;
-                //ast_monthly_weights_.reserve(months + 1);
+                unsigned months = (unsigned)cnf_ptr_->template get<double>
+                    ("analysis.max_time", 1000) / approx_month_;
+                ast_monthly_weights_.reserve(months + 1);
 
-                //auto const& r = v.second.get_child_optional("rates");
-                //std::string f_type = cnf_ptr_->template get<std::string>
-                //    ("rates.add.function", "constant");
+                std::string f_type = v.second.get<std::string>
+                    ("rates.follow.function", "constant");
 
-                //if (f_type == "linear" )
-                //{
-                //     weight_type y_intercept = cnf_ptr_->template
-                //         get<weight_type>("rates.add.y_intercept", 1);
-                //     weight_type slope = cnf_ptr_->template
-                //         get<weight_type>("rates.add.y_slope", 0.5);
-                //    for (unsigned i = 0; i <= months; ++i)
-                //        ast_monthly_weights_.push_back(y_intercept + i * slope);
-                //    base_type::weight_ = ast_monthly_weights_[0];
-                //}
-                //else
-                //{
-                //    base_type::weight_ = cnf_ptr_->template get
-                //        <weight_type>("rates.add.value", 1);
-                //    for (unsigned i = 0; i <= months; ++i)
-                //        ast_monthly_weights_.push_back(base_type::weight_);
-                //}
+                if (f_type == "linear" )
+                {
+                     weight_type y_intercept = v.second.get<weight_type>
+                         ("rates.follow.y_intercept", 1);
+                     weight_type slope = v.second.get<weight_type>
+                         ("rates.follow.y_slope", 0.5);
+                    ast_monthly_weights_.emplace_back
+                        (std::vector<typename base_type::weight_type>());
+                    for (unsigned i = 0; i <= months; ++i)
+                        ast_monthly_weights_.back().push_back
+                            (y_intercept + i * slope);
+                    base_type::weight_ = ast_monthly_weights_.back()[0];
+                }
+                else
+                {
+                    base_type::weight_ = v.second.get<weight_type>
+                        ("rates.follow.value", 1);
+                    ast_monthly_weights_.emplace_back
+                        (std::vector<typename base_type::weight_type>());
+                    for (unsigned i = 0; i <= months; ++i)
+                        ast_monthly_weights_.back().push_back
+                            (base_type::weight_);
+                }
             }
         }
     }
