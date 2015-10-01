@@ -269,11 +269,40 @@ private:
             if (v.first == "agents")
             {
                 ast_name_.emplace_back(v.second.get<std::string>("name"));
-                auto const& w = v.second.get_child("weights");
-                ast_af_weight_.emplace_back(w.get<double>("follow"));
-                //auto const& weights = v.second.get<typename ConfigType::value_type>("weights");
-                //if (v.first == "weights")
-                //    ast_af_weight_.emplace_back(v.second.get<double>("follow"));
+                auto const& w = v.second.get_child_optional("weights");
+                ast_af_weight_.emplace_back(w.get<double>("follow", 5));
+                auto const& hfo = v.second.get_child
+                    ("hashtag_follow_options");
+                ast_care_about_region_.emplace_back(hfo.get<bool>
+                    ("care_about_region", false));
+                ast_care_about_ideology_.emplace_back(hfo.get<bool>
+                    ("care_about_ideology", false));
+
+                //unsigned months = (unsigned)cnf_ptr_->template get<double>
+                //    ("analysis.max_time", 1000) / approx_month_;
+                //ast_monthly_weights_.reserve(months + 1);
+
+                //auto const& r = v.second.get_child_optional("rates");
+                //std::string f_type = cnf_ptr_->template get<std::string>
+                //    ("rates.add.function", "constant");
+
+                //if (f_type == "linear" )
+                //{
+                //     weight_type y_intercept = cnf_ptr_->template
+                //         get<weight_type>("rates.add.y_intercept", 1);
+                //     weight_type slope = cnf_ptr_->template
+                //         get<weight_type>("rates.add.y_slope", 0.5);
+                //    for (unsigned i = 0; i <= months; ++i)
+                //        ast_monthly_weights_.push_back(y_intercept + i * slope);
+                //    base_type::weight_ = ast_monthly_weights_[0];
+                //}
+                //else
+                //{
+                //    base_type::weight_ = cnf_ptr_->template get
+                //        <weight_type>("rates.add.value", 1);
+                //    for (unsigned i = 0; i <= months; ++i)
+                //        ast_monthly_weights_.push_back(base_type::weight_);
+                //}
             }
         }
     }
