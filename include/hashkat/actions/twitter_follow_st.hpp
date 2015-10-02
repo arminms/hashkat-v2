@@ -46,6 +46,7 @@ class twitter_follow_st
         <NetworkType, ContentsType, ConfigType, RngType, TimeType> self_type;
     typedef action_base
         <NetworkType, ContentsType, ConfigType, RngType, TimeType> base_type;
+    typedef typename base_type::weight_type weight_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
 
@@ -290,7 +291,7 @@ private:
                      weight_type slope = v.second.get<weight_type>
                          ("rates.follow.y_slope", 0.5);
                     ast_monthly_weights_.emplace_back
-                        (std::vector<typename base_type::weight_type>());
+                        (std::vector<weight_type>());
                     for (unsigned i = 0; i <= months; ++i)
                         ast_monthly_weights_.back().push_back
                             (y_intercept + i * slope);
@@ -301,7 +302,7 @@ private:
                     base_type::weight_ = v.second.get<weight_type>
                         ("rates.follow.value", 1);
                     ast_monthly_weights_.emplace_back
-                        (std::vector<typename base_type::weight_type>());
+                        (std::vector<weight_type>());
                     for (unsigned i = 0; i <= months; ++i)
                         ast_monthly_weights_.back().push_back
                             (base_type::weight_);
@@ -424,10 +425,9 @@ private:
     // agent stereotype name
     std::vector<std::string> ast_name_;
     // agent stereotype monthly follow weights
-    std::vector<std::vector<typename base_type::weight_type>>
-        ast_monthly_weights_;
+    std::vector<std::vector<weight_type>> ast_monthly_weights_;
     // agent stereotype follow weight ONLY for 'agent' follow model
-    std::vector<typename base_type::weight_type> ast_af_weight_;
+    std::vector<weight_type> ast_af_weight_;
     // agent stereotype region care flag
     std::vector<bool> ast_care_about_region_;
     // agent stereotype ideology care flag

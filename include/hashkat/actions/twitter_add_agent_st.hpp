@@ -46,6 +46,7 @@ class twitter_add_agent_st
         <NetworkType, ContentsType, ConfigType, RngType, TimeType> self_type;
     typedef action_base
         <NetworkType, ContentsType, ConfigType, RngType, TimeType> base_type;
+    typedef typename base_type::weight_type weight_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
 
@@ -87,7 +88,6 @@ private:
 
     virtual void do_post_init()
     {
-        typedef typename base_type::weight_type weight_type;
         base_type::rate_ = 0;
 
         unsigned months = (unsigned)cnf_ptr_->template get<double>
@@ -154,7 +154,7 @@ private:
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
     const int approx_month_;
-    std::vector<typename base_type::weight_type> monthly_weights_;
+    std::vector<weight_type> monthly_weights_;
 };
 
 template
