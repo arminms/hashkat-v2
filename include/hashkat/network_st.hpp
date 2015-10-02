@@ -45,7 +45,7 @@ public:
     typedef W agent_type_id_type;
     typedef AgentType agent_type;
     typedef ConfigType config_type;
-    typedef network_st<AgentType, ConfigType, T, V> self_type;
+    typedef network_st<AgentType, ConfigType, T, V, W> self_type;
     typedef boost::signals2::signal<void(T)> grown_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_added_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_removed_signal_type;
@@ -234,6 +234,7 @@ private:
     // member variables
     AgentType* agents_;
     T n_agents_, max_agents_;
+    std::vector<W> agent_type_;
     std::vector<std::unordered_set<T>> followers_;
     std::vector<std::unordered_set<T>> followees_;
     grown_signal_type grown_signal_;
