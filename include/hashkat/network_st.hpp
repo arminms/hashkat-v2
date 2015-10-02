@@ -59,7 +59,10 @@ public:
     network_st(const ConfigType& conf)
     :   agents_(nullptr)
     ,   n_agents_(0)
-    {   allocate(conf.template get<T>("analysis.max_agents", 1000)); }
+    {
+        allocate(conf.template get<T>("analysis.max_agents", 1000));
+        init_agent_types(conf);
+    }
 
     network_st(T n)
     :   agents_(nullptr)
@@ -75,6 +78,7 @@ public:
         n_agents_ = 0;
         followers_.clear();
         followees_.clear();
+        agent_type_.clear();
     }
 
     void allocate(T n)
@@ -238,6 +242,14 @@ public:
     }
 
 private:
+    // initialize agent types
+    void init_agent_types(const ConfigType& conf)
+    {
+        for (auto const& v : conf)
+            if (v.first == "agents")
+                at_name_.emplace_back(v.second.get<std::string>("name"));
+    }
+
     // member variables
     AgentType* agents_;
     T n_agents_, max_agents_;
