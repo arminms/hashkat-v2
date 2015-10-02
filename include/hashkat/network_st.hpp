@@ -138,6 +138,9 @@ public:
         return agents_[idx];
     }
 
+    std::string type_name(std::size_t type_idx) const
+    {   return at_name_[n];    }
+
     grown_signal_type& grown()
     {   return grown_signal_;   }
 
