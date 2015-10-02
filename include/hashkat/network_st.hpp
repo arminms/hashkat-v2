@@ -247,7 +247,10 @@ private:
     {
         for (auto const& v : conf)
             if (v.first == "agents")
+            {
                 at_name_.emplace_back(v.second.get<std::string>("name"));
+                at_add_weight_.emplace_back(v.second.get<V>("weights.add"));
+            }
     }
 
     // member variables
@@ -261,6 +264,8 @@ private:
     std::vector<W> agent_type_;
     // agent type names
     std::vector<std::string> at_name_;
+    // agent type add weight
+    std::vector<V> at_add_weight_;
     grown_signal_type grown_signal_;
     connection_added_signal_type connection_added_signal_;
     connection_removed_signal_type connection_removed_signal_;
