@@ -422,7 +422,7 @@ private:
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<T, 5> model_weights_;
     const int approx_month_;
-    // agent stereotype name
+    // agent stereotype name, NOTE: remove later if redundant/not used
     std::vector<std::string> ast_name_;
     // agent stereotype monthly follow weights
     std::vector<std::vector<weight_type>> ast_monthly_weights_;

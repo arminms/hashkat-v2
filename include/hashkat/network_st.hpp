@@ -33,17 +33,17 @@ template
     class    AgentType
 ,   class    ConfigType
 ,   typename T = std::uint32_t
-,   typename ValueType = double
+,   typename V = double
 >
 class network_st
 {
 public:
     typedef T type;
-    typedef ValueType rate_type;
-    typedef ValueType value_type;
+    typedef V rate_type;
+    typedef V value_type;
     typedef AgentType agent_type;
     typedef ConfigType config_type;
-    typedef network_st<AgentType, ConfigType, T, ValueType> self_type;
+    typedef network_st<AgentType, ConfigType, T, V> self_type;
     typedef boost::signals2::signal<void(T)> grown_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_added_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_removed_signal_type;
@@ -244,11 +244,11 @@ template
     class    AgentType
 ,   class    ConfigType
 ,   typename T
-,   typename ValueType
+,   typename V
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const network_st<AgentType, ConfigType, T, ValueType>& n)
+,   const network_st<AgentType, ConfigType, T, V>& n)
 {
     return n.print(out);
 }
