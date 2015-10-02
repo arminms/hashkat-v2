@@ -43,7 +43,7 @@ public:
     typedef V rate_type;
     typedef V value_type;
     typedef W agent_type_id_type;
-    typedef AgentType agent_type;
+    //typedef AgentType agent_type;
     typedef ConfigType config_type;
     typedef network_st<AgentType, ConfigType, T, V, W> self_type;
     typedef boost::signals2::signal<void(T)> grown_signal_type;
@@ -138,8 +138,11 @@ public:
         return agents_[idx];
     }
 
+    W agent_type(T n) const
+    {   return agent_type_[n];   }
+
     std::string type_name(std::size_t type_idx) const
-    {   return at_name_[n];    }
+    {   return at_name_[type_idx];   }
 
     grown_signal_type& grown()
     {   return grown_signal_;   }
