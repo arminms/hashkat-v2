@@ -34,6 +34,7 @@ template
 ,   class    ConfigType
 ,   typename T = std::uint32_t
 ,   typename V = double
+,   typename W = std::uint8_t
 >
 class network_st
 {
@@ -41,6 +42,7 @@ public:
     typedef T type;
     typedef V rate_type;
     typedef V value_type;
+    typedef W agent_type_id_type;
     typedef AgentType agent_type;
     typedef ConfigType config_type;
     typedef network_st<AgentType, ConfigType, T, V> self_type;
@@ -245,10 +247,11 @@ template
 ,   class    ConfigType
 ,   typename T
 ,   typename V
+,   typename W
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const network_st<AgentType, ConfigType, T, V>& n)
+,   const network_st<AgentType, ConfigType, T, V, W>& n)
 {
     return n.print(out);
 }
