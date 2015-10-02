@@ -83,6 +83,7 @@ public:
             delete[] agents_;
         max_agents_ = n;
         agents_ = new AgentType[max_agents_];
+        agent_type_.reserve(max_agents_);
         followers_.reserve(max_agents_);
         followees_.reserve(max_agents_);
     }
@@ -234,9 +235,14 @@ private:
     // member variables
     AgentType* agents_;
     T n_agents_, max_agents_;
-    std::vector<W> agent_type_;
+    // set of followers for the corresponding agent
     std::vector<std::unordered_set<T>> followers_;
+    // set of agents that the corresponding agent acts as a followee
     std::vector<std::unordered_set<T>> followees_;
+    // type of the corresponding agent
+    std::vector<W> agent_type_;
+    // agent type names
+    std::vector<std::string> at_name_;
     grown_signal_type grown_signal_;
     connection_added_signal_type connection_added_signal_;
     connection_removed_signal_type connection_removed_signal_;
