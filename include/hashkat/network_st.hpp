@@ -99,6 +99,9 @@ public:
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
             ++n_agents_;
+            //std::discrete_distribution<W> di(
+            //    at_add_weight_.begin(), at_add_weight_.end());
+            //agent_type_.emplace_back(di(rng_));
             grown_signal_(n_agents_ - 1);
             return true;
         }
