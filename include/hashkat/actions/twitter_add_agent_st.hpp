@@ -49,6 +49,7 @@ class twitter_add_agent_st
     typedef typename base_type::weight_type weight_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
+    typedef typename NetworkType::agent_type_type W;
 
 public:
     twitter_add_agent_st()
@@ -84,6 +85,19 @@ private:
         cnt_ptr_  = &cnt;
         cnf_ptr_  = &cnf;
         rng_ptr_  = &rng;
+        init_agent_types();
+    }
+
+    // initialize agent types
+    void init_agent_types()
+    {
+        for (auto const& v : *cnf_ptr_)
+            if (v.first == "agents")
+            {
+                //at_name_.emplace_back(v.second.get<std::string>("name"));
+                at_add_weight_.emplace_back(v.second.get<W>
+                    ("weights.add", W(100)));
+            }
     }
 
     virtual void do_post_init()
@@ -133,7 +147,9 @@ private:
 
     virtual void do_action()
     {
-        if (net_ptr_->grow())
+        std::discrete_distribution<W> di(
+            at_add_weight_.begin(), at_add_weight_.end());
+        if (net_ptr_->grow(di(*rng_ptr_)))
         {
             ++base_type::rate_;
             base_type::action_happened_signal_();
@@ -155,6 +171,8 @@ private:
     RngType* rng_ptr_;
     const int approx_month_;
     std::vector<weight_type> monthly_weights_;
+    // agent type add weight
+    std::vector<W> at_add_weight_;
 };
 
 template

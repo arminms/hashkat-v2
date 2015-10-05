@@ -93,7 +93,7 @@ private:
         init_slots();
         init_follow_models();
         init_bins();
-        init_agent_stereotypes();
+        init_agent_types();
     }
 
     virtual void do_post_init()
@@ -262,24 +262,24 @@ private:
                 weights_[i] /= total_weight;
     }
 
-    // initialize agent stereotypes
-    void init_agent_stereotypes()
+    // initialize agent types
+    void init_agent_types()
     {
         for (auto const& v : *cnf_ptr_)
         {
             if (v.first == "agents")
             {
-                ast_name_.emplace_back(v.second.get<std::string>("name"));
-                ast_af_weight_.emplace_back(v.second.get<double>
+                at_name_.emplace_back(v.second.get<std::string>("name"));
+                at_af_weight_.emplace_back(v.second.get<double>
                     ("weights.follow", 5));
-                ast_care_about_region_.emplace_back(v.second.get<bool>
+                at_care_about_region_.emplace_back(v.second.get<bool>
                     ("hashtag_follow_options.care_about_region", false));
-                ast_care_about_ideology_.emplace_back(v.second.get<bool>
+                at_care_about_ideology_.emplace_back(v.second.get<bool>
                     ("hashtag_follow_options.care_about_ideology", false));
 
                 unsigned months = (unsigned)cnf_ptr_->template get<double>
                     ("analysis.max_time", 1000) / approx_month_;
-                ast_monthly_weights_.reserve(months + 1);
+                at_monthly_weights_.reserve(months + 1);
 
                 std::string f_type = v.second.get<std::string>
                     ("rates.follow.function", "constant");
@@ -290,21 +290,21 @@ private:
                          ("rates.follow.y_intercept", 1);
                      weight_type slope = v.second.get<weight_type>
                          ("rates.follow.y_slope", 0.5);
-                    ast_monthly_weights_.emplace_back
+                    at_monthly_weights_.emplace_back
                         (std::vector<weight_type>());
                     for (unsigned i = 0; i <= months; ++i)
-                        ast_monthly_weights_.back().push_back
+                        at_monthly_weights_.back().push_back
                             (y_intercept + i * slope);
-                    base_type::weight_ = ast_monthly_weights_.back()[0];
+                    base_type::weight_ = at_monthly_weights_.back()[0];
                 }
                 else
                 {
                     base_type::weight_ = v.second.get<weight_type>
                         ("rates.follow.value", 1);
-                    ast_monthly_weights_.emplace_back
+                    at_monthly_weights_.emplace_back
                         (std::vector<weight_type>());
                     for (unsigned i = 0; i <= months; ++i)
-                        ast_monthly_weights_.back().push_back
+                        at_monthly_weights_.back().push_back
                             (base_type::weight_);
                 }
             }
@@ -422,16 +422,16 @@ private:
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<T, 5> model_weights_;
     const int approx_month_;
-    // agent stereotype name, NOTE: remove later if redundant/not used
-    std::vector<std::string> ast_name_;
-    // agent stereotype monthly follow weights
-    std::vector<std::vector<weight_type>> ast_monthly_weights_;
-    // agent stereotype follow weight ONLY for 'agent' follow model
-    std::vector<weight_type> ast_af_weight_;
-    // agent stereotype region care flag
-    std::vector<bool> ast_care_about_region_;
-    // agent stereotype ideology care flag
-    std::vector<bool> ast_care_about_ideology_;
+    // agent type name, NOTE: remove later if redundant/not used
+    std::vector<std::string> at_name_;
+    // agent type monthly follow weights
+    std::vector<std::vector<weight_type>> at_monthly_weights_;
+    // agent type follow weight ONLY for 'agent' follow model
+    std::vector<weight_type> at_af_weight_;
+    // agent type region care flag
+    std::vector<bool> at_care_about_region_;
+    // agent type ideology care flag
+    std::vector<bool> at_care_about_ideology_;
 };
 
 template

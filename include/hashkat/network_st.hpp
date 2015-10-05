@@ -34,7 +34,7 @@ template
 ,   class    ConfigType
 ,   typename T = std::uint32_t
 ,   typename V = double
-,   typename W = std::uint8_t
+,   typename W = std::uint16_t
 >
 class network_st
 {
@@ -42,7 +42,7 @@ public:
     typedef T type;
     typedef V rate_type;
     typedef V value_type;
-    typedef W agent_type_id_type;
+    typedef W agent_type_type;
     //typedef AgentType agent_type;
     typedef ConfigType config_type;
     typedef network_st<AgentType, ConfigType, T, V, W> self_type;
@@ -92,16 +92,14 @@ public:
         followees_.reserve(max_agents_);
     }
 
-    bool grow()
+    bool grow(W at = 0)
     {
         if (n_agents_ < max_agents_)
         {
+            agent_type_.push_back(at);
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
             ++n_agents_;
-            //std::discrete_distribution<W> di(
-            //    at_add_weight_.begin(), at_add_weight_.end());
-            //agent_type_.emplace_back(di(rng_));
             grown_signal_(n_agents_ - 1);
             return true;
         }
@@ -109,12 +107,13 @@ public:
             return false;
     }
 
-    T grow(T n)
+    T grow(T n, W at = 0)
     {
         for (auto i = 0; i < n; ++i)
         {
             if (n_agents_ == max_agents_)
                 return i;
+            agent_type_.push_back(at);
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
             ++n_agents_;
@@ -252,7 +251,7 @@ private:
             if (v.first == "agents")
             {
                 at_name_.emplace_back(v.second.get<std::string>("name"));
-                at_add_weight_.emplace_back(v.second.get<V>("weights.add"));
+                //at_add_weight_.emplace_back(v.second.get<V>("weights.add"));
             }
     }
 
@@ -268,7 +267,7 @@ private:
     // agent type names
     std::vector<std::string> at_name_;
     // agent type add weight
-    std::vector<V> at_add_weight_;
+    //std::vector<V> at_add_weight_;
     grown_signal_type grown_signal_;
     connection_added_signal_type connection_added_signal_;
     connection_removed_signal_type connection_removed_signal_;
