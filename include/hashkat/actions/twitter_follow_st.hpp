@@ -49,6 +49,8 @@ class twitter_follow_st
     typedef typename base_type::weight_type weight_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
+    typedef typename NetworkType::agent_type_index_type W;
+
 
 public:
     twitter_follow_st()
@@ -177,7 +179,7 @@ private:
     void init_slots()
     {
         net_ptr_->grown().connect(
-            boost::bind(&self_type::agent_added, this, _1));
+            boost::bind(&self_type::agent_added, this, _1, _2));
         net_ptr_->connection_added().connect(
             boost::bind(&self_type::update_bins, this, _1, _2));
     }
@@ -385,7 +387,7 @@ private:
         return follow_models_[di(*rng_ptr_)](follower);
     }
 
-    void agent_added(T idx)
+    void agent_added(T idx, W at)
     {
         bins_[0].insert(idx);
         ++n_connections_;

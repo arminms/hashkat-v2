@@ -49,7 +49,7 @@ class twitter_add_agent_st
     typedef typename base_type::weight_type weight_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
-    typedef typename NetworkType::agent_type_type W;
+    typedef typename NetworkType::agent_type_index_type W;
 
 public:
     twitter_add_agent_st()

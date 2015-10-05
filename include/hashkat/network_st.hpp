@@ -42,11 +42,11 @@ public:
     typedef T type;
     typedef V rate_type;
     typedef V value_type;
-    typedef W agent_type_type;
+    typedef W agent_type_index_type;
     //typedef AgentType agent_type;
     typedef ConfigType config_type;
     typedef network_st<AgentType, ConfigType, T, V, W> self_type;
-    typedef boost::signals2::signal<void(T)> grown_signal_type;
+    typedef boost::signals2::signal<void(T, W)> grown_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_added_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_removed_signal_type;
 
@@ -100,7 +100,7 @@ public:
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
             ++n_agents_;
-            grown_signal_(n_agents_ - 1);
+            grown_signal_(n_agents_ - 1, at);
             return true;
         }
         else 
@@ -117,7 +117,7 @@ public:
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
             ++n_agents_;
-            grown_signal_(n_agents_ - 1);
+            grown_signal_(n_agents_ - 1, at);
         }
         return n;
     }
