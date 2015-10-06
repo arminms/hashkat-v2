@@ -26,6 +26,8 @@
 #ifndef HASHKAT_NETWORK_ST_HPP_
 #define HASHKAT_NETWORK_ST_HPP_
 
+#include <boost/range/adaptor/reversed.hpp>
+
 namespace hashkat {
 
 template
@@ -60,8 +62,8 @@ public:
     :   agents_(nullptr)
     ,   n_agents_(0)
     {
-        allocate(conf.template get<T>("analysis.max_agents", 1000));
         init_agent_types(conf);
+        allocate(conf.template get<T>("analysis.max_agents", 1000));
     }
 
     network_st(T n)
@@ -90,6 +92,12 @@ public:
         agent_type_.reserve(max_agents_);
         followers_.reserve(max_agents_);
         followees_.reserve(max_agents_);
+        V sum = 0;
+        for (auto w : at_add_weight_)
+            sum += w;
+        for (unsigned i = 0; i < at_agent_ids_.size(); ++i)
+            at_agent_ids_[i].reserve(
+                std::size_t(max_agents_ * at_add_weight_[i] / sum + 10));
     }
 
     bool grow(W at = 0)
@@ -97,6 +105,7 @@ public:
         if (n_agents_ < max_agents_)
         {
             agent_type_.push_back(at);
+            at_agent_ids_[at].push_back(n_agents_);
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
             ++n_agents_;
@@ -114,6 +123,7 @@ public:
             if (n_agents_ == max_agents_)
                 return i;
             agent_type_.push_back(at);
+            at_agent_ids_[at].push_back(n_agents_);
             followers_.emplace_back(std::unordered_set<T>());
             followees_.emplace_back(std::unordered_set<T>());
             ++n_agents_;
@@ -146,6 +156,9 @@ public:
 
     W agent_type(T n) const
     {   return agent_type_[n];   }
+
+    T count(W type) const
+    {   return at_agent_ids_[type];   }
 
     std::string type_name(std::size_t type_idx) const
     {   return at_name_[type_idx];   }
@@ -247,12 +260,15 @@ private:
     // initialize agent types
     void init_agent_types(const ConfigType& conf)
     {
-        for (auto const& v : conf)
+        for (auto const& v : boost::adaptors::reverse(conf))
             if (v.first == "agents")
             {
+                at_agent_ids_.emplace_back(std::vector<T>());
                 at_name_.emplace_back(v.second.get<std::string>("name"));
-                //at_add_weight_.emplace_back(v.second.get<V>("weights.add"));
+                at_add_weight_.emplace_back(v.second.get<V>("weights.add"));
             }
+            else
+                break;
     }
 
     // member variables
@@ -264,10 +280,12 @@ private:
     std::vector<std::unordered_set<T>> followees_;
     // type of the corresponding agent
     std::vector<W> agent_type_;
-    // agent type names
+    // names of agent types
     std::vector<std::string> at_name_;
-    // agent type add weight
-    //std::vector<V> at_add_weight_;
+    // list of agent ID's for agent types
+    std::vector<std::vector<T>> at_agent_ids_;
+    // add weight of agent types 
+    std::vector<V> at_add_weight_;
     grown_signal_type grown_signal_;
     connection_added_signal_type connection_added_signal_;
     connection_removed_signal_type connection_removed_signal_;
