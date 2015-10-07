@@ -26,6 +26,8 @@
 #ifndef HASHKAT_ACTIONS_TWITTER_FOLLOW_ST_HPP_
 #define HASHKAT_ACTIONS_TWITTER_FOLLOW_ST_HPP_
 
+#include <boost/range/adaptor/reversed.hpp>
+
 namespace hashkat {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -267,7 +269,7 @@ private:
     // initialize agent types
     void init_agent_types()
     {
-        for (auto const& v : *cnf_ptr_)
+        for (auto const& v : boost::adaptors::reverse(*cnf_ptr_))
         {
             if (v.first == "agents")
             {
@@ -309,7 +311,11 @@ private:
                         at_monthly_weights_.back().push_back
                             (base_type::weight_);
                 }
+
+                at_agent_per_month_.emplace_back(std::vector<T>(months + 1, 0));
             }
+            else
+                break;
         }
     }
 
@@ -390,6 +396,7 @@ private:
     void agent_added(T idx, W at)
     {
         bins_[0].insert(idx);
+        //at_agent_per_month_[at][std::size_t(time_ptr_->count() / approx_month_)]++;
         ++n_connections_;
     }
 
@@ -428,6 +435,8 @@ private:
     std::vector<std::string> at_name_;
     // agent type monthly follow weights
     std::vector<std::vector<weight_type>> at_monthly_weights_;
+    // number of agents per month for each agent type
+    std::vector<std::vector<T>> at_agent_per_month_;
     // agent type follow weight ONLY for 'agent' follow model
     std::vector<weight_type> at_af_weight_;
     // agent type region care flag
