@@ -398,7 +398,7 @@ private:
     void agent_added(T idx, W at)
     {
         bins_[0].insert(idx);
-        //at_agent_per_month_[at][month()]++;
+        ++at_agent_per_month_[at][month()];
         ++n_connections_;
     }
 
