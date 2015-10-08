@@ -121,7 +121,7 @@ private:
         do_post_init();
     }
 
-    virtual void do_update_weight(const TimeType& time)
+    virtual void do_update_weight()
     {
         base_type::weight_ = follow_rate_ * net_ptr_->size();
     }

@@ -141,10 +141,10 @@ private:
         do_post_init();
     }
 
-    virtual void do_update_weight(const TimeType& time)
+    virtual void do_update_weight()
     {
         base_type::weight_ =
-            monthly_weights_[std::size_t(time.count() / approx_month_)]; 
+            monthly_weights_[std::size_t(time_ptr_->count() / approx_month_)]; 
     }
 
     virtual void do_action()

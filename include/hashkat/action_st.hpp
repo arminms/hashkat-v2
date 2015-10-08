@@ -73,8 +73,8 @@ public:
     void reset()
     {   do_reset(); }
 
-    void update_weight(const TimeType& time)
-    {   do_update_weight(time);   }
+    void update_weight()
+    {   do_update_weight();   }
 
     void operator()()
     {   do_action();   }
@@ -107,7 +107,7 @@ private:
     ,   const TimeType& time) = 0;
     virtual void do_post_init() = 0;
     virtual void do_reset() = 0;
-    virtual void do_update_weight(const TimeType& time) = 0;
+    virtual void do_update_weight() = 0;
     virtual void do_action() = 0;
     virtual std::ostream& do_print(std::ostream& out) const = 0;
 };

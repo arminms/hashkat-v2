@@ -140,7 +140,7 @@ public:
         weights.reserve(actions_.depot_.size());
         for (auto& action : actions_.depot_)
         {
-            action->update_weight(time_);
+            action->update_weight();
             weights.push_back(action->weight());
         }
         std::discrete_distribution<T> di(weights.begin(), weights.end());
