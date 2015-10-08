@@ -143,8 +143,7 @@ private:
 
     virtual void do_update_weight()
     {
-        base_type::weight_ =
-            monthly_weights_[std::size_t(time_ptr_->count() / approx_month_)]; 
+        base_type::weight_ = monthly_weights_[month()]; 
     }
 
     virtual void do_action()
@@ -165,6 +164,9 @@ private:
         out << "# Add weight: " << base_type::weight_ << std::endl;
         return out;
     }
+
+    std::size_t month() const
+    {   return std::size_t(time_ptr_->count() / approx_month_);   }
 
 // member variables
     NetworkType* net_ptr_;

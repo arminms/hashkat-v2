@@ -398,7 +398,7 @@ private:
     void agent_added(T idx, W at)
     {
         bins_[0].insert(idx);
-        //at_agent_per_month_[at][std::size_t(time_ptr_->count() / approx_month_)]++;
+        //at_agent_per_month_[at][month()]++;
         ++n_connections_;
     }
 
@@ -418,6 +418,9 @@ private:
         ++base_type::rate_;
         ++n_connections_;
     }
+
+    std::size_t month() const
+    {   return std::size_t(time_ptr_->count() / approx_month_);   }
 
 // member variables
     NetworkType* net_ptr_;
