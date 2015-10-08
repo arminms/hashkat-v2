@@ -79,12 +79,14 @@ private:
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
-    ,   RngType& rng)
+    ,   RngType& rng
+    ,   const TimeType& time)
     {
         net_ptr_  = &net;
         cnt_ptr_  = &cnt;
         cnf_ptr_  = &cnf;
         rng_ptr_  = &rng;
+        time_ptr_ = &time;
         init_agent_types();
     }
 
@@ -169,6 +171,7 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
+    const TimeType* time_ptr_;
     const int approx_month_;
     std::vector<weight_type> monthly_weights_;
     // agent type add weight

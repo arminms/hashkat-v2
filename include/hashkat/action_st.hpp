@@ -57,8 +57,9 @@ public:
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
-    ,   RngType& rng)
-    {   do_init(net, cnt, cnf, rng);   }
+    ,   RngType& rng
+    ,   const TimeType& time)
+    {   do_init(net, cnt, cnf, rng, time);   }
 
     rate_type rate() const
     {   return rate_;   }
@@ -102,7 +103,8 @@ private:
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
-    ,   RngType& rng) = 0;
+    ,   RngType& rng
+    ,   const TimeType& time) = 0;
     virtual void do_post_init() = 0;
     virtual void do_reset() = 0;
     virtual void do_update_weight(const TimeType& time) = 0;

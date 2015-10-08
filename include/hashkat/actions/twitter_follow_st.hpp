@@ -88,12 +88,14 @@ private:
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
-    ,   RngType& rng)
+    ,   RngType& rng
+    ,   const TimeType& time)
     {
         net_ptr_  = &net;
         cnt_ptr_  = &cnt;
         cnf_ptr_  = &cnf;
         rng_ptr_  = &rng;
+        time_ptr_ = &time;
         init_slots();
         init_follow_models();
         init_bins();
@@ -422,6 +424,7 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
+    const TimeType* time_ptr_;
     typename base_type::rate_type follow_rate_;
     std::size_t n_connections_;
     std::size_t kmax_;

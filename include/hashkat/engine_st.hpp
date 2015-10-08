@@ -108,7 +108,7 @@ public:
     {
         for (auto& action : actions_.depot_)
         {
-            action->init(net_, cnt_, cnf_, rng_);
+            action->init(net_, cnt_, cnf_, rng_, time_);
             action->happened().connect(
                 boost::bind(&self_type::update_event_rate, this));
             action->finished().connect(
