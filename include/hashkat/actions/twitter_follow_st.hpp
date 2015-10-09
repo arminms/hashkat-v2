@@ -123,7 +123,15 @@ private:
 
     virtual void do_update_weight()
     {
-        base_type::weight_ = follow_rate_ * net_ptr_->size();
+        base_type::weight_ = 0;
+        if (0 == cnf_ptr_->template get<weight_type>("rates.add.value", 1))
+            for (std::size_t i = 0; i < at_monthly_weights_.size(); ++i)
+                base_type::weight_ +=
+                    net_ptr_->count(i) * at_monthly_weights_[i][month()];
+        else
+            for (std::size_t i = 0; i < at_monthly_weights_.size(); ++i)
+                base_type::weight_ += at_agent_per_month_[i][month()]
+                                   *  at_monthly_weights_[i][month()];
     }
 
     virtual void do_action()
