@@ -157,7 +157,7 @@ public:
     W agent_type(T n) const
     {   return agent_type_[n];   }
 
-    T count(W type) const
+    std::size_t count(std::size_t type) const
     {   return at_agent_ids_[type].size();   }
 
     std::string type_name(std::size_t type_idx) const

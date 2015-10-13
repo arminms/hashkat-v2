@@ -96,6 +96,9 @@ private:
         cnf_ptr_  = &cnf;
         rng_ptr_  = &rng;
         time_ptr_ = &time;
+        zero_add_rate_ = (0 == cnf_ptr_->template get<weight_type>
+            ("rates.add.value", 1));
+
         init_slots();
         init_follow_models();
         init_bins();
@@ -124,7 +127,7 @@ private:
     virtual void do_update_weight()
     {
         base_type::weight_ = 0;
-        if (0 == cnf_ptr_->template get<weight_type>("rates.add.value", 1))
+        if (zero_add_rate_)
             for (std::size_t i = 0; i < at_monthly_weights_.size(); ++i)
                 base_type::weight_ +=
                     net_ptr_->count(i) * at_monthly_weights_[i][month()];
@@ -457,6 +460,8 @@ private:
     std::vector<bool> at_care_about_region_;
     // agent type ideology care flag
     std::vector<bool> at_care_about_ideology_;
+    // true when add rate is zero
+    bool zero_add_rate_;
 };
 
 template
