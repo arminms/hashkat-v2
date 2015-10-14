@@ -410,6 +410,7 @@ private:
 
     void agent_added(T idx, W at)
     {
+        agent_creation_time_.push_back(*time_ptr_);
         bins_[0].insert(idx);
         ++at_agent_per_month_[at][month()];
         ++n_connections_;
