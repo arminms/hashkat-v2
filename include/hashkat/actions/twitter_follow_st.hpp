@@ -96,6 +96,8 @@ private:
         cnf_ptr_  = &cnf;
         rng_ptr_  = &rng;
         time_ptr_ = &time;
+        agent_creation_time_.reserve(cnf_ptr_->template get<T>
+            ("analysis.max_agents", 1000));
         zero_add_rate_ = (0 == cnf_ptr_->template get<weight_type>
             ("rates.add.value", 1));
 
