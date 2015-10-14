@@ -448,6 +448,8 @@ private:
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<T, 5> model_weights_;
     const int approx_month_;
+    // creation time for the corresponding agent
+    std::vector<TimeType> agent_creation_time_;
     // agent type name, NOTE: remove later if redundant/not used
     std::vector<std::string> at_name_;
     // agent type monthly follow weights
