@@ -338,12 +338,22 @@ private:
 
     T select_follower()
     {
-        std::discrete_distribution<W> ddi(
-            at_add_weight_.begin(), at_add_weight_.end());
-        W at = ddi(*rng_ptr_);
-
-        std::uniform_int_distribution<T> udi(0, net_ptr_->size() - 1);
-        return udi(*rng_ptr_);
+        if (zero_add_rate_)
+        {
+            std::discrete_distribution<W> ddi(
+                at_add_weight_.begin(), at_add_weight_.end());
+            W at = ddi(*rng_ptr_);
+            while (0 == net_ptr_->count(at))
+                at = ddi(*rng_ptr_);
+            std::uniform_int_distribution<T>
+                udi(0, T(net_ptr_->count(at) - 1));
+            return udi(*rng_ptr_);
+        }
+        else
+        {
+            std::uniform_int_distribution<T> udi(0, net_ptr_->size() - 1);
+            return udi(*rng_ptr_);
+        }
     }
 
     T select_followee(T follower)
