@@ -289,6 +289,8 @@ private:
             if (v.first == "agents")
             {
                 at_name_.emplace_back(v.second.get<std::string>("name"));
+                at_add_weight_.emplace_back(v.second.get<weight_type>
+                    ("weights.add", weight_type(100)));
                 at_af_weight_.emplace_back(v.second.get<double>
                     ("weights.follow", 5));
                 at_care_about_region_.emplace_back(v.second.get<bool>
@@ -461,6 +463,8 @@ private:
     std::vector<std::vector<T>> at_agent_per_month_;
     // agent type follow weight ONLY for 'agent' follow model
     std::vector<weight_type> at_af_weight_;
+    // agent type add weight
+    std::vector<weight_type> at_add_weight_;
     // agent type region care flag
     std::vector<bool> at_care_about_region_;
     // agent type ideology care flag

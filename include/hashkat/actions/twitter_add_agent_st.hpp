@@ -97,8 +97,8 @@ private:
             if (v.first == "agents")
             {
                 //at_name_.emplace_back(v.second.get<std::string>("name"));
-                at_add_weight_.emplace_back(v.second.get<W>
-                    ("weights.add", W(100)));
+                at_add_weight_.emplace_back(v.second.get<weight_type>
+                    ("weights.add", weight_type(100)));
             }
     }
 
@@ -177,7 +177,7 @@ private:
     const int approx_month_;
     std::vector<weight_type> monthly_weights_;
     // agent type add weight
-    std::vector<W> at_add_weight_;
+    std::vector<weight_type> at_add_weight_;
 };
 
 template
