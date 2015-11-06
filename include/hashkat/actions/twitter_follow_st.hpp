@@ -300,7 +300,6 @@ private:
 
                 unsigned months = (unsigned)cnf_ptr_->template get<double>
                     ("analysis.max_time", 1000) / approx_month_;
-                at_monthly_weights_.reserve(months + 1);
 
                 std::string f_type = v.second.get<std::string>
                     ("rates.follow.function", "constant");
@@ -313,6 +312,7 @@ private:
                          ("rates.follow.y_slope", 0.5);
                     at_monthly_weights_.emplace_back
                         (std::vector<weight_type>());
+                    at_monthly_weights_.back().reserve(months + 1);
                     for (unsigned i = 0; i <= months; ++i)
                         at_monthly_weights_.back().push_back
                             (y_intercept + i * slope);
@@ -324,6 +324,10 @@ private:
                         ("rates.follow.value", 1);
                     at_monthly_weights_.emplace_back
                         (std::vector<weight_type>());
+                    at_monthly_weights_.back().reserve(months + 1);
+                    // TODO: this version is also possible instead of loop:
+                    //at_monthly_weights_.emplace_back(std::vector<T>
+                    //  (months + 1, base_type::weight_));
                     for (unsigned i = 0; i <= months; ++i)
                         at_monthly_weights_.back().push_back
                             (base_type::weight_);
@@ -338,22 +342,29 @@ private:
 
     T select_follower()
     {
-        if (zero_add_rate_)
-        {
-            std::discrete_distribution<W> ddi(
-                at_add_weight_.begin(), at_add_weight_.end());
-            W at = ddi(*rng_ptr_);
-            while (0 == net_ptr_->count(at))
-                at = ddi(*rng_ptr_);
-            std::uniform_int_distribution<T>
-                udi(0, T(net_ptr_->count(at) - 1));
-            return udi(*rng_ptr_);
-        }
-        else
-        {
-            std::uniform_int_distribution<T> udi(0, net_ptr_->size() - 1);
-            return udi(*rng_ptr_);
-        }
+        //if (zero_add_rate_)
+        //{
+        //    std::discrete_distribution<W> ddi(
+        //        at_add_weight_.begin(), at_add_weight_.end());
+        //    W at = ddi(*rng_ptr_);
+        //    while (0 == net_ptr_->count(at))
+        //        at = ddi(*rng_ptr_);
+        //    std::uniform_int_distribution<T>
+        //        udi(0, T(net_ptr_->count(at) - 1));
+        //    return udi(*rng_ptr_);
+        //}
+        //else
+        //{
+        //    std::vector<weight_type> adjusted_add_rate;
+        //    adjusted_add_rate.reserve(at_monthly_weights_[0].size());
+        //    for (unsigned i = 0; i < at_add_weight_.size(); ++i)
+        //    {
+        //        weight_type sum = std::accumulate();
+        //    }
+
+        //}
+        std::uniform_int_distribution<T> udi(0, net_ptr_->size() - 1);
+        return udi(*rng_ptr_);
     }
 
     T select_followee(T follower)
