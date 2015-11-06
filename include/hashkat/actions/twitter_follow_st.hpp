@@ -360,13 +360,17 @@ private:
             //    at_monthly_weights_[at].begin()
             //,   at_monthly_weights_[at].end()
             //,   0.0);
-            //std::vector<weight_type> adjusted_add_rate;
-            //adjusted_add_rate.reserve(at_monthly_weights_[at].size());
+            //std::vector<weight_type> adjusted_add_weights;
+            //adjusted_add_weights.reserve(at_monthly_weights_[at].size());
             //for (unsigned i = 0; i < at_add_weight_.size(); ++i)
-            //    adjusted_add_rate.push_back(
+            //    adjusted_add_weights.push_back(
             //        at_monthly_weights_[at][i]
             //    *   at_add_weight_[at]
             //    /   sum);
+            //std::discrete_distribution<W> ddi(
+            //    adjusted_add_weights.begin()
+            //,   adjusted_add_weights.end());
+            //std::size_t month = ddi(*rng_ptr_);
         }
         std::uniform_int_distribution<T> udi(0, net_ptr_->size() - 1);
         return udi(*rng_ptr_);
