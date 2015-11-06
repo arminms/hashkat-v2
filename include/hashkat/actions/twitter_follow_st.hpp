@@ -342,27 +342,32 @@ private:
 
     T select_follower()
     {
-        //if (zero_add_rate_)
-        //{
-        //    std::discrete_distribution<W> ddi(
-        //        at_add_weight_.begin(), at_add_weight_.end());
-        //    W at = ddi(*rng_ptr_);
-        //    while (0 == net_ptr_->count(at))
-        //        at = ddi(*rng_ptr_);
-        //    std::uniform_int_distribution<T>
-        //        udi(0, T(net_ptr_->count(at) - 1));
-        //    return udi(*rng_ptr_);
-        //}
-        //else
-        //{
-        //    std::vector<weight_type> adjusted_add_rate;
-        //    adjusted_add_rate.reserve(at_monthly_weights_[0].size());
-        //    for (unsigned i = 0; i < at_add_weight_.size(); ++i)
-        //    {
-        //        weight_type sum = std::accumulate();
-        //    }
+        std::discrete_distribution<W> ddi(
+            at_add_weight_.begin(), at_add_weight_.end());
+        W at = ddi(*rng_ptr_);
+        while (0 == net_ptr_->count(at))
+            at = ddi(*rng_ptr_);
 
-        //}
+        if (zero_add_rate_)
+        {
+            std::uniform_int_distribution<T>
+                udi(0, T(net_ptr_->count(at) - 1));
+            return net_ptr_->agent_by_type(at, udi(*rng_ptr_));
+        }
+        else
+        {
+            //weight_type sum = std::accumulate(
+            //    at_monthly_weights_[at].begin()
+            //,   at_monthly_weights_[at].end()
+            //,   0.0);
+            //std::vector<weight_type> adjusted_add_rate;
+            //adjusted_add_rate.reserve(at_monthly_weights_[at].size());
+            //for (unsigned i = 0; i < at_add_weight_.size(); ++i)
+            //    adjusted_add_rate.push_back(
+            //        at_monthly_weights_[at][i]
+            //    *   at_add_weight_[at]
+            //    /   sum);
+        }
         std::uniform_int_distribution<T> udi(0, net_ptr_->size() - 1);
         return udi(*rng_ptr_);
     }

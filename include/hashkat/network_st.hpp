@@ -160,7 +160,7 @@ public:
     std::size_t count(std::size_t type) const
     {   return at_agent_ids_[type].size();   }
 
-    AgentType agent_by_type(std::size_t type, T n) const
+    T agent_by_type(std::size_t type, T n) const
     {   return at_agent_ids_[type][n];    }
 
     std::string type_name(std::size_t type_idx) const
