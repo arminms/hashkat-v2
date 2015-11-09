@@ -376,12 +376,12 @@ private:
             while (0 == at_agent_per_month_[at][month])
                 --month;
 
-            T start = month
+            T start = (month
             ?   std::accumulate(
                     at_agent_per_month_[at].begin()
-                ,   at_agent_per_month_[at].begin() + month - 1
+                ,   at_agent_per_month_[at].begin() + month
                 ,   0)
-            :   0;
+            :   0);
             std::uniform_int_distribution<T>
                 udi(start, start + at_agent_per_month_[at][month] - 1);
             return net_ptr_->agent_by_type(at, udi(*rng_ptr_));
