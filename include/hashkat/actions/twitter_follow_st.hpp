@@ -363,7 +363,7 @@ private:
 
             std::vector<weight_type> adjusted_add_weights;
             adjusted_add_weights.reserve(at_monthly_weights_[at].size());
-            for (unsigned i = 0; i < at_add_weight_.size(); ++i)
+            for (unsigned i = 0; i < at_monthly_weights_[at].size(); ++i)
                 adjusted_add_weights.push_back(
                     at_monthly_weights_[at][i]
                 *   at_add_weight_[at]
@@ -374,7 +374,7 @@ private:
             ,   adjusted_add_weights.end());
             std::size_t month = ddi(*rng_ptr_);
             while (0 == at_agent_per_month_[at][month])
-                month = ddi(*rng_ptr_);
+                --month;
 
             T start = month
             ?   std::accumulate(
