@@ -260,7 +260,14 @@ public:
     }
 
     void dump(const std::string& folder) const
-    {}
+    {
+        std::ofstream out(folder + "/network.dat", std::ofstream::out);
+        out << "# Agent ID\tFollower ID\n\n";
+        for (unsigned id = 0; id < n_agents_; ++id)
+            for (auto id_fol : followers_[id])
+            //for (auto id_fol : followees_[id])
+                out << id << "\t" << id_fol << "\n";
+    }
 
 private:
     // initialize agent types
