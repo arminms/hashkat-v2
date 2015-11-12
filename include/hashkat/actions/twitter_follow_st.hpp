@@ -192,6 +192,9 @@ private:
         return out;
     }
 
+    virtual void do_dump(const std::string& folder) const
+    {}
+
     // connect relevant slots to signals
     void init_slots()
     {

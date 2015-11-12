@@ -83,7 +83,7 @@ public:
     {   return do_print(out); }
 
     void dump(const std::string& folder) const
-    {}
+    {   return do_dump(folder);   }
 
     action_happened_signal_type& happened()
     {   return action_happened_signal_;   }
@@ -113,6 +113,7 @@ private:
     virtual void do_update_weight() = 0;
     virtual void do_action() = 0;
     virtual std::ostream& do_print(std::ostream& out) const = 0;
+    virtual void do_dump(const std::string& folder) const = 0;
 };
 
 template

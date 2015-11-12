@@ -165,6 +165,9 @@ private:
         return out;
     }
 
+    virtual void do_dump(const std::string& folder) const
+    {}
+
     std::size_t month() const
     {   return std::size_t(time_ptr_->count() / approx_month_);   }
 
