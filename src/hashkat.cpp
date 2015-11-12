@@ -130,6 +130,8 @@ int main(int argc, char* argv[])
         std::ofstream out(output_folder + "/out.dat", std::ofstream::out);
         out << sim;
 
+        sim.dump(output_folder);
+
         if (!vm.count("silent"))
             std::cout << "Done!\n";
     }

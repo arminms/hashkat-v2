@@ -157,6 +157,9 @@ public:
         return out;
     }
 
+    void dump(const std::string& folder) const
+    {}
+
 private:
     void update_event_rate()
     {

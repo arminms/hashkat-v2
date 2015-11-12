@@ -89,6 +89,9 @@ public:
         return out;
     }
 
+    void dump(const std::string& folder) const
+    {}
+
 private:
     // member variables
     RngType      rng_;

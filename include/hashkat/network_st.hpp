@@ -259,6 +259,9 @@ public:
         return out;
     }
 
+    void dump(const std::string& folder) const
+    {}
+
 private:
     // initialize agent types
     void init_agent_types(const ConfigType& conf)

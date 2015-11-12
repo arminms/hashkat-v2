@@ -82,6 +82,9 @@ public:
     std::ostream& print(std::ostream& out) const
     {   return do_print(out); }
 
+    void dump(const std::string& folder) const
+    {}
+
     action_happened_signal_type& happened()
     {   return action_happened_signal_;   }
 
