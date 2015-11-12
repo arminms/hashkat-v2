@@ -158,7 +158,10 @@ public:
     }
 
     void dump(const std::string& folder) const
-    {}
+    {
+        for (auto& action : actions_.depot_)
+            action->dump(folder);
+    }
 
 private:
     void update_event_rate()
