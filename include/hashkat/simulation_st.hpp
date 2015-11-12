@@ -90,7 +90,10 @@ public:
     }
 
     void dump(const std::string& folder) const
-    {}
+    {
+        net_.dump(folder);
+        eng_.dump(folder);
+    }
 
 private:
     // member variables
