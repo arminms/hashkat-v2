@@ -68,12 +68,12 @@ typedef simulation_st
 int main(int argc, char* argv[])
 {
     std::string input_file = "INFILE.xml";
-    std::string output_file = "out.dat";
+    std::string output_folder = "output";
 
     options_description visible(
         "usage: hashkat [ options ]\n"
         "               [ [-i|--input-file] INFILE.xml ]\n"
-        "               [ [-o|--output-file] out.dat ]\n\n"
+        "               [ [-o|--output-folder] output ]\n\n"
         "Allowed options");
     visible.add_options()
     ("help,h", "display this help and exit")
@@ -83,11 +83,11 @@ int main(int argc, char* argv[])
     options_description hidden("Hidden options");
     hidden.add_options()
     ("input-file,i", value<std::string>(&input_file), "input file")
-    ("output-file,o", value<std::string>(&output_file), "output file");
+    ("output-folder,o", value<std::string>(&output_folder), "output folder");
 
     positional_options_description p;
     p.add("input-file", 1);
-    p.add("output-file", 1);
+    p.add("output-folder", 1);
 
     options_description all("Allowed options");
     all.add(visible).add(hidden);
@@ -123,10 +123,11 @@ int main(int argc, char* argv[])
         {
             std::cout << "Elapsed time: " << sim.duration().count()
                       << " ms" << std::endl;
-            std::cout << "Saving output -> " << output_file << std::endl;
+            std::cout << "Saving output -> " << output_folder
+                      << "/out.dat" << std::endl;
         }
 
-        std::ofstream out(output_file, std::ofstream::out);
+        std::ofstream out(output_folder + "/out.dat", std::ofstream::out);
         out << sim;
 
         if (!vm.count("silent"))
