@@ -252,6 +252,7 @@ private:
         // init referral rate function for twitter_suggest follow model
         unsigned months = (unsigned)cnf_ptr_->template get<double>
             ("analysis.max_time", 1000) / approx_month_;
+        monthly_referral_rate_.reserve(months);
         for (unsigned i = 0; i <= months; ++i)
             monthly_referral_rate_.push_back(1.0 / double(1 + i));
     }
@@ -414,6 +415,14 @@ private:
 
     T twitter_suggest_follow_model(T follower)
     {
+        unsigned bin = unsigned(
+            (time_ptr_->count() - agent_creation_time_[follower])
+       /    (double)approx_month_);
+       std::uniform_real_distribution<double> dr(0, 1);
+       //if (monthly_referral_rate_[bin] > dr(*rng_ptr_))
+       if (!(dr(*rng_ptr_) < monthly_referral_rate_[bin]))
+           return std::numeric_limits<T>::max();
+
         //std::vector<V> weights(weights_);
         //for (auto i = 0; i < weights.size(); ++i)
         //    weights[i] *= bins_[i].size();
@@ -469,7 +478,7 @@ private:
 
     void agent_added(T idx, W at)
     {
-        agent_creation_time_.push_back(*time_ptr_);
+        agent_creation_time_.push_back(time_ptr_->count());
         bins_[0].insert(idx);
         ++at_agent_per_month_[at][month()];
         ++n_connections_;
@@ -513,7 +522,7 @@ private:
     // referral rate function for each month, decreases over time by 1 / t
     std::vector<weight_type> monthly_referral_rate_;
     // creation time for the corresponding agent
-    std::vector<TimeType> agent_creation_time_;
+    std::vector<double> agent_creation_time_;
     // agent type name, NOTE: remove later if redundant/not used
     std::vector<std::string> at_name_;
     // agent type monthly follow weights
