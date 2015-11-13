@@ -248,6 +248,12 @@ private:
             model_weights_[4] = cnf_ptr_->template get<T>
                 ("analysis.model_weights.hashtag", T(1));
          }
+
+        // init referral rate function for twitter_suggest follow model
+        unsigned months = (unsigned)cnf_ptr_->template get<double>
+            ("analysis.max_time", 1000) / approx_month_;
+        for (unsigned i = 0; i <= months; ++i)
+            monthly_referral_rate_.push_back(1.0 / double(1 + i));
     }
 
     // initialize bins
@@ -504,6 +510,8 @@ private:
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<T, 5> model_weights_;
     const int approx_month_;
+    // referral rate function for each month, decreases over time by 1 / t
+    std::vector<weight_type> monthly_referral_rate_;
     // creation time for the corresponding agent
     std::vector<TimeType> agent_creation_time_;
     // agent type name, NOTE: remove later if redundant/not used
