@@ -419,7 +419,6 @@ private:
             (time_ptr_->count() - agent_creation_time_[follower])
        /    (double)approx_month_);
        std::uniform_real_distribution<double> dr(0, 1);
-       //if (monthly_referral_rate_[bin] > dr(*rng_ptr_))
        if (!(dr(*rng_ptr_) < monthly_referral_rate_[bin]))
            return std::numeric_limits<T>::max();
 
@@ -447,7 +446,8 @@ private:
         //,   [&](double)
         //{   return weights_[i] * bins_[i++].size();    });
 
-        auto followee = bins_[di(*rng_ptr_)].cbegin();
+        //auto followee = bins_[di(*rng_ptr_)].cbegin();
+        auto followee = --(bins_[di(*rng_ptr_)].cend());
         return *followee;
     }
 
