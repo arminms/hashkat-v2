@@ -447,7 +447,26 @@ private:
         //{   return weights_[i] * bins_[i++].size();    });
 
         //auto followee = bins_[di(*rng_ptr_)].cbegin();
-        auto followee = --(bins_[di(*rng_ptr_)].cend());
+        //auto followee = --(bins_[di(*rng_ptr_)].cend());
+
+        //auto idx = di(*rng_ptr_);
+        //std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size());
+        //auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
+
+        std::size_t idx = di(*rng_ptr_);
+        std::size_t bucket;
+        do
+        {
+            std::uniform_int_distribution<std::size_t>
+                udi(0, bins_[idx].bucket_count());
+            bucket = udi(*rng_ptr_);
+        } while (bins_[idx].bucket_size(bucket) == 0);
+        //auto followee = --(bins_[idx].cend(bucket));
+        auto followee = bins_[idx].cbegin(bucket);
+        //std::uniform_int_distribution<int>
+        //        udi(0, bins_[idx].bucket_size(bucket));
+        //std::advance(followee, udi(*rng_ptr_));
+
         return *followee;
     }
 
