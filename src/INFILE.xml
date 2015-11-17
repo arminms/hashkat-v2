@@ -38,7 +38,7 @@
     <barabasi_exponent>1</barabasi_exponent>
     <!-- If true, simulation time will be incremented at a non-constant rate.
      Increments by 1/sum(rates) on average -->
-    <use_random_time_increment>true</use_random_time_increment>
+    <use_random_time_increment>false</use_random_time_increment>
     <!-- Whether to enable follow-back in the simulation. From literature, it
      makes sense for a realistic system to have followback enabled -->
     <use_followback>false</use_followback>
@@ -46,7 +46,7 @@
     <use_follow_via_retweets>false</use_follow_via_retweets>
     <!-- Accepted models: 'random', 'twitter_suggest', 'agent',
      'preferential_agent', 'hashtag', 'twitter' -->
-    <follow_model>random</follow_model>
+    <follow_model>twitter_suggest</follow_model>
     <!-- The normalized probability of calling each follow model ONLY for the
      'twitter' follow model. -->
     <model_weights>
@@ -69,7 +69,7 @@
     <!-- The rate function for adding agents to the network. -->
     <add>
         <function>constant</function>
-        <value>0</value>
+        <value>1.0</value>
     </add>
 </rates>
 <!--  Various options for the output of the simulation, both while it runs and
@@ -82,7 +82,6 @@
     <ignore_load_config_check>true</ignore_load_config_check>
     <!-- File to save to, and load from -->
     <save_file>network_state.dat</save_file>
-
     <stdout_basic>true</stdout_basic>
     <stdout_summary>true</stdout_summary>
     <summary_output_rate>1</summary_output_rate>
@@ -120,13 +119,13 @@
     <thresholds>
         <bin_spacing>linear</bin_spacing>
         <min>0</min>
-        <max>10000</max>
+        <max>1000</max>
         <increment>1</increment>
     </thresholds>
     <weights>
         <bin_spacing>linear</bin_spacing>
         <min>1</min>
-        <max>10001</max>
+        <max>1001</max>
         <increment>1</increment>
     </weights>
 </follow_ranks>
@@ -309,7 +308,7 @@
         <!-- Weight with which this agent is created -->
         <add>100</add>
         <!-- Weight with which this agent is followed in 'agent' follow model -->
-        <follow>5</follow>
+        <follow>20</follow>
         <tweet_type>
             <ideological>1</ideological>
             <plain>1</plain>
@@ -327,12 +326,47 @@
     </hashtag_follow_options>
     <rates>
         <follow><!-- Rate for follows from this agent: -->
-            <function>constant</function>
-            <value>0.0001</value>
+            <function>linear</function>
+            <y_intercept>0.001</y_intercept>
+            <slope>0.001</slope>
         </follow>
         <tweet><!-- Rate for tweets from this agent: -->
             <function>constant</function>
-            <value>0.001</value>
+            <value>0</value>
+        </tweet>
+    </rates>
+</agents>
+<agents>
+    <name>Celebrity</name>
+    <weights>
+        <!-- Weight with which this agent is created -->
+        <add>100</add>
+        <!-- Weight with which this agent is followed in 'agent' follow model -->
+        <follow>80</follow>
+        <tweet_type>
+            <ideological>1</ideological>
+            <plain>1</plain>
+            <musical>1</musical>
+            <humorous>1</humorous>
+        </tweet_type>
+    </weights>
+    <!-- Probability that following this agent results in a follow-back -->
+    <followback_probability>0.01</followback_probability>
+    <hashtag_follow_options>
+        <!-- does the agent care about where the agent they will follow is from? -->
+        <care_about_region>false</care_about_region>
+        <!-- does the agent care about the ideology of the agent they will follow? -->
+        <care_about_ideology>false</care_about_ideology>
+    </hashtag_follow_options>
+    <rates>
+        <follow><!-- Rate for follows from this agent: -->
+            <function>linear</function>
+            <y_intercept>0.00001</y_intercept>
+            <slope>0.00001</slope>
+        </follow>
+        <tweet><!-- Rate for tweets from this agent: -->
+            <function>constant</function>
+            <value>0</value>
         </tweet>
     </rates>
 </agents>
