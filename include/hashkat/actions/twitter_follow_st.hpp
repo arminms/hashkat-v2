@@ -298,27 +298,27 @@ private:
         {
             if (v.first == "agents")
             {
-                at_name_.emplace_back(v.second.get<std::string>("name"));
-                at_add_weight_.emplace_back(v.second.get<weight_type>
+                at_name_.emplace_back(v.second.template get<std::string>("name"));
+                at_add_weight_.emplace_back(v.second.template get<weight_type>
                     ("weights.add", weight_type(100)));
-                at_af_weight_.emplace_back(v.second.get<double>
+                at_af_weight_.emplace_back(v.second.template get<double>
                     ("weights.follow", 5));
-                at_care_about_region_.emplace_back(v.second.get<bool>
+                at_care_about_region_.emplace_back(v.second.template get<bool>
                     ("hashtag_follow_options.care_about_region", false));
-                at_care_about_ideology_.emplace_back(v.second.get<bool>
+                at_care_about_ideology_.emplace_back(v.second.template get<bool>
                     ("hashtag_follow_options.care_about_ideology", false));
 
                 unsigned months = (unsigned)cnf_ptr_->template get<double>
                     ("analysis.max_time", 1000) / approx_month_;
 
-                std::string f_type = v.second.get<std::string>
+                std::string f_type = v.second.template get<std::string>
                     ("rates.follow.function", "constant");
 
                 if (f_type == "linear" )
                 {
-                     weight_type y_intercept = v.second.get<weight_type>
+                     weight_type y_intercept = v.second.template get<weight_type>
                          ("rates.follow.y_intercept", 1);
-                     weight_type slope = v.second.get<weight_type>
+                     weight_type slope = v.second.template get<weight_type>
                          ("rates.follow.y_slope", 0.5);
                     at_monthly_weights_.emplace_back
                         (std::vector<weight_type>());
@@ -330,7 +330,7 @@ private:
                 }
                 else
                 {
-                    base_type::weight_ = v.second.get<weight_type>
+                    base_type::weight_ = v.second.template get<weight_type>
                         ("rates.follow.value", 1);
                     at_monthly_weights_.emplace_back
                         (std::vector<weight_type>());

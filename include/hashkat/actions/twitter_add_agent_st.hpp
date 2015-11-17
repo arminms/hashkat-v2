@@ -97,7 +97,7 @@ private:
             if (v.first == "agents")
             {
                 //at_name_.emplace_back(v.second.get<std::string>("name"));
-                at_add_weight_.emplace_back(v.second.get<weight_type>
+                at_add_weight_.emplace_back(v.second.template get<weight_type>
                     ("weights.add", weight_type(100)));
             }
     }
