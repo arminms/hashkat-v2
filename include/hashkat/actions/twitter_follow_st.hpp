@@ -298,7 +298,8 @@ private:
         {
             if (v.first == "agents")
             {
-                at_name_.emplace_back(v.second.template get<std::string>("name"));
+                at_name_.emplace_back(v.second.template get<std::string>
+                    ("name"));
                 at_add_weight_.emplace_back(v.second.template get<weight_type>
                     ("weights.add", weight_type(100)));
                 at_af_weight_.emplace_back(v.second.template get<double>
@@ -446,25 +447,26 @@ private:
         //,   [&](double)
         //{   return weights_[i] * bins_[i++].size();    });
 
-        //auto followee = bins_[di(*rng_ptr_)].cbegin();
-        //auto followee = --(bins_[di(*rng_ptr_)].cend());
+        auto idx = di(*rng_ptr_);
+        BOOST_ASSERT_MSG(bins_[idx].size() > 0, "zero bin size :(");
+        std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
+        auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
 
+        //// comment out the above four lines and uncomment the lines
+        //// below to trade some randomness for efficiency
         //auto idx = di(*rng_ptr_);
-        //std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size());
-        //auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
-
-        std::size_t idx = di(*rng_ptr_);
-        std::size_t bucket;
-        do
-        {
-            std::uniform_int_distribution<std::size_t>
-                udi(0, bins_[idx].bucket_count());
-            bucket = udi(*rng_ptr_);
-        } while (bins_[idx].bucket_size(bucket) == 0);
-        //auto followee = --(bins_[idx].cend(bucket));
-        auto followee = bins_[idx].cbegin(bucket);
-        //std::uniform_int_distribution<int>
-        //        udi(0, bins_[idx].bucket_size(bucket));
+        //std::size_t bucket;
+        //do
+        //{
+        //    std::uniform_int_distribution<std::size_t>
+        //        udi(0, bins_[idx].bucket_count() - 1);
+        //    bucket = udi(*rng_ptr_);
+        //} while (bins_[idx].bucket_size(bucket) == 0);
+        //auto followee = bins_[idx].cbegin(bucket);
+        //// uncomment the following lines to
+        //// trade some efficiency for randomness
+        //std::uniform_int_distribution<std::size_t>
+        //        udi(0, bins_[idx].bucket_size(bucket) - 1);
         //std::advance(followee, udi(*rng_ptr_));
 
         return *followee;
