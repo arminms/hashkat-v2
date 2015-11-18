@@ -93,7 +93,7 @@ private:
     // initialize agent types
     void init_agent_types()
     {
-        for (auto const& v : *cnf_ptr_)
+        for (auto const& v : boost::adaptors::reverse(*cnf_ptr_))
             if (v.first == "agents")
             {
                 //at_name_.emplace_back(v.second.get<std::string>("name"));
