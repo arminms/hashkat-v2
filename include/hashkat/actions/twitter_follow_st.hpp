@@ -561,6 +561,7 @@ private:
     std::vector<V> weights_;
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
+    std::array<T, 5> follow_models_count_;
     std::array<T, 5> model_weights_;
     const int approx_month_;
     // referral rate function for each month, decreases over time by 1 / t
