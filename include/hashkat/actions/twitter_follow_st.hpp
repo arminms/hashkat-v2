@@ -200,16 +200,33 @@ private:
             out << "FOLLOWS\n"
                 << "_______\n\n";
             out << "Total follows: " << base_type::rate_ << "\n";
+            std::size_t sum = std::accumulate(
+                follow_models_count_.begin()
+            ,   follow_models_count_.end()
+            ,   std::size_t(0));
+            out << "Total follow attempts: " << sum << "\n";
+            out << "Random: " << follow_models_count_[0]
+                << "\t(" << 100 * follow_models_count_[0] / double(sum)
+                << "% of total follow attempts)\n";
+            out << "Twitter_Suggest: " << follow_models_count_[1]
+                << "\t(" << 100 * follow_models_count_[1] / double(sum)
+                << "% of total follow attempts)\n";
+            out << "Agent: " << follow_models_count_[2]
+                << "\t(" << 100 * follow_models_count_[2] / double(sum)
+                << "% of total follows attempts)\n";
+            out << "Preferential_Agent: " << follow_models_count_[3]
+                << "\t(" << 100 * follow_models_count_[3] / double(sum)
+                << "% of total follow attempts)\n";
+            out << "Retweet: " << 0 // TODO: must be implemented 
+                << "\t(" << 0 
+                << "% of total follows attempts)\n";
+            out << "Hashtag: " << follow_models_count_[4]
+                << "\t(" << 100 * follow_models_count_[4] / double(sum)
+                << "% of total follows attempts)\n";
+            out << "Followbacks: " << 0 // TODO: must be implemented
+                << "\t (" << 0 
+                << "% of total follow attempts)\n";
 
-
-    //output << "Total follow attempts: " << total_follow_calls << "\n";
-    //output << "Random: " << stats.n_random_follows << "\t(" << 100*stats.n_random_follows / total_follow_calls << "% of total follow attempts)\n";
-    //output << "Twitter_Suggest: " << stats.n_preferential_follows << "\t(" << 100*stats.n_preferential_follows / total_follow_calls << "% of total follow attempts)\n";
-    //output << "Agent: " << stats.n_agent_follows << "\t(" << 100*stats.n_agent_follows / total_follow_calls << "% of total follows attempts)\n";
-    //output << "Preferential_Agent: " << stats.n_pref_agent_follows << "\t(" << 100*stats.n_pref_agent_follows / total_follow_calls << "% of total follow attempts)\n";
-    //output << "Retweet: " << stats.n_retweet_follows << "\t(" << 100*stats.n_retweet_follows / total_follow_calls << "% of total follows attempts)\n";
-    //output << "Hashtag: " << stats.n_hashtag_follows << "\t(" << 100*stats.n_hashtag_follows / total_follow_calls << "% of total follows attempts)\n";
-    //output << "Followbacks: " << stats.n_followback << "\t (" << 100*stats.n_followback / total_follow_calls << "% of total follow attempts)\n";
     //for (auto& et : etv) {
     //    output << et.name << ": "
     //            << et.stats.n_follows << "\t("
@@ -568,7 +585,7 @@ private:
     std::vector<V> weights_;
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
-    std::array<T, 5> follow_models_count_;
+    std::array<std::size_t, 5> follow_models_count_;
     std::array<T, 5> model_weights_;
     const int approx_month_;
     // referral rate function for each month, decreases over time by 1 / t
