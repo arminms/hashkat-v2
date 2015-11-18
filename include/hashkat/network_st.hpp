@@ -54,12 +54,14 @@ public:
 
     network_st()
     :   agents_(nullptr)
+    ,   cnf_ptr_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
     {}
 
     network_st(const ConfigType& conf)
     :   agents_(nullptr)
+    ,   cnf_ptr_(&conf)
     ,   n_agents_(0)
     {
         init_agent_types(conf);
@@ -68,6 +70,7 @@ public:
 
     network_st(T n)
     :   agents_(nullptr)
+    ,   cnf_ptr_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
     {   allocate(n); }
@@ -261,12 +264,31 @@ public:
 
     void dump(const std::string& folder) const
     {
-        std::ofstream out(folder + "/network.dat", std::ofstream::out);
+        std::ofstream out(folder + "/network.dat", std::ofstream::trunc);
         out << "# Agent ID\tFollower ID\n\n";
         for (unsigned id = 0; id < n_agents_; ++id)
             for (auto id_fol : followers_[id])
-            //for (auto id_fol : followees_[id])
                 out << id << "\t" << id_fol << "\n";
+        out.close();
+
+        if (cnf_ptr_->template get<bool>("output.main_statistics", true))
+        {
+            out.open(folder + "/main_stats.dat", std::ofstream::trunc);
+            out << "+--------------------+\n"
+                << "| MAIN NETWORK STATS |\n"
+                << "+--------------------+\n\n";
+
+            out << "USERS\n"
+                << "_____\n\n";
+
+            out << "Total: " << n_agents_ << "\n";
+            // vector reverse iteration to compensate reverse config reading
+            for (auto i = at_name_.size(); i-- > 0; )
+                out << at_name_[i] << ": "
+                    << at_agent_ids_[i].size() << "\t(" 
+                    << 100 * at_agent_ids_[i].size() / (double)n_agents_
+                    << "% of total agents)\n";
+        }
     }
 
 private:
@@ -286,6 +308,7 @@ private:
 
     // member variables
     AgentType* agents_;
+    const ConfigType* cnf_ptr_;
     T n_agents_, max_agents_;
     // set of followers for the corresponding agent
     std::vector<std::unordered_set<T>> followers_;
