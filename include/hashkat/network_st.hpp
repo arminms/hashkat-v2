@@ -287,7 +287,7 @@ public:
                 out << at_name_[i] << ": "
                     << at_agent_ids_[i].size() << "\t(" 
                     << 100 * at_agent_ids_[i].size() / (double)n_agents_
-                    << "% of total agents)\n";
+                    << "% of total agents)\n\n";
         }
     }
 

@@ -193,7 +193,30 @@ private:
     }
 
     virtual void do_dump(const std::string& folder) const
-    {}
+    {
+        if (cnf_ptr_->template get<bool>("output.main_statistics", true))
+        {
+            std::ofstream out(folder + "/main_stats.dat", std::ofstream::app);
+            out << "FOLLOWS\n"
+                << "_______\n\n";
+            out << "Total follows: " << base_type::rate_ << "\n";
+
+
+    //output << "Total follow attempts: " << total_follow_calls << "\n";
+    //output << "Random: " << stats.n_random_follows << "\t(" << 100*stats.n_random_follows / total_follow_calls << "% of total follow attempts)\n";
+    //output << "Twitter_Suggest: " << stats.n_preferential_follows << "\t(" << 100*stats.n_preferential_follows / total_follow_calls << "% of total follow attempts)\n";
+    //output << "Agent: " << stats.n_agent_follows << "\t(" << 100*stats.n_agent_follows / total_follow_calls << "% of total follows attempts)\n";
+    //output << "Preferential_Agent: " << stats.n_pref_agent_follows << "\t(" << 100*stats.n_pref_agent_follows / total_follow_calls << "% of total follow attempts)\n";
+    //output << "Retweet: " << stats.n_retweet_follows << "\t(" << 100*stats.n_retweet_follows / total_follow_calls << "% of total follows attempts)\n";
+    //output << "Hashtag: " << stats.n_hashtag_follows << "\t(" << 100*stats.n_hashtag_follows / total_follow_calls << "% of total follows attempts)\n";
+    //output << "Followbacks: " << stats.n_followback << "\t (" << 100*stats.n_followback / total_follow_calls << "% of total follow attempts)\n";
+    //for (auto& et : etv) {
+    //    output << et.name << ": "
+    //            << et.stats.n_follows << "\t("
+    //            << 100*et.stats.n_follows / (double) stats.n_follows << "% of total follows)\n";
+
+        }
+    }
 
     // connect relevant slots to signals
     void init_slots()
