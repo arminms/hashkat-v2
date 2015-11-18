@@ -433,14 +433,16 @@ private:
         return followee == follower ? std::numeric_limits<T>::max() : followee;
     }
 
-    T random_follow_model(T follower)
+    T random_follow_model(T follower)   // 0
     {
+        ++follow_models_count_[0];
         std::uniform_int_distribution<T> di(0, net_ptr_->size() - 1);
         return di(*rng_ptr_);
     }
 
-    T twitter_suggest_follow_model(T follower)
+    T twitter_suggest_follow_model(T follower)  // 1
     {
+        ++follow_models_count_[1];
         unsigned bin = unsigned(
             (time_ptr_->count() - agent_creation_time_[follower])
        /    (double)approx_month_);
@@ -497,20 +499,23 @@ private:
         return *followee;
     }
 
-    T agent_follow_model(T follower)
+    T agent_follow_model(T follower)    // 2
     {
+        ++follow_models_count_[2];
         // not implemented yet
         return std::numeric_limits<T>::max();
     }
 
-    T preferential_agent_follow_model(T follower)
+    T preferential_agent_follow_model(T follower)   // 3
     {
+        ++follow_models_count_[3];
         // not implemented yet
         return std::numeric_limits<T>::max();
     }
 
-    T hashtag_follow_model(T follower)
+    T hashtag_follow_model(T follower)  // 4
     {
+        ++follow_models_count_[4];
         // not implemented yet
         return std::numeric_limits<T>::max();
     }
