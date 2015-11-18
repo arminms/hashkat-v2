@@ -230,6 +230,8 @@ private:
     // initialize follow models
     void init_follow_models()
     {
+        follow_models_count_.fill(0);
+
         follow_models_ =
         {
             boost::bind(&self_type::random_follow_model , this , _1)
