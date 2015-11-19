@@ -442,6 +442,8 @@ private:
                 udi(start, start + at_agent_per_month_[at][month] - 1);
             return net_ptr_->agent_by_type(at, udi(*rng_ptr_));
         }
+
+        //// comment out above and umcomment below for random selection
         //std::uniform_int_distribution<T> udi(0, net_ptr_->size() - 1);
         //return udi(*rng_ptr_);
     }
