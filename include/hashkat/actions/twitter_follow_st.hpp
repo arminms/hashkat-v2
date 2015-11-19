@@ -229,18 +229,11 @@ private:
                 << "% of total follow attempts)\n";
 
             // vector reverse iteration to compensate reverse config reading
-            //for (auto i = at_name_.size(); i-- > 0; )
-            //    out << at_name_[i] << ": "
-            //        << at_agent_ids_[i].size() << "\t(" 
-            //        << 100 * at_agent_ids_[i].size() / (double)n_agents_
-            //        << "% of total agents)\n";
-            //out << std::endl;
-
-    //for (auto& et : etv) {
-    //    output << et.name << ": "
-    //            << et.stats.n_follows << "\t("
-    //            << 100*et.stats.n_follows / (double) stats.n_follows << "% of total follows)\n";
-
+            for (auto i = at_name_.size(); i-- > 0; )
+                out << at_name_[i] << ": "
+                    << at_follows_count_[i] << "\t(" 
+                    << 100 * at_follows_count_[i] / double(base_type::rate_)
+                    << "% of total follows)\n";
         }
     }
 
