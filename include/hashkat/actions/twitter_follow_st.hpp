@@ -395,6 +395,7 @@ private:
                 }
 
                 at_agent_per_month_.emplace_back(std::vector<T>(months + 1, 0));
+                at_follows_count_.push_back(0);
             }
             else
                 break;
