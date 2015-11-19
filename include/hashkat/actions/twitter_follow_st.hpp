@@ -197,7 +197,10 @@ private:
     {
         if (cnf_ptr_->template get<bool>("output.main_statistics", true))
         {
-            std::ofstream out(folder + "/main_stats.dat", std::ofstream::app);
+            std::ofstream out(
+                folder + "/main_stats.dat"
+            ,   std::ofstream::app);
+
             out << "FOLLOWS\n"
                 << "_______\n\n";
             out << "Total follows: " << base_type::rate_ << "\n";
@@ -234,6 +237,18 @@ private:
                     << at_follows_count_[i] << "\t(" 
                     << 100 * at_follows_count_[i] / double(base_type::rate_)
                     << "% of total follows)\n";
+        }
+
+        if (cnf_ptr_->template get<bool>("output.categories_distro", true))
+        {
+            std::ofstream out(
+                folder + "/Categories_Distro.dat"
+            ,   std::ofstream::app);
+
+            out << "Following | ";
+            for (auto i = 0; i < bins_.size(); ++i)
+                out << bins_[i].size() << " at " << i << "|\t";
+            out << std::endl;
         }
     }
 
