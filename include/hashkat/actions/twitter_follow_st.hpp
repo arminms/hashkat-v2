@@ -227,6 +227,14 @@ private:
                 << "\t (" << 0 
                 << "% of total follow attempts)\n";
 
+            // vector reverse iteration to compensate reverse config reading
+            //for (auto i = at_name_.size(); i-- > 0; )
+            //    out << at_name_[i] << ": "
+            //        << at_agent_ids_[i].size() << "\t(" 
+            //        << 100 * at_agent_ids_[i].size() / (double)n_agents_
+            //        << "% of total agents)\n";
+            //out << std::endl;
+
     //for (auto& et : etv) {
     //    output << et.name << ": "
     //            << et.stats.n_follows << "\t("
@@ -598,6 +606,8 @@ private:
     std::vector<std::vector<weight_type>> at_monthly_weights_;
     // number of agents per month for each agent type
     std::vector<std::vector<T>> at_agent_per_month_;
+    // number of follows for each agent type
+    std::vector<std::size_t> at_follows_count_;
     // agent type follow weight ONLY for 'agent' follow model
     std::vector<weight_type> at_af_weight_;
     // agent type add weight
