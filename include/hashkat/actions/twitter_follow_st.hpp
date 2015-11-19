@@ -159,6 +159,7 @@ private:
 
         if (net_ptr_->connect(followee, follower))
         {
+            ++at_follows_count_[net_ptr_->agent_type(follower)];
             base_type::action_happened_signal_();
             base_type::action_finished_signal_();
         }
