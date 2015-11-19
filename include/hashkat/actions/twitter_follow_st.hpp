@@ -250,6 +250,39 @@ private:
                 out << bins_[i].size() << " at " << i << "|\t";
             out << std::endl;
         }
+
+        if (cnf_ptr_->template get<bool>
+            ("output.degree_distribution_by_follow_model", true))
+        {
+            std::ofstream out(
+                folder + "/dd_by_follow_model.dat"
+            ,   std::ofstream::trunc);
+
+            std::size_t max_followees = 0, max_followers = 0;
+            for (std::size_t i = 0; i < net_ptr_->size(); ++i)
+            {
+                if (net_ptr_->followees_size(i) >= max_followees)
+                    max_followees = net_ptr_->followees_size(i) + 1;
+                if (net_ptr_->followers_size(i) >= max_followers)
+                    max_followers = net_ptr_->followers_size(i) + 1;
+            }
+
+            std::size_t max_degree = max_followees + max_followers;
+            // +2 for retweeting and followback
+            std::vector<std::vector<double>> follow_models(5 + 2);
+
+            for (auto& follow_model : follow_models)
+                follow_model.resize(max_degree, 0);
+
+            for (std::size_t i = 0; i < net_ptr_->size(); ++i)
+                for (std::size_t j = 0; j < 7; ++j)
+                {
+                    //Agent& e = n[i];
+                    //std::size_t degree = e.following_method_counts[j] + e.follower_method_counts[j];
+                    std::size_t degree = 0;
+                    ++follow_models[j][degree]; 
+                }
+        }
     }
 
     // connect relevant slots to signals
