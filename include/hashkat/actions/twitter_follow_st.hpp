@@ -96,10 +96,15 @@ private:
         cnf_ptr_  = &cnf;
         rng_ptr_  = &rng;
         time_ptr_ = &time;
-        agent_creation_time_.reserve(cnf_ptr_->template get<T>
-            ("analysis.max_agents", 1000));
+
         zero_add_rate_ = (0 == cnf_ptr_->template get<weight_type>
             ("rates.add.value", 1));
+
+        auto max_agents = cnf_ptr_->template get<T>
+            ("analysis.max_agents", 1000);
+        agent_creation_time_.reserve(max_agents);
+        agent_as_followee_method_counts_.reserve(max_agents);
+        agent_as_follower_method_counts_.reserve(max_agents);
 
         init_slots();
         init_follow_models();
@@ -160,6 +165,8 @@ private:
         if (net_ptr_->connect(followee, follower))
         {
             ++at_follows_count_[net_ptr_->agent_type(follower)];
+            ++agent_as_followee_method_counts_[followee][follow_method];
+            ++agent_as_follower_method_counts_[follower][follow_method];
             base_type::action_happened_signal_();
             base_type::action_finished_signal_();
         }
@@ -243,7 +250,7 @@ private:
         {
             std::ofstream out(
                 folder + "/Categories_Distro.dat"
-            ,   std::ofstream::app);
+            ,   std::ofstream::trunc); // TODO: change to std::ofstream::app
 
             out << "Following | ";
             for (auto i = 0; i < bins_.size(); ++i)
@@ -254,34 +261,63 @@ private:
         if (cnf_ptr_->template get<bool>
             ("output.degree_distribution_by_follow_model", true))
         {
-            std::ofstream out(
-                folder + "/dd_by_follow_model.dat"
-            ,   std::ofstream::trunc);
+            //std::size_t max_followees = 0, max_followers = 0;
+            //for (std::size_t i = 0; i < net_ptr_->size(); ++i)
+            //{
+            //    if (net_ptr_->followees_size(i) >= max_followees)
+            //        max_followees = net_ptr_->followees_size(i) + 1;
+            //    if (net_ptr_->followers_size(i) >= max_followers)
+            //        max_followers = net_ptr_->followers_size(i) + 1;
+            //}
+            //std::size_t max_degree = max_followees + max_followers;
 
-            std::size_t max_followees = 0, max_followers = 0;
+            std::size_t max_degree = 0;
             for (std::size_t i = 0; i < net_ptr_->size(); ++i)
             {
-                if (net_ptr_->followees_size(i) >= max_followees)
-                    max_followees = net_ptr_->followees_size(i) + 1;
-                if (net_ptr_->followers_size(i) >= max_followers)
-                    max_followers = net_ptr_->followers_size(i) + 1;
+                std::size_t sum = net_ptr_->followees_size(i)
+                                + net_ptr_->followers_size(i);
+                if (sum > max_degree)
+                    max_degree = sum + 1;
             }
 
-            std::size_t max_degree = max_followees + max_followers;
             // +2 for retweeting and followback
-            std::vector<std::vector<double>> follow_models(5 + 2);
-
-            for (auto& follow_model : follow_models)
-                follow_model.resize(max_degree, 0);
+            std::vector<std::array<double, 5+2>> follow_models;
+            follow_models.reserve(max_degree);
+            for (auto i = 0; i < max_degree; ++i)
+                follow_models.emplace_back(std::array<double, 5+2> { {} });
 
             for (std::size_t i = 0; i < net_ptr_->size(); ++i)
                 for (std::size_t j = 0; j < 7; ++j)
                 {
-                    //Agent& e = n[i];
-                    //std::size_t degree = e.following_method_counts[j] + e.follower_method_counts[j];
-                    std::size_t degree = 0;
-                    ++follow_models[j][degree]; 
+                    std::size_t degree = agent_as_followee_method_counts_[i][j]
+                                       + agent_as_follower_method_counts_[i][j];
+                    ++follow_models[degree][j]; 
                 }
+
+            std::ofstream out(
+                folder + "/dd_by_follow_model.dat"
+            ,   std::ofstream::trunc);
+
+            out << "This is the degree distribution by follow model.The data "
+                   "order is:\n# degree\tlog_of_degree\tRandom-normalized_prob"
+                   "ability\tRandom-log_of_normalized_probability\tTwitter_Sug"
+                   "gest-normalized_probability\tTwitter_Suggest-log_of_normal"
+                   "ized_probability\tAgent-normalized_probability\tAgent-log_"
+                   "of_normalized_probability\tPreferential_Agent-normalized_p"
+                   "robability\tPreferential_Agent-log_of_normalized_probabili"
+                   "ty\tHashtag-normalized_probability\tHashtag-log_of_normali"
+                   "zed_probability\tTwitter-normalized_probability\tTwitter-l"
+                   "og_of_normalized_probability\tFollowbacks-normalized_proba"
+                   "bility\tFollowbacks-log_of_normalized_probability\n\n";
+
+            for (std::size_t i = 0; i < max_degree; ++i)
+            {
+                out << i << "\t" << std::log(i);
+                for (auto& ent_type : follow_models[i])
+                    out << "\t" << ent_type / net_ptr_->size()
+                        << "\t" << std::log(ent_type / net_ptr_->size());
+                out << std::endl;
+            }
         }
     }
 
@@ -297,6 +333,7 @@ private:
     // initialize follow models
     void init_follow_models()
     {
+        follow_method = -1;
         follow_models_count_.fill(0);
 
         follow_models_ =
@@ -505,6 +542,7 @@ private:
 
     T random_follow_model(T follower)   // 0
     {
+        follow_method = 0;
         ++follow_models_count_[0];
         std::uniform_int_distribution<T> di(0, net_ptr_->size() - 1);
         return di(*rng_ptr_);
@@ -512,7 +550,9 @@ private:
 
     T twitter_suggest_follow_model(T follower)  // 1
     {
+        follow_method = 1;
         ++follow_models_count_[1];
+
         unsigned bin = unsigned(
             (time_ptr_->count() - agent_creation_time_[follower])
        /    (double)approx_month_);
@@ -571,21 +611,27 @@ private:
 
     T agent_follow_model(T follower)    // 2
     {
+        follow_method = 2;
         ++follow_models_count_[2];
+
         // not implemented yet
         return std::numeric_limits<T>::max();
     }
 
     T preferential_agent_follow_model(T follower)   // 3
     {
+        follow_method = 3;
         ++follow_models_count_[3];
+
         // not implemented yet
         return std::numeric_limits<T>::max();
     }
 
     T hashtag_follow_model(T follower)  // 4
     {
+        follow_method = 4;
         ++follow_models_count_[4];
+
         // not implemented yet
         return std::numeric_limits<T>::max();
     }
@@ -600,6 +646,8 @@ private:
     void agent_added(T idx, W at)
     {
         agent_creation_time_.push_back(time_ptr_->count());
+        agent_as_followee_method_counts_.emplace_back(std::array<T, 7> { {} });
+        agent_as_follower_method_counts_.emplace_back(std::array<T, 7> { {} });
         bins_[0].insert(idx);
         ++at_agent_per_month_[at][month()];
         ++n_connections_;
@@ -640,11 +688,16 @@ private:
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<std::size_t, 5> follow_models_count_;
     std::array<T, 5> model_weights_;
+    int follow_method;
     const int approx_month_;
     // referral rate function for each month, decreases over time by 1 / t
     std::vector<weight_type> monthly_referral_rate_;
     // creation time for the corresponding agent
     std::vector<double> agent_creation_time_;
+    // counts of follow models for the corresponding agent as a followee
+    std::vector<std::array<T, 7>> agent_as_followee_method_counts_;
+    // counts of follow models for the corresponding agent as a follower
+    std::vector<std::array<T, 7>> agent_as_follower_method_counts_;
     // agent type name, NOTE: remove later if redundant/not used
     std::vector<std::string> at_name_;
     // agent type monthly follow weights
