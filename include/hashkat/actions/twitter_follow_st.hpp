@@ -319,6 +319,29 @@ private:
                 out << std::endl;
             }
         }
+
+        if (cnf_ptr_->template get<bool>("output.agent_stats", true))
+        {
+            for (std::size_t i = 0; i < at_name_.size(); ++i)
+            {
+                std::ofstream out(folder
+                +   '/'
+                +   at_name_[i]
+                +   "_info.dat"
+                ,   std::ofstream::trunc);
+
+                std::size_t max_degree = 0;
+                for (T j = 0; j < net_ptr_->count(i); ++j)
+                {
+                    std::size_t degree
+                    =   net_ptr_->followees_size(net_ptr_->agent_by_type(i, j))
+                    +   net_ptr_->followers_size(net_ptr_->agent_by_type(i, j));
+                    if (degree > max_degree)
+                        max_degree = degree;
+                }
+
+            }
+        }
     }
 
     // connect relevant slots to signals
