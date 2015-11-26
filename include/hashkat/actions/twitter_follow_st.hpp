@@ -322,14 +322,9 @@ private:
 
         if (cnf_ptr_->template get<bool>("output.agent_stats", true))
         {
-            for (std::size_t i = 0; i < at_name_.size(); ++i)
+            // vector reverse iteration to compensate reverse config reading
+            for (auto i = at_name_.size(); i-- > 0; )
             {
-                std::ofstream out(folder
-                +   '/'
-                +   at_name_[i]
-                +   "_info.dat"
-                ,   std::ofstream::trunc);
-
                 std::size_t max_degree = 0;
                 for (T j = 0; j < net_ptr_->count(i); ++j)
                 {
@@ -340,6 +335,73 @@ private:
                         max_degree = degree;
                 }
 
+                std::vector<T> agent_followers(max_degree + 1, 0);
+                std::vector<T> agent_followees(max_degree + 1, 0);
+                std::vector<T> agent_degree(max_degree + 1, 0);
+                std::vector<T> who_followees(at_name_.size(), 0);
+                std::vector<T> who_followers(at_name_.size(), 0);
+
+                std::size_t followers_sum = 0, followees_sum = 0;
+                for (T j = 0; j < net_ptr_->count(i); ++j)
+                {
+                    T id = net_ptr_->agent_by_type(i, j);
+                    std::size_t in_degree = net_ptr_->followers_size(id);
+                    std::size_t out_degree = net_ptr_->followees_size(id);
+                    ++agent_followers[in_degree];
+                    ++agent_followees[out_degree];
+                    ++agent_degree[in_degree + out_degree];
+                    for (auto follower : net_ptr_->follower_set(id))
+                    {
+                        ++who_followees[net_ptr_->agent_type(follower)];
+                        ++followees_sum;
+                    }
+                    for (auto followee : net_ptr_->followee_set(id))
+                    {
+                        ++who_followers[net_ptr_->agent_type(followee)];
+                        ++followers_sum;
+                    }
+                }
+
+                std::ofstream out(folder
+                +   '/'
+                +   at_name_[i]
+                +   "_info.dat"
+                ,   std::ofstream::trunc);
+
+                out << "# Agent percentages following agent type \'"
+                    << at_name_[i] << "\'\n# ";
+                for (auto j = at_name_.size(); j-- > 0; )
+                    out << at_name_[j] << ": "
+                        << who_followees[j] / double(followees_sum) * 100.0
+                        << "   ";
+
+                out << "\n# Agent percentages that agent type \'"
+                    << at_name_[i] << "\' follows\n# ";
+                for (auto j = at_name_.size(); j-- > 0; )
+                    out << at_name_[j] << ": "
+                        << who_followers[j] / double(followers_sum) * 100.0
+                        << "   ";
+
+                out << "\n# degree\tin_degree\tout_degree\tcumulative\tlog"
+                       "(degree)\tlog(in_degree)\tlog(out_degree)\tlog"
+                       "(cumulative)\n\n";
+                for (std::size_t j = 0; j < max_degree; ++j)
+                    out << j << "\t"
+                        << agent_followers[j] / (double)net_ptr_->count(i)
+                        << "\t"
+                        << agent_followees[j] / (double)net_ptr_->count(i)
+                        << "\t"
+                        << agent_degree[j] / (double)net_ptr_->count(i)
+                        << "\t" << std::log(j) << "\t"
+                        << std::log
+                            (agent_followers[j] / (double)net_ptr_->count(i))
+                        << "\t"
+                        << std::log
+                            (agent_followees[j] / (double)net_ptr_->count(i))
+                        << "\t"
+                        << std::log
+                            (agent_degree[j] / (double)net_ptr_->count(i))
+                        << "\n";
             }
         }
     }
