@@ -139,7 +139,7 @@ private:
                 base_type::weight_ +=
                     net_ptr_->count(i) * at_monthly_weights_[i][month()];
         else
-            for (std::size_t i = 0; i < at_monthly_weights_.size(); ++i)
+            for (std::size_t i = 0; i < at_agent_per_month_.size(); ++i)
                 base_type::weight_ += at_agent_per_month_[i][month()]
                                    *  at_monthly_weights_[i][month()];
     }
@@ -147,6 +147,13 @@ private:
     virtual void do_action()
     {
         BOOST_CONSTEXPR_OR_CONST auto failed = std::numeric_limits<T>::max();
+
+        if (month() == at_agent_per_month_[0].size())
+        {
+            for (auto i = 0; i < at_name_.size(); ++i)
+                at_agent_per_month_[i].push_back(0);
+            save_degree_distributions("output");
+        }
 
         auto follower = select_follower();
         if (follower == failed)
@@ -561,7 +568,9 @@ private:
                             (base_type::weight_);
                 }
 
-                at_agent_per_month_.emplace_back(std::vector<T>(months + 1, 0));
+                at_agent_per_month_.emplace_back(std::vector<T>());
+                at_agent_per_month_.back().reserve(months + 1);
+                at_agent_per_month_.back().push_back(0);
                 at_follows_count_.push_back(0);
             }
             else
@@ -591,8 +600,8 @@ private:
             ,   0.0);
 
             std::vector<weight_type> adjusted_add_weights;
-            adjusted_add_weights.reserve(at_monthly_weights_[at].size());
-            for (unsigned i = 0; i < at_monthly_weights_[at].size(); ++i)
+            adjusted_add_weights.reserve(at_agent_per_month_[at].size());
+            for (unsigned i = 0; i < at_agent_per_month_[at].size(); ++i)
                 adjusted_add_weights.push_back(
                     at_monthly_weights_[at][i]
                 *   at_add_weight_[at]
@@ -810,7 +819,6 @@ private:
         fname.str(folder);
         fname << "/in" << base << std::setfill('0')
               << std::setw(3) << month() << ".dat";
-        std::cout << fname.str() << std::endl;
         out.open(fname.str(), std::ofstream::trunc);
         out << "# This is the in-" << rest;
         for (std::size_t i = 0; i < max_followers; ++i)
@@ -824,7 +832,6 @@ private:
         fname.str(folder);
         fname << "/cumulative" << base << std::setfill('0')
               << std::setw(3) << month() << ".dat";
-        std::cout << fname.str() << std::endl;
         out.open(fname.str(), std::ofstream::trunc);
         out << "# This is the cumulative " << rest;
         for (std::size_t i = 0; i < max_degree; ++i)
