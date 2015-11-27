@@ -406,7 +406,7 @@ private:
         }
 
         if (cnf_ptr_->template get<bool>("output.degree_distributions", true))
-            save_degree_distributions();
+            save_degree_distributions(folder);
     }
 
     // connect relevant slots to signals
@@ -761,7 +761,7 @@ private:
     std::size_t month() const
     {   return std::size_t(time_ptr_->count() / approx_month_);   }
 
-    void save_degree_distributions() const
+    void save_degree_distributions(const std::string& folder) const
     {
         std::size_t max_followees = 0, max_followers = 0;
         for (T i = 0; i < net_ptr_->size(); ++i)
@@ -772,6 +772,67 @@ private:
                 max_followers = net_ptr_->followers_size(i) + 1;
         }
         std::size_t max_degree = max_followees + max_followers;
+
+        std::vector<T> od_distro(max_followees, 0);
+        std::vector<T> id_distro(max_followers, 0);
+        std::vector<T> cd_distro(max_degree, 0);
+        for (T i = 0; i < net_ptr_->size(); ++i)
+        {
+            std::size_t out, in;
+            ++od_distro[out = net_ptr_->followees_size(i)];
+            ++id_distro[in  = net_ptr_->followers_size(i)];
+            ++cd_distro[out + in];
+        }
+
+        std::size_t max = 0;
+        for (auto count : cd_distro)
+            if (count > max)
+                max = count;
+
+        std::string base("-degree_distribution_month_");
+        std::string rest("degree distribution. The data order is:\n# degree, "
+            "normalized probability, log of degree, log of normalized"
+            " probability\n\n");
+
+        std::ostringstream fname(folder, std::ios_base::ate);
+        fname << "/out" << base << std::setfill('0')
+              << std::setw(3) << month() << ".dat";
+        std::ofstream out(fname.str(), std::ofstream::trunc);
+        out << "# This is the out-" << rest;
+        for (std::size_t i = 0; i < max_followees; ++i)
+            out << i << "\t"
+                << od_distro[i] / (double)net_ptr_->size()
+                << "\t" << std::log(i) << "\t"
+                << std::log(od_distro[i] / (double)net_ptr_->size())
+                << std::endl;
+        out.close();
+
+        fname.str(folder);
+        fname << "/in" << base << std::setfill('0')
+              << std::setw(3) << month() << ".dat";
+        std::cout << fname.str() << std::endl;
+        out.open(fname.str(), std::ofstream::trunc);
+        out << "# This is the in-" << rest;
+        for (std::size_t i = 0; i < max_followers; ++i)
+            out << i << "\t"
+                << id_distro[i] / (double)net_ptr_->size()
+                << "\t" << std::log(i) << "\t"
+                << std::log(id_distro[i] / (double)net_ptr_->size())
+                << std::endl;
+        out.close();
+
+        fname.str(folder);
+        fname << "/cumulative" << base << std::setfill('0')
+              << std::setw(3) << month() << ".dat";
+        std::cout << fname.str() << std::endl;
+        out.open(fname.str(), std::ofstream::trunc);
+        out << "# This is the cumulative " << rest;
+        for (std::size_t i = 0; i < max_degree; ++i)
+            out << i << "\t"
+                << cd_distro[i] / (double)net_ptr_->size()
+                << "\t" << std::log(i) << "\t"
+                << std::log(cd_distro[i] / (double)net_ptr_->size())
+                << std::endl;
     }
 
 // member variables
