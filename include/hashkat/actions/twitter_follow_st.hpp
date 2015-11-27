@@ -404,6 +404,9 @@ private:
                         << "\n";
             }
         }
+
+        if (cnf_ptr_->template get<bool>("output.degree_distributions", true))
+            save_degree_distributions();
     }
 
     // connect relevant slots to signals
@@ -757,6 +760,19 @@ private:
 
     std::size_t month() const
     {   return std::size_t(time_ptr_->count() / approx_month_);   }
+
+    void save_degree_distributions() const
+    {
+        std::size_t max_followees = 0, max_followers = 0;
+        for (T i = 0; i < net_ptr_->size(); ++i)
+        {
+            if (net_ptr_->followees_size(i) >= max_followees)
+                max_followees = net_ptr_->followees_size(i) + 1;
+            if (net_ptr_->followers_size(i) >= max_followers)
+                max_followers = net_ptr_->followers_size(i) + 1;
+        }
+        std::size_t max_degree = max_followees + max_followers;
+    }
 
 // member variables
     NetworkType* net_ptr_;
