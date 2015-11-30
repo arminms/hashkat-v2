@@ -590,9 +590,13 @@ private:
         }
         else
         {
-            weight_type sum = std::accumulate(
-                at_monthly_weights_[at].begin()
-            ,   at_monthly_weights_[at].end()
+            std::vector<weight_type> add_weight(
+                at_monthly_weights_[at].size()
+            ,   at_add_weight_[at]);
+            weight_type sum = std::inner_product(
+                at_monthly_weights_[at].cbegin()
+            ,   at_monthly_weights_[at].cend()
+            ,   add_weight.cbegin()
             ,   0.0);
 
             std::vector<weight_type> adjusted_add_weights;
