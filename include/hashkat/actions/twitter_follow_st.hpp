@@ -131,13 +131,27 @@ private:
     {
         base_type::weight_ = 0;
         if (zero_add_rate_)
-            for (std::size_t i = 0; i < at_monthly_weights_.size(); ++i)
-                base_type::weight_ +=
-                    net_ptr_->count(i) * at_monthly_weights_[i][month()];
+            for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
+                base_type::weight_ += net_ptr_->count(at) 
+                                   *  at_monthly_weights_[at][month()];
         else
-            for (std::size_t i = 0; i < at_agent_per_month_.size(); ++i)
-                base_type::weight_ += at_agent_per_month_[i][month()]
-                                   *  at_monthly_weights_[i][month()];
+            for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
+                for (std::size_t month = 0
+                ;    month < at_agent_per_month_[at].size()
+                ;    ++month)
+                    base_type::weight_ += at_agent_per_month_[at][month]
+                                       *  at_monthly_weights_[at][month];
+
+            //for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
+            //   base_type::weight_ += std::inner_product(
+            //        at_agent_per_month_[at].cbegin()
+            //    ,   at_agent_per_month_[at].cend()
+            //    ,   at_monthly_weights_.cbegin()
+            //    ,   0.0);
+
+            //for (std::size_t i = 0; i < at_agent_per_month_.size(); ++i)
+            //    base_type::weight_ += at_agent_per_month_[i][month()]
+            //                       *  at_monthly_weights_[i][month()];
     }
 
     virtual void do_action()
@@ -576,6 +590,7 @@ private:
 
     T select_follower()
     {
+        // TODO: code for the zero_add_rate_
         std::vector<weight_type> adjusted_weights;
         std::vector<std::pair<std::size_t, std::size_t>> grid;
         for (std::size_t at = 0; at < at_add_weight_.size(); ++at)
