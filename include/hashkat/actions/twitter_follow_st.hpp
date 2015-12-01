@@ -576,43 +576,29 @@ private:
 
     T select_follower()
     {
-        std::discrete_distribution<W> ddi(
-            at_add_weight_.begin(), at_add_weight_.end());
-        W at = ddi(*rng_ptr_);
-        while (0 == net_ptr_->count(at))
-            at = ddi(*rng_ptr_);
+        std::vector<weight_type> adjusted_weights;
+        std::vector<std::pair<std::size_t, std::size_t>> grid;
+        for (std::size_t at = 0; at < at_add_weight_.size(); ++at)
+            for (std::size_t month = 0;
+                 month < at_agent_per_month_[at].size();
+                 ++month)
+            {
+                adjusted_weights.push_back(
+                    at_monthly_weights_[at][month]
+                *   at_add_weight_[at]);
+                grid.push_back(std::make_pair(at, month));
+            }
 
-        if (zero_add_rate_)
-        {
-            std::uniform_int_distribution<T>
-                udi(0, T(net_ptr_->count(at) - 1));
-            return net_ptr_->agent_by_type(at, udi(*rng_ptr_));
-        }
-        else
-        {
-            std::vector<weight_type> add_weight(
-                at_monthly_weights_[at].size()
-            ,   at_add_weight_[at]);
-            weight_type sum = std::inner_product(
-                at_monthly_weights_[at].cbegin()
-            ,   at_monthly_weights_[at].cend()
-            ,   add_weight.cbegin()
-            ,   0.0);
-
-            std::vector<weight_type> adjusted_add_weights;
-            adjusted_add_weights.reserve(at_agent_per_month_[at].size());
-            for (unsigned i = 0; i < at_agent_per_month_[at].size(); ++i)
-                adjusted_add_weights.push_back(
-                    at_monthly_weights_[at][i]
-                *   at_add_weight_[at]
-                /   sum);
-
-            std::discrete_distribution<W> ddi(
-                adjusted_add_weights.begin()
-            ,   adjusted_add_weights.end());
-            std::size_t month = ddi(*rng_ptr_);
-            while (0 == at_agent_per_month_[at][month])
-                --month;
+            std::discrete_distribution<W> dd(
+                adjusted_weights.begin()
+            ,   adjusted_weights.end());
+            auto r = grid[dd(*rng_ptr_)];
+            auto at = r.first;
+            if (0 == net_ptr_->count(at))
+                return std::numeric_limits<T>::max();
+            auto month = r.second;
+            if (0 == at_agent_per_month_[at][month])
+                return std::numeric_limits<T>::max();
 
             T start = (month
             ?   std::accumulate(
@@ -621,9 +607,8 @@ private:
                 ,   0)
             :   0);
             std::uniform_int_distribution<T>
-                udi(start, start + at_agent_per_month_[at][month] - 1);
-            return net_ptr_->agent_by_type(at, udi(*rng_ptr_));
-        }
+                di(start, start + at_agent_per_month_[at][month] - 1);
+            return net_ptr_->agent_by_type(at, di(*rng_ptr_));
 
         //// comment out above and umcomment below for random selection
         //std::uniform_int_distribution<T> udi(0, net_ptr_->size() - 1);
