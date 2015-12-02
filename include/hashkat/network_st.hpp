@@ -274,16 +274,77 @@ public:
 
     void dump(const std::string& folder) const
     {
-        std::ofstream out(folder + "/network.dat", std::ofstream::trunc);
-        out << "# Agent ID\tFollower ID\n\n";
-        for (unsigned id = 0; id < n_agents_; ++id)
-            for (auto id_fol : followers_[id])
-                out << id << "\t" << id_fol << "\n";
-        out.close();
+        if (cnf_ptr_->template get<bool>("output.visualize", true))
+        {
+            std::ofstream out(folder + "/network.dat", std::ofstream::trunc);
+            out << "# Agent ID\tFollower ID\n\n";
+            for (unsigned id = 0; id < n_agents_; ++id)
+                for (auto id_fol : followers_[id])
+                    out << id << "\t" << id_fol << "\n";
+            out.close();
+
+            out.open(folder + "/network.gexf", std::ofstream::trunc);
+            std::time_t t = std::time(nullptr);
+            std::tm tm = *std::localtime(&t);
+            out << "<gexf version=\"1.2\">\n"
+                << "<meta lastmodifieddate=\""
+                << std::put_time(&tm, "%Y-%m-%d")
+                << "\">\n"
+                << "<creator>#k@</creator>\n"
+                << "<description>social network simulator</description>\n"
+                << "</meta>\n"
+                << "<graph mode=\"static\" defaultedgetype=\"directed\">\n"
+                << "<nodes>\n";
+            for (T i = 0; i < n_agents_; ++i)
+                out << "<node id=\""
+                    << i
+                    << "\" label=\"" 
+                    << agent_type_[i]
+                    << "\" />\n";
+            out << "</nodes>\n"
+                << "<edges>\n";
+            std::size_t count = 0;
+            for (T id = 0; id < n_agents_; ++id)
+                for (T id_fol : followees_[id])
+                    out << "<edge id=\""
+                        << count++
+                        << "\" source=\""
+                        << id
+                        << "\" target=\""
+                        << id_fol
+                        << "\"/>\n";
+            out << "</edges>\n"
+                << "</graph>\n"
+                << "</gexf>";
+            out.close();
+
+            out.open(folder + "/network.graphml", std::ofstream::trunc);
+            out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                << "<graphml>\n"
+                << "\t<graph id=\"G\" edgedefault=\"directed\">\n";
+            for (std::size_t i = 0; i < n_agents_; ++i)
+                out << "\t\t<node id=\""
+                    << i
+                    << "\" label=\""
+                    << agent_type_[i]
+                    << "\" />\n";
+            count = 0;
+            for (T id = 0; id < n_agents_; ++id)
+                for (T id_fol : followees_[id])
+                    out << "\t\t<edge id=\""
+                        << count++
+                        << "\" source=\""
+                        << id
+                        << "\" target=\""
+                        << id_fol
+                        << "\"/>\n";
+            out << "\t</graph>\n"
+                << "</graphml>";
+        }
 
         if (cnf_ptr_->template get<bool>("output.main_statistics", true))
         {
-            out.open(folder + "/main_stats.dat", std::ofstream::trunc);
+            std::ofstream out(folder + "/main_stats.dat", std::ofstream::trunc);
             out << "+--------------------+\n"
                 << "| MAIN NETWORK STATS |\n"
                 << "+--------------------+\n\n";
