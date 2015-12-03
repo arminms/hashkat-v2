@@ -244,8 +244,7 @@ private:
                 << "\t (" << 0 
                 << "% of total follow attempts)\n";
 
-            // vector reverse iteration to compensate reverse config reading
-            for (auto i = at_name_.size(); i-- > 0; )
+            for (std::size_t i = 0; i < at_name_.size(); ++i)
                 out << at_name_[i] << ": "
                     << at_follows_count_[i] << "\t(" 
                     << 100 * at_follows_count_[i] / double(base_type::rate_)
@@ -304,7 +303,7 @@ private:
                 folder + "/dd_by_follow_model.dat"
             ,   std::ofstream::trunc);
 
-            out << "This is the degree distribution by follow model.The data "
+            out << "This is the degree distribution by follow model. The data "
                    "order is:\n# degree\tlog_of_degree\tRandom-normalized_prob"
                    "ability\tRandom-log_of_normalized_probability\tTwitter_Sug"
                    "gest-normalized_probability\tTwitter_Suggest-log_of_normal"
@@ -328,8 +327,7 @@ private:
 
         if (cnf_ptr_->template get<bool>("output.agent_stats", true))
         {
-            // vector reverse iteration to compensate reverse config reading
-            for (auto i = at_name_.size(); i-- > 0; )
+            for (std::size_t i = 0; i < at_name_.size(); ++i)
             {
                 std::size_t max_degree = 0;
                 for (T j = 0; j < net_ptr_->count(i); ++j)
@@ -376,14 +374,14 @@ private:
 
                 out << "# Agent percentages following agent type \'"
                     << at_name_[i] << "\'\n# ";
-                for (auto j = at_name_.size(); j-- > 0; )
+                for (std::size_t j = 0; j < at_name_.size(); ++j)
                     out << at_name_[j] << ": "
                         << who_followees[j] / double(followees_sum) * 100.0
                         << "   ";
 
                 out << "\n# Agent percentages that agent type \'"
                     << at_name_[i] << "\' follows\n# ";
-                for (auto j = at_name_.size(); j-- > 0; )
+                for (std::size_t j = 0; j < at_name_.size(); ++j)
                     out << at_name_[j] << ": "
                         << who_followers[j] / double(followers_sum) * 100.0
                         << "   ";
@@ -517,7 +515,7 @@ private:
     // initialize agent types
     void init_agent_types()
     {
-        for (auto const& v : boost::adaptors::reverse(*cnf_ptr_))
+        for (auto const& v : *cnf_ptr_)
         {
             if (v.first == "agents")
             {
@@ -572,8 +570,6 @@ private:
                 at_agent_per_month_.back().push_back(0);
                 at_follows_count_.push_back(0);
             }
-            else
-                break;
         }
     }
 

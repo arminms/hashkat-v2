@@ -353,8 +353,7 @@ public:
                 << "_____\n\n";
 
             out << "Total: " << n_agents_ << "\n";
-            // vector reverse iteration to compensate reverse config reading
-            for (auto i = at_name_.size(); i-- > 0; )
+            for (std::size_t i = 0; i < at_name_.size(); ++i)
                 out << at_name_[i] << ": "
                     << at_agent_ids_[i].size() << "\t(" 
                     << 100 * at_agent_ids_[i].size() / (double)n_agents_
@@ -367,15 +366,13 @@ private:
     // initialize agent types
     void init_agent_types(const ConfigType& conf)
     {
-        for (auto const& v : boost::adaptors::reverse(conf))
+        for (auto const& v : conf)
             if (v.first == "agents")
             {
                 at_agent_ids_.emplace_back(std::vector<T>());
                 at_name_.emplace_back(v.second.template get<std::string>("name"));
                 at_add_weight_.emplace_back(v.second.template get<V>("weights.add"));
             }
-            else
-                break;
     }
 
     // member variables
