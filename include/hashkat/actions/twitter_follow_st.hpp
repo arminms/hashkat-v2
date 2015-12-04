@@ -110,13 +110,14 @@ private:
         init_follow_models();
         init_bins();
         init_agent_types();
+
+        n_connections_ = 0;
     }
 
     virtual void do_post_init()
     {
         base_type::rate_ = 0;
         base_type::weight_ = 0;
-        n_connections_ = 0;
     }
 
     virtual void do_reset()

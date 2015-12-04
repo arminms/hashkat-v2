@@ -180,12 +180,10 @@ private:
         if (random_time_increment_)
         {
             std::uniform_real_distribution<double> dr(std::nextafter(0, 1), 1);
-            //auto inc = time_type(-std::log(dr(rng_)) / event_rate_);
             auto inc = time_type(-std::log(dr(rng_)) / event_rate);
             time_ += inc;
         }
         else
-            //time_ += time_type(1.0 / event_rate_);
             time_ += time_type(1.0 / event_rate);
     }
 

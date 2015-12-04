@@ -133,7 +133,12 @@ private:
         T ia = cnf_ptr_->template get<T>
             ("analysis.initial_agents", T(0));
         for (T i = 0; i < ia; ++i)
-            (*this)();
+        {
+            std::discrete_distribution<W> di(
+                at_add_weight_.begin(), at_add_weight_.end());
+            if (net_ptr_->grow(di(*rng_ptr_)))
+                ++base_type::rate_;
+        }
     }
 
     virtual void do_reset()
