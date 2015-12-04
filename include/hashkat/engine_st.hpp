@@ -177,11 +177,15 @@ private:
         for (auto& action : actions_.depot_)
             event_rate += action->weight();
 
+        if (event_rate < std::numeric_limits<double>::epsilon())
+            throw std::overflow_error
+                ("Stagnant network! Nothing to do. Exiting.");
+
         if (random_time_increment_)
         {
-            std::uniform_real_distribution<double> dr(std::nextafter(0, 1), 1);
-            auto inc = time_type(-std::log(dr(rng_)) / event_rate);
-            time_ += inc;
+            std::uniform_real_distribution<double>
+                dr(std::nextafter(0.0, 1.0), 1.0);
+            time_ += time_type(-std::log(dr(rng_)) / event_rate);
         }
         else
             time_ += time_type(1.0 / event_rate);
