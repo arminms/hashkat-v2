@@ -712,8 +712,16 @@ private:
         follow_method = 2;
         ++follow_models_count_[2];
 
-        // not implemented yet
-        return std::numeric_limits<T>::max();
+        std::discrete_distribution<W> dd(
+            at_af_weight_.cbegin()
+        ,   at_af_weight_.cend());
+        W at = dd(*rng_ptr_);
+        if (0 == net_ptr_->count(at))
+            return std::numeric_limits<T>::max();
+        std::uniform_int_distribution<T>
+            ud(0, T(net_ptr_->count(at) - 1));
+        // TODO: checking for the agent language
+        return net_ptr_->agent_by_type(at, ud(*rng_ptr_));
     }
 
     T preferential_agent_follow_model(T follower)   // 3
