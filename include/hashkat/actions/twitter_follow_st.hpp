@@ -183,6 +183,16 @@ private:
 
     virtual std::ostream& do_print(std::ostream& out) const
     {
+        for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
+        {
+            out << "# agent type: " << at << ' ';
+            for (std::size_t month = 0
+            ;    month < at_agent_per_month_[at].size()
+            ;    ++month)
+                out << '[' << at_agent_per_month_[at][month] << ']'
+                    << '[' << at_monthly_weights_[at][month] << "],";
+            out << std::endl;
+        }
         out << "# Follow rate: " << base_type::rate_ << std::endl;
         out << "# Follow weight: " << base_type::weight_ << std::endl;
         out << "# Number of Bins: " << bins_.size() << std::endl;
@@ -550,6 +560,9 @@ private:
                         at_monthly_weights_.back().push_back
                             (y_intercept + i * slope);
                     base_type::weight_ = at_monthly_weights_.back()[0];
+                    //std::reverse(
+                    //    at_monthly_weights_.begin()
+                    //,   at_monthly_weights_.end());
                 }
                 else
                 {

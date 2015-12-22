@@ -151,7 +151,11 @@ public:
     {
         out << "# Number of steps: " << n_steps_ << std::endl;
         out << "# Simulation time: " << time_.count() << " min" << std::endl;
-        out << "# Event rate: " << event_rate_ << std::endl;
+        double event_rate = 0;
+        for (auto& action : actions_.depot_)
+            event_rate += action->weight();
+        out << "# Event rate: " << event_rate << std::endl;
+        out << "# Real event rate: " << event_rate_ << std::endl;
          for (auto& action : actions_.depot_)
             out << action.get();
         return out;

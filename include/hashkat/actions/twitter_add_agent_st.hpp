@@ -165,6 +165,7 @@ private:
 
     virtual std::ostream& do_print(std::ostream& out) const
     {
+        out << "# Add weight: " << base_type::weight_ << std::endl;
         out << "# Add rate: " << base_type::rate_ << std::endl;
         out << "# Add weight: " << base_type::weight_ << std::endl;
         return out;
