@@ -130,6 +130,14 @@ private:
 
     virtual void do_update_weight()
     {
+        if (month() == at_agent_per_month_.back().size()
+        ||  time_ptr_->count() == 0)
+        {
+            for (auto i = 0; i < at_name_.size(); ++i)
+                at_agent_per_month_[i].push_back(0);
+            save_degree_distributions("output");
+        }
+
         base_type::weight_ = 0;
         if (zero_add_rate_)
             for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
@@ -137,23 +145,28 @@ private:
                                    *  at_monthly_weights_[at][month()];
         else
             for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
+            {
+                std::vector<T> new_agents;
+                std::reverse_copy(
+                    at_agent_per_month_[at].begin()
+                ,   at_agent_per_month_[at].end()
+                ,   std::back_inserter(new_agents));
                 for (std::size_t month = 0
                 ;    month < at_agent_per_month_[at].size()
                 ;    ++month)
-                    base_type::weight_ += at_agent_per_month_[at][month]
+                    base_type::weight_ += new_agents[month]
                                        *  at_monthly_weights_[at][month];
+                //for (std::size_t month = 0
+                //;    month < at_agent_per_month_[at].size()
+                //;    ++month)
+                //    base_type::weight_ += at_agent_per_month_[at][month]
+                //                       *  at_monthly_weights_[at][month];
+            }
     }
 
     virtual void do_action()
     {
         BOOST_CONSTEXPR_OR_CONST auto failed = std::numeric_limits<T>::max();
-
-        if (month() == at_agent_per_month_[0].size())
-        {
-            for (auto i = 0; i < at_name_.size(); ++i)
-                at_agent_per_month_[i].push_back(0);
-            save_degree_distributions("output");
-        }
 
         auto follower = select_follower();
         if (follower == failed)
@@ -550,9 +563,9 @@ private:
                 if (f_type == "linear" )
                 {
                      weight_type y_intercept = v.second.template get<weight_type>
-                         ("rates.follow.y_intercept", 1);
+                         ("rates.follow.y_intercept", 0.001);
                      weight_type slope = v.second.template get<weight_type>
-                         ("rates.follow.y_slope", 0.5);
+                         ("rates.follow.slope", 0.001);
                     at_monthly_weights_.emplace_back
                         (std::vector<weight_type>());
                     at_monthly_weights_.back().reserve(months + 1);
@@ -561,8 +574,8 @@ private:
                             (y_intercept + i * slope);
                     base_type::weight_ = at_monthly_weights_.back()[0];
                     //std::reverse(
-                    //    at_monthly_weights_.begin()
-                    //,   at_monthly_weights_.end());
+                    //    at_monthly_weights_.back().begin()
+                    //,   at_monthly_weights_.back().end());
                 }
                 else
                 {
@@ -768,7 +781,7 @@ private:
         agent_as_followee_method_counts_.emplace_back(std::array<T, 7> { {} });
         agent_as_follower_method_counts_.emplace_back(std::array<T, 7> { {} });
         bins_[0].insert(idx);
-        ++at_agent_per_month_[at][month()];
+        ++at_agent_per_month_[at].back();
         ++n_connections_;
     }
 

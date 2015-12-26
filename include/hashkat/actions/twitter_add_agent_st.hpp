@@ -115,9 +115,9 @@ private:
         if (f_type == "linear" )
         {
              weight_type y_intercept = cnf_ptr_->template
-                 get<weight_type>("rates.add.y_intercept", 1);
+                 get<weight_type>("rates.add.y_intercept", 0.001);
              weight_type slope = cnf_ptr_->template
-                 get<weight_type>("rates.add.y_slope", 0.5);
+                 get<weight_type>("rates.add.slope", 0.001);
             for (unsigned i = 0; i <= months; ++i)
                 monthly_weights_.push_back(y_intercept + i * slope);
             base_type::weight_ = monthly_weights_[0];
