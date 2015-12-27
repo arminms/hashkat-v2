@@ -130,7 +130,8 @@ private:
 
     virtual void do_update_weight()
     {
-        if (month() == at_agent_per_month_.back().size()
+        auto months = month();
+        if (months == at_agent_per_month_.back().size()
         ||  time_ptr_->count() == 0)
         {
             for (auto i = 0; i < at_name_.size(); ++i)
@@ -142,20 +143,27 @@ private:
         if (zero_add_rate_)
             for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
                 base_type::weight_ += net_ptr_->count(at) 
-                                   *  at_monthly_weights_[at][month()];
+                                   *  at_monthly_weights_[at][months];
         else
             for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
             {
-                std::vector<T> new_agents;
-                std::reverse_copy(
-                    at_agent_per_month_[at].begin()
-                ,   at_agent_per_month_[at].end()
-                ,   std::back_inserter(new_agents));
-                for (std::size_t month = 0
-                ;    month < at_agent_per_month_[at].size()
-                ;    ++month)
-                    base_type::weight_ += new_agents[month]
-                                       *  at_monthly_weights_[at][month];
+                base_type::weight_ += at_agent_per_month_[at].back()
+                                   *  at_monthly_weights_[at][0];
+                for (std::size_t i = 1, j = months; i <= months; ++i, --j)
+                    base_type::weight_ += at_monthly_weights_[at][i]
+                                       *  at_agent_per_month_[at][j];
+
+                //std::vector<T> new_agents;
+                //std::reverse_copy(
+                //    at_agent_per_month_[at].begin()
+                //,   at_agent_per_month_[at].end()
+                //,   std::back_inserter(new_agents));
+                //for (std::size_t month = 0
+                //;    month < at_agent_per_month_[at].size()
+                //;    ++month)
+                //    base_type::weight_ += new_agents[month]
+                //                       *  at_monthly_weights_[at][month];
+
                 //for (std::size_t month = 0
                 //;    month < at_agent_per_month_[at].size()
                 //;    ++month)
