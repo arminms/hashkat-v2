@@ -149,22 +149,29 @@ int main(int argc, char* argv[])
         else
             sim.rng().seed(seed_value);
 
+        // showing some information
+        if (!vm.count("silent"))
+            std::cout << "Starting #k@ network simulator (version )\n"
+                      << "Loading input configuration from '"
+                      << input_file << "'.\n"
+                      << "Starting simulation with seed '"
+                      << seed_value << "'.\n";
+
         // running simulation
         sim.run();
 
+        // done, showing more information
         if (!vm.count("silent"))
-        {
-            std::cout << "Starting simulation with seed "
-                      << seed_value << ".\n";
-            std::cout << "Elapsed time: " << sim.duration().count()
-                      << " ms" << std::endl;
-            std::cout << "Saving output -> " << output_folder
-                      << "/out.dat" << std::endl;
-        }
+            std::cout << "Simulation Completed: desired simulation time reached"
+                      << std::endl
+                      << "Elapsed time: " << sim.duration().count()
+                      << " ms" << std::endl
+                      << "Creating analysis files in: "
+                      << output_folder << std::endl;
 
+        // actually saving the output
         std::ofstream out(output_folder + "/out.dat", std::ofstream::out);
         out << sim;
-
         sim.dump(output_folder);
 
         if (!vm.count("silent"))
