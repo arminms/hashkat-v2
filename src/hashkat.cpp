@@ -72,6 +72,7 @@ int main(int argc, char* argv[])
     std::string input_file = "INFILE.xml";
     std::string output_folder = "output";
     std::string seed;
+    unsigned seed_value = 1;
 
     options_description visible(
         "usage: hashkat [ options ]\n"
@@ -81,7 +82,8 @@ int main(int argc, char* argv[])
     visible.add_options()
     ("help,h", "display this help and exit")
     ("version,v", "output version information and exit")
-    ("seed,r", value<std::string>(&seed), "seed to use")
+    ("seed,r", value<std::string>(&seed),
+        "seed for PRNG, =random for a true RNG")
     ("silent,s", "switch to silent mode");
 
     options_description hidden("Hidden options");
@@ -129,23 +131,31 @@ int main(int argc, char* argv[])
         // setting the seed, if any
         if (vm.count("seed"))
         {
-            if (seed.empty())
+            if (seed == "random")
             {
                 seed_clock::duration d = seed_clock::now() - start;
-                sim.rng().seed(unsigned(d.count()));
+                seed_value = unsigned(d.count());
+                sim.rng().seed(seed_value);
             }
             else
             {
                 std::seed_seq s(seed.begin(), seed.end());
                 sim.rng().seed(s);
+                std::vector<std::uint32_t> seeds(s.size());
+                s.generate(seeds.begin(), seeds.end());
+                seed_value = seeds[0];
             }
         }
+        else
+            sim.rng().seed(seed_value);
 
         // running simulation
         sim.run();
 
         if (!vm.count("silent"))
         {
+            std::cout << "Starting simulation with seed "
+                      << seed_value << ".\n";
             std::cout << "Elapsed time: " << sim.duration().count()
                       << " ms" << std::endl;
             std::cout << "Saving output -> " << output_folder
