@@ -132,11 +132,11 @@ private:
     {
         auto months = month();
         if (months == at_agent_per_month_.back().size() - 1)
-        //||  time_ptr_->count() == 0)
         {
             for (auto i = 0; i < at_name_.size(); ++i)
                 at_agent_per_month_[i].push_back(0);
-            save_degree_distributions("output");
+            save_degree_distributions(cnf_ptr_->template
+                get<std::string>("output_folder", "output"));
         }
 
         base_type::weight_ = 0;

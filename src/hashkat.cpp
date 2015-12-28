@@ -114,8 +114,12 @@ int main(int argc, char* argv[])
         // having notify after -v and -h options...
         notify(vm);
 
+        // initializing configuration
         configuration conf;
         config::read_xml(input_file, conf);
+        conf.add("output_folder", output_folder);
+
+        // running simulation using configuration
         simulation sim(conf);
         sim.run();
 
