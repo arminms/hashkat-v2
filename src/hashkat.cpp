@@ -67,8 +67,11 @@ typedef simulation_st
 
 int main(int argc, char* argv[])
 {
+    typedef std::chrono::high_resolution_clock seed_clock;
+    seed_clock::time_point start = seed_clock::now();
     std::string input_file = "INFILE.xml";
     std::string output_folder = "output";
+    std::string seed;
 
     options_description visible(
         "usage: hashkat [ options ]\n"
@@ -78,6 +81,7 @@ int main(int argc, char* argv[])
     visible.add_options()
     ("help,h", "display this help and exit")
     ("version,v", "output version information and exit")
+    ("seed,r", value<std::string>(&seed), "seed to use")
     ("silent,s", "switch to silent mode");
 
     options_description hidden("Hidden options");
@@ -119,8 +123,25 @@ int main(int argc, char* argv[])
         config::read_xml(input_file, conf);
         conf.add("output_folder", output_folder);
 
-        // running simulation using configuration
+        // constructing simulation object using conf
         simulation sim(conf);
+
+        // setting the seed, if any
+        if (vm.count("seed"))
+        {
+            if (seed.empty())
+            {
+                seed_clock::duration d = seed_clock::now() - start;
+                sim.rng().seed(unsigned(d.count()));
+            }
+            else
+            {
+                std::seed_seq s(seed.begin(), seed.end());
+                sim.rng().seed(s);
+            }
+        }
+
+        // running simulation
         sim.run();
 
         if (!vm.count("silent"))
