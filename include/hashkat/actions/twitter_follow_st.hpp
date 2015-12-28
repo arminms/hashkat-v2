@@ -131,8 +131,8 @@ private:
     virtual void do_update_weight()
     {
         auto months = month();
-        if (months == at_agent_per_month_.back().size()
-        ||  time_ptr_->count() == 0)
+        if (months == at_agent_per_month_.back().size() - 1)
+        //||  time_ptr_->count() == 0)
         {
             for (auto i = 0; i < at_name_.size(); ++i)
                 at_agent_per_month_[i].push_back(0);
