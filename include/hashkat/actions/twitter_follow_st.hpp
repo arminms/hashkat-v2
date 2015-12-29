@@ -581,9 +581,6 @@ private:
                         at_monthly_weights_.back().push_back
                             (y_intercept + i * slope);
                     base_type::weight_ = at_monthly_weights_.back()[0];
-                    //std::reverse(
-                    //    at_monthly_weights_.back().begin()
-                    //,   at_monthly_weights_.back().end());
                 }
                 else
                 {
@@ -598,6 +595,47 @@ private:
                     for (unsigned i = 0; i <= months; ++i)
                         at_monthly_weights_.back().push_back
                             (base_type::weight_);
+                }
+
+                // initializing bins for preferential_agent_follow_model
+                std::string follow_model = cnf_ptr_->template
+                    get<std::string>("analysis.follow_model", "twitter");
+                if (follow_model == "preferential_agent"
+                || (follow_model == "twitter"
+                &&  cnf_ptr_->template get<T>
+                    ("analysis.model_weights.preferential_agent", T(1)) > 0))
+                {
+                    at_kmaxes_.push_back(0);
+
+                    T spc = cnf_ptr_->template get<T>
+                        ("follow_ranks.weights.bin_spacing", T(1));
+                    T min = cnf_ptr_->template get<T>
+                        ("follow_ranks.weights.min", T(1));
+                    T max = cnf_ptr_->template get<T>
+                        ("follow_ranks.weights.max", net_ptr_->max_size() + 1);
+                    T inc = cnf_ptr_->template get<T>
+                        ("follow_ranks.weights.increment", T(1));
+                    V exp = cnf_ptr_->template get<V>
+                        ("follow_ranks.weights.exponent", V(1.0));
+
+                    for (T i = 1; i < spc; ++i)
+                        inc *= inc;
+
+                    T count = (max - min) / inc;
+                    at_bins_.emplace_back(std::vector<std::unordered_set<T>>());
+                    at_bins_.back().reserve(count + 1);
+                    at_weights_.emplace_back(std::vector<V>());
+                    at_weights_.back().reserve(count + 1);
+                    V total_weight = 0;
+                    for (T i = min; i <= max; i += inc)
+                    {
+                        at_bins_.back().emplace_back(std::unordered_set<T>());
+                        at_weights_.back().push_back(V(std::pow(V(i), exp)));
+                        total_weight += at_weights_.back().back();
+                    }
+                    if (total_weight > 0)
+                        for (T i = 0; i < at_weights_.back().size(); ++i)
+                            at_weights_.back()[i] /= total_weight;
                 }
 
                 at_agent_per_month_.emplace_back(std::vector<T>());
