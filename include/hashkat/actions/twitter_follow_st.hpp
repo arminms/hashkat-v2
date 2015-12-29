@@ -892,9 +892,9 @@ private:
     RngType* rng_ptr_;
     const TimeType* time_ptr_;
     std::size_t n_connections_;
-    std::size_t kmax_;
     std::vector<std::unordered_set<T>> bins_;
     std::vector<V> weights_;
+    std::size_t kmax_;
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<std::size_t, 5> follow_models_count_;
@@ -925,6 +925,12 @@ private:
     std::vector<bool> at_care_about_region_;
     // agent type ideology care flag
     std::vector<bool> at_care_about_ideology_;
+    // bins for each agent type used in preferential_agent_follow_model
+    std::vector<std::vector<std::unordered_set<T>>> at_bins_;
+    // weights for each agent type used in preferential_agent_follow_model
+    std::vector<std::vector<V>> at_weights_;
+    // max degrees for each agent type used in preferential_agent_follow_model
+    std::vector<std::size_t> at_kmaxes_;
     // true when add rate is zero
     bool zero_add_rate_;
 };
