@@ -475,7 +475,11 @@ private:
         if (follow_model == "random")
             default_follow_model_ = follow_models_[0];
         else if (follow_model == "twitter_suggest")
+        {
             default_follow_model_ = follow_models_[1];
+            net_ptr_->connection_added().connect(
+                boost::bind(&self_type::update_bins, this, _1, _2));
+        }
         else if (follow_model == "agent")
             default_follow_model_ = follow_models_[2];
         else if (follow_model == "preferential_agent")
@@ -500,7 +504,11 @@ private:
                 ("analysis.model_weights.preferential_agent", T(1));
             model_weights_[4] = cnf_ptr_->template get<T>
                 ("analysis.model_weights.hashtag", T(1));
-         }
+
+            if (model_weights_[1] > 0)
+                net_ptr_->connection_added().connect(
+                    boost::bind(&self_type::update_bins, this, _1, _2));
+        }
 
         // init referral rate function for twitter_suggest follow model
         unsigned months = (unsigned)cnf_ptr_->template get<double>
@@ -598,6 +606,8 @@ private:
                 }
 
                 // initializing bins for preferential_agent_follow_model
+                //if (default_follow_model_.target() == follow_models_[3].target())
+                //|| (default_follow_model_ == "twitter" &&  model_weights_[3] > 0) )
                 std::string follow_model = cnf_ptr_->template
                     get<std::string>("analysis.follow_model", "twitter");
                 if (follow_model == "preferential_agent"
