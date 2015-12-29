@@ -451,7 +451,7 @@ private:
         net_ptr_->grown().connect(
             boost::bind(&self_type::agent_added, this, _1, _2));
         net_ptr_->connection_added().connect(
-            boost::bind(&self_type::update_bins, this, _1, _2));
+            boost::bind(&self_type::update_counters, this, _1, _2));
     }
 
     // initialize follow models
@@ -831,6 +831,12 @@ private:
         ++n_connections_;
     }
 
+    void update_counters(T followee, T follower)
+    {
+        ++base_type::rate_;
+        ++n_connections_;
+    }
+
     void update_bins(T followee, T follower)
     {
         std::size_t idx = net_ptr_->followers_size(followee) * bins_.size()
@@ -843,9 +849,6 @@ private:
 
         if (kmax_ < idx)
             kmax_ = idx;
-
-        ++base_type::rate_;
-        ++n_connections_;
     }
 
     std::size_t month() const
