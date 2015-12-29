@@ -606,14 +606,14 @@ private:
                 }
 
                 // initializing bins for preferential_agent_follow_model
-                //if (default_follow_model_.target() == follow_models_[3].target())
-                //|| (default_follow_model_ == "twitter" &&  model_weights_[3] > 0) )
-                std::string follow_model = cnf_ptr_->template
-                    get<std::string>("analysis.follow_model", "twitter");
-                if (follow_model == "preferential_agent"
-                || (follow_model == "twitter"
-                &&  cnf_ptr_->template get<T>
-                    ("analysis.model_weights.preferential_agent", T(1)) > 0))
+                std::function<T(T)> tfm(
+                    boost::bind(&self_type::twitter_follow_model , this , _1 ));
+
+                if (default_follow_model_.target<T(T)>()
+                ==  follow_models_[3].target<T(T)>()
+                || (default_follow_model_.target<T(T)>()
+                ==  tfm.target<T(T)>()
+                &&  model_weights_[3] > 0) )
                 {
                     at_kmaxes_.push_back(0);
 
@@ -648,6 +648,7 @@ private:
                             at_weights_.back()[i] /= total_weight;
                 }
 
+                // initializing number of agent types per month
                 at_agent_per_month_.emplace_back(std::vector<T>());
                 at_agent_per_month_.back().reserve(months + 1);
                 at_agent_per_month_.back().push_back(0);
@@ -849,8 +850,9 @@ private:
 
     void update_bins(T followee, T follower)
     {
-        std::size_t idx = net_ptr_->followers_size(followee) * bins_.size()
-                 / net_ptr_->max_size();
+        std::size_t idx = net_ptr_->followers_size(followee)
+                        * bins_.size()
+                        / net_ptr_->max_size();
         if (bins_[idx - 1].erase(followee))
             bins_[idx].insert(followee);
         else
@@ -859,6 +861,22 @@ private:
 
         if (kmax_ < idx)
             kmax_ = idx;
+    }
+
+    void update_at_bins(T followee, T follower)
+    {
+        auto at = net_ptr_->agent_type(followee);
+        std::size_t idx = net_ptr_->followers_size(followee)
+                        * at_bins_[at].size()
+                        / net_ptr_->max_size();
+        if (at_bins_[at][idx - 1].erase(followee))
+            at_bins_[at][idx].insert(followee);
+        else
+            BOOST_ASSERT_MSG(false,
+                "followee not found in the bins :(");
+
+        if (at_kmaxes_[at] < idx)
+            at_kmaxes_[at] = idx;
     }
 
     std::size_t month() const
