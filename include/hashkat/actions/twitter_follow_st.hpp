@@ -508,6 +508,10 @@ private:
             if (model_weights_[1] > 0)
                 net_ptr_->connection_added().connect(
                     boost::bind(&self_type::update_bins, this, _1, _2));
+
+            if (model_weights_[3] > 0)
+                net_ptr_->connection_added().connect(
+                    boost::bind(&self_type::update_at_bins, this, _1, _2));
         }
 
         // init referral rate function for twitter_suggest follow model
