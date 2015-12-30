@@ -487,6 +487,8 @@ private:
         else if (follow_model == "preferential_agent")
         {
             default_follow_model_ = follow_models_[3];
+            net_ptr_->grown().connect(boost::bind
+                (&self_type::update_at_bins_when_agent_added, this, _1, _2));
             net_ptr_->connection_added().connect(boost::bind
                 (&self_type::update_at_bins_when_connection_added, this, _1, _2));
         }
@@ -521,9 +523,13 @@ private:
             }
 
             if (model_weights_[3] > 0)
+            {
+                net_ptr_->grown().connect(boost::bind
+                    (&self_type::update_at_bins_when_agent_added, this, _1, _2));
                 net_ptr_->connection_added().connect(boost::bind
                     (&self_type::update_at_bins_when_connection_added,
                         this, _1, _2));
+            }
         }
 
         // init referral rate function for twitter_suggest follow model
@@ -878,6 +884,12 @@ private:
     void update_bins_when_agent_added(T idx, W at)
     {
         bins_[0].insert(idx);
+    }
+
+    // slot for network::grow() signal
+    void update_at_bins_when_agent_added(T idx, W at)
+    {
+        at_bins_[at][0].insert(idx);
     }
 
     // slot for network::connection_added() signal
