@@ -448,8 +448,8 @@ private:
     // connect relevant slots to signals
     void init_slots()
     {
-        net_ptr_->grown().connect(
-            boost::bind(&self_type::agent_added, this, _1, _2));
+        net_ptr_->grown().connect(boost::bind
+            (&self_type::update_counters_when_agent_added, this, _1, _2));
         net_ptr_->connection_added().connect(boost::bind
             (&self_type::update_counters_when_connection_added, this, _1, _2));
     }
@@ -858,7 +858,8 @@ private:
         return follow_models_[di(*rng_ptr_)](follower);
     }
 
-    void agent_added(T idx, W at)
+    // slot for network::grow() signal
+    void update_counters_when_agent_added(T idx, W at)
     {
         agent_creation_time_.push_back(time_ptr_->count());
         agent_as_followee_method_counts_.emplace_back(std::array<T, 7> { {} });
@@ -868,14 +869,14 @@ private:
         ++n_connections_;
     }
 
-    // slot for connection_added() signal
+    // slot for network::connection_added() signal
     void update_counters_when_connection_added(T followee, T follower)
     {
         ++base_type::rate_;
         ++n_connections_;
     }
 
-    // slot for connection_added() signal
+    // slot for network::connection_added() signal
     void update_bins_when_connection_added(T followee, T follower)
     {
         std::size_t idx = net_ptr_->followers_size(followee)
@@ -891,7 +892,7 @@ private:
             kmax_ = idx;
     }
 
-    // slot for connection_added() signal
+    // slot for network::connection_added() signal
     void update_at_bins_when_connection_added(T followee, T follower)
     {
         auto at = net_ptr_->agent_type(followee);
