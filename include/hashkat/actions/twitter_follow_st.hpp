@@ -450,8 +450,8 @@ private:
     {
         net_ptr_->grown().connect(
             boost::bind(&self_type::agent_added, this, _1, _2));
-        net_ptr_->connection_added().connect(
-            boost::bind(&self_type::update_counters, this, _1, _2));
+        net_ptr_->connection_added().connect(boost::bind
+            (&self_type::update_counters_when_connection_added, this, _1, _2));
     }
 
     // initialize follow models
@@ -477,13 +477,17 @@ private:
         else if (follow_model == "twitter_suggest")
         {
             default_follow_model_ = follow_models_[1];
-            net_ptr_->connection_added().connect(
-                boost::bind(&self_type::update_bins, this, _1, _2));
+            net_ptr_->connection_added().connect(boost::bind
+                (&self_type::update_bins_when_connection_added, this, _1, _2));
         }
         else if (follow_model == "agent")
             default_follow_model_ = follow_models_[2];
         else if (follow_model == "preferential_agent")
+        {
             default_follow_model_ = follow_models_[3];
+            net_ptr_->connection_added().connect(boost::bind
+                (&self_type::update_at_bins_when_connection_added, this, _1, _2));
+        }
         else if (follow_model == "hashtag")
             default_follow_model_ = follow_models_[4];
         else if  (follow_model == "twitter")
@@ -506,12 +510,14 @@ private:
                 ("analysis.model_weights.hashtag", T(1));
 
             if (model_weights_[1] > 0)
-                net_ptr_->connection_added().connect(
-                    boost::bind(&self_type::update_bins, this, _1, _2));
+                net_ptr_->connection_added().connect(boost::bind
+                    (&self_type::update_bins_when_connection_added,
+                        this, _1, _2));
 
             if (model_weights_[3] > 0)
-                net_ptr_->connection_added().connect(
-                    boost::bind(&self_type::update_at_bins, this, _1, _2));
+                net_ptr_->connection_added().connect(boost::bind
+                    (&self_type::update_at_bins_when_connection_added,
+                        this, _1, _2));
         }
 
         // init referral rate function for twitter_suggest follow model
@@ -629,8 +635,6 @@ private:
                         ("follow_ranks.weights.max", net_ptr_->max_size() + 1);
                     T inc = cnf_ptr_->template get<T>
                         ("follow_ranks.weights.increment", T(1));
-                    V exp = cnf_ptr_->template get<V>
-                        ("follow_ranks.weights.exponent", V(1.0));
 
                     for (T i = 1; i < spc; ++i)
                         inc *= inc;
@@ -638,18 +642,8 @@ private:
                     T count = (max - min) / inc;
                     at_bins_.emplace_back(std::vector<std::unordered_set<T>>());
                     at_bins_.back().reserve(count + 1);
-                    at_weights_.emplace_back(std::vector<V>());
-                    at_weights_.back().reserve(count + 1);
-                    V total_weight = 0;
                     for (T i = min; i <= max; i += inc)
-                    {
                         at_bins_.back().emplace_back(std::unordered_set<T>());
-                        at_weights_.back().push_back(V(std::pow(V(i), exp)));
-                        total_weight += at_weights_.back().back();
-                    }
-                    if (total_weight > 0)
-                        for (T i = 0; i < at_weights_.back().size(); ++i)
-                            at_weights_.back()[i] /= total_weight;
                 }
 
                 // initializing number of agent types per month
@@ -740,10 +734,10 @@ private:
 
         unsigned bin = unsigned(
             (time_ptr_->count() - agent_creation_time_[follower])
-       /    (double)approx_month_);
-       std::uniform_real_distribution<double> dr(0, 1);
-       if (!(dr(*rng_ptr_) < monthly_referral_rate_[bin]))
-           return std::numeric_limits<T>::max();
+        /   (double)approx_month_);
+        std::uniform_real_distribution<double> dr(0, 1);
+        if (!(dr(*rng_ptr_) < monthly_referral_rate_[bin]))
+            return std::numeric_limits<T>::max();
 
         //std::vector<V> weights(weights_);
         //for (auto i = 0; i < weights.size(); ++i)
@@ -816,8 +810,36 @@ private:
         follow_method = 3;
         ++follow_models_count_[3];
 
-        // not implemented yet
-        return std::numeric_limits<T>::max();
+        // first selecting agent type
+        std::discrete_distribution<W> dd(
+            at_af_weight_.cbegin()
+        ,   at_af_weight_.cend());
+        W at = dd(*rng_ptr_);
+
+        // make sure we're not pulling from an empty list
+        if (0 == net_ptr_->count(at))
+            return std::numeric_limits<T>::max();
+
+        // selecting bin's index
+        std::vector<V> weights;
+        weights.reserve(at_kmaxes_[at] + 1);
+        std::transform(
+            weights_.cbegin()
+        ,   weights_.cbegin() + at_kmaxes_[at] + 1
+        ,   at_bins_[at].cbegin()
+        ,   std::back_inserter(weights)
+        ,   [](V w, const std::unordered_set<T>& b)
+        {   return w * b.size();    });
+        std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
+        auto idx = di(*rng_ptr_);
+
+        // selecting agent
+        BOOST_ASSERT_MSG(at_bins_[at][idx].size() > 0, "zero bin size :(");
+        std::uniform_int_distribution<std::size_t>
+            udi(0, at_bins_[at][idx].size() - 1);
+        auto followee = std::next(at_bins_[at][idx].cbegin(), udi(*rng_ptr_));
+
+        return *followee;
     }
 
     T hashtag_follow_model(T follower)  // 4
@@ -846,13 +868,15 @@ private:
         ++n_connections_;
     }
 
-    void update_counters(T followee, T follower)
+    // slot for connection_added() signal
+    void update_counters_when_connection_added(T followee, T follower)
     {
         ++base_type::rate_;
         ++n_connections_;
     }
 
-    void update_bins(T followee, T follower)
+    // slot for connection_added() signal
+    void update_bins_when_connection_added(T followee, T follower)
     {
         std::size_t idx = net_ptr_->followers_size(followee)
                         * bins_.size()
@@ -867,7 +891,8 @@ private:
             kmax_ = idx;
     }
 
-    void update_at_bins(T followee, T follower)
+    // slot for connection_added() signal
+    void update_at_bins_when_connection_added(T followee, T follower)
     {
         auto at = net_ptr_->agent_type(followee);
         std::size_t idx = net_ptr_->followers_size(followee)
@@ -1000,8 +1025,6 @@ private:
     std::vector<bool> at_care_about_ideology_;
     // bins for each agent type used in preferential_agent_follow_model
     std::vector<std::vector<std::unordered_set<T>>> at_bins_;
-    // weights for each agent type used in preferential_agent_follow_model
-    std::vector<std::vector<V>> at_weights_;
     // max degrees for each agent type used in preferential_agent_follow_model
     std::vector<std::size_t> at_kmaxes_;
     // true when add rate is zero
