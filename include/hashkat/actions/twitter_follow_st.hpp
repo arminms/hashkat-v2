@@ -477,6 +477,8 @@ private:
         else if (follow_model == "twitter_suggest")
         {
             default_follow_model_ = follow_models_[1];
+            net_ptr_->grown().connect(boost::bind
+                (&self_type::update_bins_when_agent_added, this, _1, _2));
             net_ptr_->connection_added().connect(boost::bind
                 (&self_type::update_bins_when_connection_added, this, _1, _2));
         }
@@ -510,9 +512,13 @@ private:
                 ("analysis.model_weights.hashtag", T(1));
 
             if (model_weights_[1] > 0)
+            {
+                net_ptr_->grown().connect(boost::bind
+                    (&self_type::update_bins_when_agent_added, this, _1, _2));
                 net_ptr_->connection_added().connect(boost::bind
                     (&self_type::update_bins_when_connection_added,
                         this, _1, _2));
+            }
 
             if (model_weights_[3] > 0)
                 net_ptr_->connection_added().connect(boost::bind
@@ -864,9 +870,14 @@ private:
         agent_creation_time_.push_back(time_ptr_->count());
         agent_as_followee_method_counts_.emplace_back(std::array<T, 7> { {} });
         agent_as_follower_method_counts_.emplace_back(std::array<T, 7> { {} });
-        bins_[0].insert(idx);
         ++at_agent_per_month_[at].back();
         ++n_connections_;
+    }
+
+    // slot for network::grow() signal
+    void update_bins_when_agent_added(T idx, W at)
+    {
+        bins_[0].insert(idx);
     }
 
     // slot for network::connection_added() signal
