@@ -108,7 +108,6 @@ private:
 
         init_slots();
         init_follow_models();
-        init_bins();
         init_agent_types();
 
         n_connections_ = 0;
@@ -124,7 +123,6 @@ private:
     {
         bins_.clear();
         weights_.clear();
-        init_bins();
         do_post_init();
     }
 
@@ -481,6 +479,7 @@ private:
                 (&self_type::update_bins_when_agent_added, this, _1, _2));
             net_ptr_->connection_added().connect(boost::bind
                 (&self_type::update_bins_when_connection_added, this, _1, _2));
+            init_bins(true);
         }
         else if (follow_model == "agent")
             default_follow_model_ = follow_models_[2];
@@ -491,6 +490,7 @@ private:
                 (&self_type::update_at_bins_when_agent_added, this, _1, _2));
             net_ptr_->connection_added().connect(boost::bind
                 (&self_type::update_at_bins_when_connection_added, this, _1, _2));
+            init_bins(false);
         }
         else if (follow_model == "hashtag")
             default_follow_model_ = follow_models_[4];
@@ -520,6 +520,7 @@ private:
                 net_ptr_->connection_added().connect(boost::bind
                     (&self_type::update_bins_when_connection_added,
                         this, _1, _2));
+                init_bins(true);
             }
 
             if (model_weights_[3] > 0)
@@ -529,6 +530,8 @@ private:
                 net_ptr_->connection_added().connect(boost::bind
                     (&self_type::update_at_bins_when_connection_added,
                         this, _1, _2));
+                if (model_weights_[1] == 0)
+                    init_bins(false);
             }
         }
 
@@ -540,8 +543,8 @@ private:
             monthly_referral_rate_.push_back(1.0 / double(1 + i));
     }
 
-    // initialize bins
-    void init_bins()
+    // initialize bins for twitter_suggest and preferential_agent
+    void init_bins(bool add_bins)
     {
         kmax_ = 0;
 
@@ -560,12 +563,14 @@ private:
             inc *= inc;
 
         T count = (max - min) / inc;
-        bins_.reserve(count + 1);
+        if (add_bins)
+            bins_.reserve(count + 1);
         weights_.reserve(count + 1);
         V total_weight = 0;
         for (T i = min; i <= max; i += inc)
         {
-            bins_.emplace_back(std::unordered_set<T>());
+            if (add_bins)
+                bins_.emplace_back(std::unordered_set<T>());
             weights_.push_back(V(std::pow(V(i), exp)));
             total_weight += weights_.back();
         }
