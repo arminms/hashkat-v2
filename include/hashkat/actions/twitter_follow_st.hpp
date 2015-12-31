@@ -635,6 +635,18 @@ private:
                         at_monthly_weights_.back().push_back
                             (7.44 * 5.5360422914604546e-05);
                 }
+                else if (f_type == "quarter_twitter_follow")
+                {
+                    // initial spike for the first 2 months
+                    at_monthly_weights_.back().push_back
+                        (7.44 * 0.25 * 0.0008298429200320164);
+                    at_monthly_weights_.back().push_back
+                        (7.44 * 0.25 * 0.0008298429200320164);
+                    // gradual rate after the 2 months
+                    for (unsigned i = 3; i <= months; ++i)
+                        at_monthly_weights_.back().push_back
+                            (7.44 * 0.25 * 5.5360422914604546e-05);
+                }
                 else
                 {
                     base_type::weight_ = v.second.template get<weight_type>
