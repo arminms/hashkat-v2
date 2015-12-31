@@ -218,17 +218,22 @@ private:
         out << "# Number of Connections: " << n_connections_ << std::endl;
         out << "# kmax: " << kmax_ << std::endl;
         out << "# Bins: " << std::endl;
-        out << "#   K        W         N     Agent IDs" << std::endl;
+        out << "#   K        N      Agent IDs" << std::endl;
+
+        // building the bins
+        std::vector<std::unordered_set<T>> bins(net_ptr_->size() + 1);
+        for (T i = 0; i < net_ptr_->size(); ++i)
+            bins[net_ptr_->followers_size(i)].insert(i);
+
         out << std::scientific << std::setprecision(2);
-        for (auto i = 0; i < bins_.size(); ++i)
+        for (T i = 0; i < bins.size(); ++i)
         {
             out << std::setfill('0') << std::setw(8) << i
-                << ' ' << std::setw(5) << weights_[i] << " ["
-                << std::setw(8) << bins_[i].size() << "]";
-            if (bins_[i].size())
+                << " [" << std::setw(8) << bins[i].size() << "]";
+            if (bins[i].size())
             {
                 out << ' ';
-                for (auto followee : bins_[i])
+                for (auto followee : bins[i])
                     out << followee << ',';
             }
             out << std::endl;
