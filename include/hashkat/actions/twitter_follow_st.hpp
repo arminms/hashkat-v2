@@ -608,27 +608,37 @@ private:
                 std::string f_type = v.second.template get<std::string>
                     ("rates.follow.function", "constant");
 
+                at_monthly_weights_.emplace_back
+                    (std::vector<weight_type>());
+                at_monthly_weights_.back().reserve(months + 1);
+
                 if (f_type == "linear" )
                 {
                      weight_type y_intercept = v.second.template get<weight_type>
                          ("rates.follow.y_intercept", 0.001);
                      weight_type slope = v.second.template get<weight_type>
                          ("rates.follow.slope", 0.001);
-                    at_monthly_weights_.emplace_back
-                        (std::vector<weight_type>());
-                    at_monthly_weights_.back().reserve(months + 1);
                     for (unsigned i = 0; i <= months; ++i)
                         at_monthly_weights_.back().push_back
                             (y_intercept + i * slope);
                     base_type::weight_ = at_monthly_weights_.back()[0];
                 }
+                else if (f_type == "twitter_follow")
+                {
+                    // initial spike for the first 2 months
+                    at_monthly_weights_.back().push_back
+                        (7.44 * 0.0008298429200320164);
+                    at_monthly_weights_.back().push_back
+                        (7.44 * 0.0008298429200320164);
+                    // gradual rate after the 2 months
+                    for (unsigned i = 3; i <= months; ++i)
+                        at_monthly_weights_.back().push_back
+                            (7.44 * 5.5360422914604546e-05);
+                }
                 else
                 {
                     base_type::weight_ = v.second.template get<weight_type>
                         ("rates.follow.value", 1);
-                    at_monthly_weights_.emplace_back
-                        (std::vector<weight_type>());
-                    at_monthly_weights_.back().reserve(months + 1);
                     // TODO: this version is also possible instead of loop:
                     //at_monthly_weights_.emplace_back(std::vector<T>
                     //  (months + 1, base_type::weight_));
