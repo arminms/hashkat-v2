@@ -957,8 +957,28 @@ private:
     }
 
     // slot for network::grow() signal
-    void barabasi_follow_when_agent_added(T idx, W at)
+    void barabasi_follow_when_agent_added(T follower, W at)
     {
+        for (T i = 0; i < barabasi_connections_; ++i)
+        {
+            auto followee = select_followee(follower);
+            if (followee == failed)
+            {
+                base_type::action_finished_signal_();
+                return;
+            }
+
+            if (net_ptr_->connect(followee, follower))
+            {
+                ++at_follows_count_[net_ptr_->agent_type(follower)];
+                ++agent_as_followee_method_counts_[followee][follow_method];
+                ++agent_as_follower_method_counts_[follower][follow_method];
+                base_type::action_happened_signal_();
+                base_type::action_finished_signal_();
+            }
+            else
+                base_type::action_finished_signal_();
+        }
     }
 
     // slot for network::connection_added() signal
