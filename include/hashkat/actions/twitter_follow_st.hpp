@@ -463,6 +463,9 @@ private:
         follow_method = -1;
         follow_models_count_.fill(0);
 
+        barabasi_connections_ = cnf_ptr_->template get<T>
+            ("analysis.barabasi_connections", 1);
+
         follow_models_ =
         {
             boost::bind(&self_type::random_follow_model , this , _1)
@@ -953,6 +956,11 @@ private:
         at_bins_[at][0].insert(idx);
     }
 
+    // slot for network::grow() signal
+    void barabasi_follow_when_agent_added(T idx, W at)
+    {
+    }
+
     // slot for network::connection_added() signal
     void update_counters_when_connection_added(T followee, T follower)
     {
@@ -1114,6 +1122,8 @@ private:
     std::vector<std::size_t> at_kmaxes_;
     // true when add rate is zero
     bool zero_add_rate_;
+    // number of connections for barabasi model
+    T barabasi_connections_;
 };
 
 template
