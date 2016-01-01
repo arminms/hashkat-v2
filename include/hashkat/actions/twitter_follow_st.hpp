@@ -776,31 +776,28 @@ private:
         return di(*rng_ptr_);
     }
 
-    T barabasi_follow_model(T follower)   // 1
+    T barabasi_follow_model(T follower) // 1
     {
         follow_method = 1;
         ++follow_models_count_[1];
 
-        std::uniform_int_distribution<T> di(0, net_ptr_->size() - 1);
-        return di(*rng_ptr_);
+        std::vector<V> weights(kmax_ + 1);
+        std::iota(weights.begin(), weights.end(), 1);
+        std::transform(
+            weights_.cbegin()
+        ,   weights_.cend()
+        ,   bins_.cbegin()
+        ,   weights.begin()
+        ,   [](V w, const std::unordered_set<T>& b)
+        {   return w * b.size();    });
+        std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
 
-        //std::vector<V> weights;
-        //weights.reserve(kmax_ + 1);
-        //std::transform(
-        //    weights_.cbegin()
-        //,   weights_.cbegin() + kmax_ + 1
-        //,   bins_.cbegin()
-        //,   std::back_inserter(weights)
-        //,   [](V w, const std::unordered_set<T>& b)
-        //{   return w * b.size();    });
-        //std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
+        auto idx = di(*rng_ptr_);
+        BOOST_ASSERT_MSG(bins_[idx].size() > 0, "zero bin size :(");
+        std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
+        auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
 
-        //auto idx = di(*rng_ptr_);
-        //BOOST_ASSERT_MSG(bins_[idx].size() > 0, "zero bin size :(");
-        //std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
-        //auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
-
-        //return *followee;
+        return *followee;
     }
 
     T twitter_suggest_follow_model(T follower)  // 1
