@@ -817,12 +817,11 @@ private:
         std::vector<V> weights;
         std::transform(
             weights_.cbegin()
-        ,   weights_.cend()
-        //,   weights_.cbegin() + kmax_ + 1
+        ,   weights_.cbegin() + kmax_ + 1
         ,   bins_.cbegin()
         ,   std::back_inserter(weights)
-        ,   [=](V w, const std::unordered_set<T>& b)
-        {   return (w * b.size()) / V(n_connections_);    });
+        ,   [](V w, const std::unordered_set<T>& b)
+        {   return w * b.size();    });
         std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
 
         auto idx = di(*rng_ptr_);
