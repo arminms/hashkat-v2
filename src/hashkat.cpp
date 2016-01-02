@@ -125,6 +125,12 @@ int main(int argc, char* argv[])
         config::read_xml(input_file, conf);
         conf.add("output_folder", output_folder);
 
+        // showing initial information
+        if (!vm.count("silent"))
+            std::cout << "Starting #k@ network simulator (version )\n"
+                      << "Loading input configuration from '"
+                      << input_file << "'.\n";
+
         // constructing simulation object using conf
         simulation sim(conf);
 
@@ -149,12 +155,9 @@ int main(int argc, char* argv[])
         else
             sim.rng().seed(seed_value);
 
-        // showing some information
+        // showing seed information
         if (!vm.count("silent"))
-            std::cout << "Starting #k@ network simulator (version )\n"
-                      << "Loading input configuration from '"
-                      << input_file << "'.\n"
-                      << "Starting simulation with seed '"
+            std::cout << "Starting simulation with seed '"
                       << seed_value << "'.\n";
 
         // running simulation

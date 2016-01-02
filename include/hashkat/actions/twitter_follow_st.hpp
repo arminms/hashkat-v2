@@ -191,8 +191,8 @@ private:
         if (net_ptr_->connect(followee, follower))
         {
             ++at_follows_count_[net_ptr_->agent_type(follower)];
-            ++agent_as_followee_method_counts_[followee][follow_method];
-            ++agent_as_follower_method_counts_[follower][follow_method];
+            ++agent_as_followee_method_counts_[followee][follow_method_];
+            ++agent_as_follower_method_counts_[follower][follow_method_];
             base_type::action_happened_signal_();
             base_type::action_finished_signal_();
         }
@@ -202,16 +202,16 @@ private:
 
     virtual std::ostream& do_print(std::ostream& out) const
     {
-        for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
-        {
-            out << "# agent type: " << at << ' ';
-            for (std::size_t month = 0
-            ;    month < at_agent_per_month_[at].size()
-            ;    ++month)
-                out << '[' << at_agent_per_month_[at][month] << ']'
-                    << '[' << at_monthly_weights_[at][month] << "],";
-            out << std::endl;
-        }
+        //for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
+        //{
+        //    out << "# agent type: " << at << ' ';
+        //    for (std::size_t month = 0
+        //    ;    month < at_agent_per_month_[at].size()
+        //    ;    ++month)
+        //        out << '[' << at_agent_per_month_[at][month] << ']'
+        //            << '[' << at_monthly_weights_[at][month] << "],";
+        //    out << std::endl;
+        //}
         out << "# Follow rate: " << base_type::rate_ << std::endl;
         out << "# Follow weight: " << base_type::weight_ << std::endl;
         out << "# Number of Bins: " << bins_.size() << std::endl;
@@ -460,11 +460,11 @@ private:
     // initialize follow models
     void init_follow_models()
     {
-        follow_method = -1;
+        follow_method_ = -1;
         follow_models_count_.fill(0);
 
         barabasi_connections_ = cnf_ptr_->template get<T>
-            ("analysis.barabasi_connections", 1);
+            ("analysis.barabasi_connections", T(1));
 
         follow_models_ =
         {
@@ -477,8 +477,12 @@ private:
 
         // binding barabasi follow model to index 1 if necessary
         if (cnf_ptr_->template get<bool>("analysis.use_barabasi", false))
+        {
             follow_models_[1] = boost::bind
                 (&self_type::barabasi_follow_model, this , _1 );
+            net_ptr_->grown().connect(boost::bind
+                (&self_type::barabasi_follow_when_agent_added, this, _1, _2));
+        }
 
         std::string follow_model = cnf_ptr_->template
             get<std::string>("analysis.follow_model", "twitter");
@@ -773,7 +777,7 @@ private:
 
     T random_follow_model(T follower)   // 0
     {
-        follow_method = 0;
+        follow_method_ = 0;
         ++follow_models_count_[0];
         std::uniform_int_distribution<T> di(0, net_ptr_->size() - 1);
         return di(*rng_ptr_);
@@ -781,14 +785,14 @@ private:
 
     T barabasi_follow_model(T follower) // 1
     {
-        follow_method = 1;
+        follow_method_ = 1;
         ++follow_models_count_[1];
 
         std::vector<V> weights(kmax_ + 1);
         std::iota(weights.begin(), weights.end(), 1);
         std::transform(
-            weights_.cbegin()
-        ,   weights_.cend()
+            weights.cbegin()
+        ,   weights.cend()
         ,   bins_.cbegin()
         ,   weights.begin()
         ,   [](V w, const std::unordered_set<T>& b)
@@ -805,7 +809,7 @@ private:
 
     T twitter_suggest_follow_model(T follower)  // 1
     {
-        follow_method = 1;
+        follow_method_ = 1;
         ++follow_models_count_[1];
 
         unsigned bin = unsigned(
@@ -866,7 +870,7 @@ private:
 
     T agent_follow_model(T follower)    // 2
     {
-        follow_method = 2;
+        follow_method_ = 2;
         ++follow_models_count_[2];
 
         std::discrete_distribution<W> dd(
@@ -883,7 +887,7 @@ private:
 
     T preferential_agent_follow_model(T follower)   // 3
     {
-        follow_method = 3;
+        follow_method_ = 3;
         ++follow_models_count_[3];
 
         // first selecting agent type
@@ -920,7 +924,7 @@ private:
 
     T hashtag_follow_model(T follower)  // 4
     {
-        follow_method = 4;
+        follow_method_ = 4;
         ++follow_models_count_[4];
 
         // not implemented yet
@@ -959,6 +963,10 @@ private:
     // slot for network::grow() signal
     void barabasi_follow_when_agent_added(T follower, W at)
     {
+        BOOST_CONSTEXPR_OR_CONST auto failed = std::numeric_limits<T>::max();
+        if (follower < 2)
+            return;
+
         for (T i = 0; i < barabasi_connections_; ++i)
         {
             auto followee = select_followee(follower);
@@ -971,8 +979,8 @@ private:
             if (net_ptr_->connect(followee, follower))
             {
                 ++at_follows_count_[net_ptr_->agent_type(follower)];
-                ++agent_as_followee_method_counts_[followee][follow_method];
-                ++agent_as_follower_method_counts_[follower][follow_method];
+                ++agent_as_followee_method_counts_[followee][follow_method_];
+                ++agent_as_follower_method_counts_[follower][follow_method_];
                 base_type::action_happened_signal_();
                 base_type::action_finished_signal_();
             }
@@ -1110,7 +1118,7 @@ private:
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<std::size_t, 5> follow_models_count_;
     std::array<T, 5> model_weights_;
-    int follow_method;
+    int follow_method_;
     const int approx_month_;
     // referral rate function for each month, decreases over time by 1 / t
     std::vector<weight_type> monthly_referral_rate_;
