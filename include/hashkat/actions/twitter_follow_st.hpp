@@ -476,7 +476,9 @@ private:
         };
 
         // binding barabasi follow model to index 1 if necessary
-        if (cnf_ptr_->template get<bool>("analysis.use_barabasi", false))
+        bool use_barabasi = cnf_ptr_->template
+            get<bool>("analysis.use_barabasi", false);
+        if (use_barabasi)
         {
             follow_models_[1] = boost::bind
                 (&self_type::barabasi_follow_model, this , _1 );
@@ -494,8 +496,14 @@ private:
             default_follow_model_ = follow_models_[1];
             net_ptr_->grown().connect(boost::bind
                 (&self_type::update_bins_when_agent_added, this, _1, _2));
-            net_ptr_->connection_added().connect(boost::bind
-                (&self_type::update_bins_when_connection_added, this, _1, _2));
+            if (use_barabasi)
+                net_ptr_->connection_added().connect(boost::bind
+                    (&self_type::update_barabasi_bins_when_connection_added,
+                        this, _1, _2));
+            else
+                net_ptr_->connection_added().connect(boost::bind
+                    (&self_type::update_bins_when_connection_added,
+                        this, _1, _2));
             init_bins(true);
         }
         else if (follow_model == "agent")
@@ -534,9 +542,14 @@ private:
             {
                 net_ptr_->grown().connect(boost::bind
                     (&self_type::update_bins_when_agent_added, this, _1, _2));
-                net_ptr_->connection_added().connect(boost::bind
-                    (&self_type::update_bins_when_connection_added,
-                        this, _1, _2));
+                if (use_barabasi)
+                    net_ptr_->connection_added().connect(boost::bind
+                        (&self_type::update_barabasi_bins_when_connection_added,
+                            this, _1, _2));
+                else
+                    net_ptr_->connection_added().connect(boost::bind
+                        (&self_type::update_bins_when_connection_added,
+                            this, _1, _2));
                 init_bins(true);
             }
 
@@ -564,36 +577,49 @@ private:
     void init_bins(bool add_bins)
     {
         kmax_ = 0;
-
-        T spc = cnf_ptr_->template get<T>
-            ("follow_ranks.weights.bin_spacing", T(1));
-        T min = cnf_ptr_->template get<T>
-            ("follow_ranks.weights.min", T(1));
-        T max = cnf_ptr_->template get<T>
-            ("follow_ranks.weights.max", net_ptr_->max_size() + 1);
-        T inc = cnf_ptr_->template get<T>
-            ("follow_ranks.weights.increment", T(1));
         V exp = cnf_ptr_->template get<V>
-            ("follow_ranks.weights.exponent", V(1.0));
+            ("analysis.barabasi_exponent", V(1.0));
 
-        for (T i = 1; i < spc; ++i)
-            inc *= inc;
-
-        T count = (max - min) / inc;
-        if (add_bins)
-            bins_.reserve(count + 1);
-        weights_.reserve(count + 1);
-        V total_weight = 0;
-        for (T i = min; i <= max; i += inc)
+        if (cnf_ptr_->template get<bool>("analysis.use_barabasi", false))
         {
-            if (add_bins)
+            bins_.reserve(net_ptr_->max_size() + 1);
+            weights_.reserve(net_ptr_->max_size() + 1);
+            for (T i = 1; i < net_ptr_->max_size(); ++i)
+            {
                 bins_.emplace_back(std::unordered_set<T>());
-            weights_.push_back(V(std::pow(V(i), exp)));
-            total_weight += weights_.back();
+                weights_.push_back(V(std::pow(V(i), exp)));
+            }
         }
-        if (total_weight > 0)
-            for (T i = 0; i < weights_.size(); ++i)
-                weights_[i] /= total_weight;
+        else
+        {
+            T spc = cnf_ptr_->template get<T>
+                ("follow_ranks.weights.bin_spacing", T(1));
+            T min = cnf_ptr_->template get<T>
+                ("follow_ranks.weights.min", T(1));
+            T max = cnf_ptr_->template get<T>
+                ("follow_ranks.weights.max", net_ptr_->max_size() + 1);
+            T inc = cnf_ptr_->template get<T>
+                ("follow_ranks.weights.increment", T(1));
+
+            for (T i = 1; i < spc; ++i)
+                inc *= inc;
+
+            T count = (max - min) / inc;
+            if (add_bins)
+                bins_.reserve(count + 1);
+            weights_.reserve(count + 1);
+            V total_weight = 0;
+            for (T i = min; i <= max; i += inc)
+            {
+                if (add_bins)
+                    bins_.emplace_back(std::unordered_set<T>());
+                weights_.push_back(V(std::pow(V(i), exp)));
+                total_weight += weights_.back();
+            }
+            if (total_weight > 0)
+                for (T i = 0; i < weights_.size(); ++i)
+                    weights_[i] /= total_weight;
+        }
     }
 
     // initialize agent types
@@ -788,15 +814,15 @@ private:
         follow_method_ = 1;
         ++follow_models_count_[1];
 
-        std::vector<V> weights(kmax_ + 1);
-        std::iota(weights.begin(), weights.end(), 1);
+        std::vector<V> weights;
         std::transform(
-            weights.cbegin()
-        ,   weights.cend()
+            weights_.cbegin()
+        ,   weights_.cend()
+        //,   weights_.cbegin() + kmax_ + 1
         ,   bins_.cbegin()
-        ,   weights.begin()
-        ,   [](V w, const std::unordered_set<T>& b)
-        {   return w * b.size();    });
+        ,   std::back_inserter(weights)
+        ,   [=](V w, const std::unordered_set<T>& b)
+        {   return (w * b.size()) / V(n_connections_);    });
         std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
 
         auto idx = di(*rng_ptr_);
@@ -1002,6 +1028,20 @@ private:
         std::size_t idx = net_ptr_->followers_size(followee)
                         * bins_.size()
                         / net_ptr_->max_size();
+        if (bins_[idx - 1].erase(followee))
+            bins_[idx].insert(followee);
+        else
+            BOOST_ASSERT_MSG(false,
+                "followee not found in the bins :(");
+
+        if (kmax_ < idx)
+            kmax_ = idx;
+    }
+
+    // slot for network::connection_added() signal
+    void update_barabasi_bins_when_connection_added(T followee, T follower)
+    {
+        std::size_t idx = net_ptr_->followers_size(followee);
         if (bins_[idx - 1].erase(followee))
             bins_[idx].insert(followee);
         else
