@@ -701,10 +701,10 @@ private:
                 std::function<T(T)> tfm(
                     boost::bind(&self_type::twitter_follow_model , this , _1 ));
 
-                if (default_follow_model_.target<T(T)>()
-                ==  follow_models_[3].target<T(T)>()
-                || (default_follow_model_.target<T(T)>()
-                ==  tfm.target<T(T)>()
+                if (default_follow_model_.template target<T(T)>()
+                ==  follow_models_[3].template target<T(T)>()
+                || (default_follow_model_.template target<T(T)>()
+                ==  tfm.template target<T(T)>()
                 &&  model_weights_[3] > 0) )
                 {
                     at_kmaxes_.push_back(0);
