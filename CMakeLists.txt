@@ -1,5 +1,20 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 
+#
+# If the user specifies -DCMAKE_BUILD_TYPE on the command line, take their
+# definition and dump it in the cache along with proper documentation,
+# otherwise set CMAKE_BUILD_TYPE to Release prior to calling PROJECT()
+#
+IF(DEFINED CMAKE_BUILD_TYPE)
+    SET(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING
+        "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or
+         CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
+ELSE()
+    SET(CMAKE_BUILD_TYPE Release CACHE STRING
+        "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or
+         CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
+ENDIF()
+
 PROJECT(hashkat-lib CXX)
 
 #IF(WIN32)
@@ -7,24 +22,6 @@ PROJECT(hashkat-lib CXX)
 #ELSE(WIN32)
 #    SET(USERLIB_PREFIX_DEFAULT "/usr")
 #ENDIF(WIN32)
-
-#IF(WIN32)
-#    SET(BOOST_PREFIX_DEFAULT "c:/Program Files/Boost")
-#    OPTION(BOOST_DYNAMIC "Link to boost DLLs (OFF means static link)" OFF)
-#ELSE(WIN32)
-#    SET(BOOST_PREFIX_DEFAULT ${USERLIB_PREFIX})
-#ENDIF(WIN32)
-
-#INCLUDE(cmake/HkFindBoost.txt)
-
-#INCLUDE_DIRECTORIES(${BOOST_INCLUDE_DIRS})
-#LINK_DIRECTORIES(${BOOST_LIB_DIRS})
-
-IF(NOT CMAKE_BUILD_TYPE)
-SET(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING
-    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-    FORCE)
-ENDIF(NOT CMAKE_BUILD_TYPE)
 
 IF(MSVC)
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
