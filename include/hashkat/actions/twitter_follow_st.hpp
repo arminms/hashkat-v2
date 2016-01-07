@@ -266,8 +266,8 @@ private:
             out << "Hashtag: " << follow_models_count_[4]
                 << "\t(" << 100 * follow_models_count_[4] / double(sum)
                 << "% of total follows attempts)\n";
-            out << "Followbacks: " << 0 // TODO: must be implemented
-                << "\t (" << 0 
+            out << "Followbacks: " << follow_models_count_[6]
+                << "\t (" << 100 * follow_models_count_[6] / double(sum)
                 << "% of total follow attempts)\n";
 
             for (std::size_t i = 0; i < at_name_.size(); ++i)
@@ -446,7 +446,7 @@ private:
             (&self_type::update_counters_when_agent_added, this, _1, _2));
         net_ptr_->connection_added().connect(boost::bind
             (&self_type::update_counters_when_connection_added, this, _1, _2));
-        if (cnf_ptr_->template get<bool>("analysis.use_followback ", false))
+        if (cnf_ptr_->template get<bool>("analysis.use_followback", false))
             net_ptr_->connection_added().connect(boost::bind
                 (&self_type::followback_when_connection_added, this, _1, _2));
     }
@@ -526,7 +526,7 @@ private:
             model_weights_[1] = cnf_ptr_->template get<T>
                 ("analysis.model_weights.twitter_suggest", T(1));
             model_weights_[2] = cnf_ptr_->template get<T>
-                ("analysis.model_weights.weights.agent", T(1));
+                ("analysis.model_weights.agent", T(1));
             model_weights_[3] = cnf_ptr_->template get<T>
                 ("analysis.model_weights.preferential_agent", T(1));
             model_weights_[4] = cnf_ptr_->template get<T>
@@ -799,7 +799,7 @@ private:
     T random_follow_model(T follower)   // 0
     {
         follow_method_ = 0;
-        ++follow_models_count_[0];
+        ++follow_models_count_[follow_method_];
         std::uniform_int_distribution<T> di(0, net_ptr_->size() - 1);
         return di(*rng_ptr_);
     }
@@ -807,7 +807,7 @@ private:
     T barabasi_follow_model(T follower) // 1
     {
         follow_method_ = 1;
-        ++follow_models_count_[1];
+        ++follow_models_count_[follow_method_];
 
         std::vector<V> weights;
         std::transform(
@@ -830,7 +830,7 @@ private:
     T twitter_suggest_follow_model(T follower)  // 1
     {
         follow_method_ = 1;
-        ++follow_models_count_[1];
+        ++follow_models_count_[follow_method_];
 
         unsigned bin = unsigned(
             (time_ptr_->count() - agent_creation_time_[follower])
@@ -891,7 +891,7 @@ private:
     T agent_follow_model(T follower)    // 2
     {
         follow_method_ = 2;
-        ++follow_models_count_[2];
+        ++follow_models_count_[follow_method_];
 
         std::discrete_distribution<W> dd(
             at_af_weight_.cbegin()
@@ -908,7 +908,7 @@ private:
     T preferential_agent_follow_model(T follower)   // 3
     {
         follow_method_ = 3;
-        ++follow_models_count_[3];
+        ++follow_models_count_[follow_method_];
 
         // first selecting agent type
         std::discrete_distribution<W> dd(
@@ -945,7 +945,7 @@ private:
     T hashtag_follow_model(T follower)  // 4
     {
         follow_method_ = 4;
-        ++follow_models_count_[4];
+        ++follow_models_count_[follow_method_];
 
         // not implemented yet
         return std::numeric_limits<T>::max();
@@ -1056,7 +1056,16 @@ private:
 
     // slot for network::connection_added() signal
     void followback_when_connection_added(T followee, T follower)
-    {}
+    {
+        auto fbw = at_followback_weight_[net_ptr_->agent_type(followee)];
+        std::discrete_distribution<> dd({1.0 - fbw, fbw});
+        if (dd(*rng_ptr_))
+        {
+            follow_method_ = 6;
+            ++follow_models_count_[follow_method_];
+            handle_follow(follower, followee);
+        }
+    }
 
     void handle_follow(T followee, T follower)
     {
@@ -1159,7 +1168,7 @@ private:
     std::size_t kmax_;
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
-    std::array<std::size_t, 5> follow_models_count_;
+    std::array<std::size_t, 7> follow_models_count_;
     std::array<T, 5> model_weights_;
     int follow_method_;
     const int approx_month_;
