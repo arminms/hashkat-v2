@@ -188,16 +188,7 @@ private:
             return;
         }
 
-        if (net_ptr_->connect(followee, follower))
-        {
-            ++at_follows_count_[net_ptr_->agent_type(follower)];
-            ++agent_as_followee_method_counts_[followee][follow_method_];
-            ++agent_as_follower_method_counts_[follower][follow_method_];
-            base_type::action_happened_signal_();
-            base_type::action_finished_signal_();
-        }
-        else
-            base_type::action_finished_signal_();
+        handle_follow(followee, follower);
     }
 
     virtual std::ostream& do_print(std::ostream& out) const
@@ -1075,6 +1066,20 @@ private:
     // slot for network::connection_added() signal
     void followback_when_connection_added(T followee, T follower)
     {}
+
+    void handle_follow(T followee, T follower)
+    {
+        if (net_ptr_->connect(followee, follower))
+        {
+            ++at_follows_count_[net_ptr_->agent_type(follower)];
+            ++agent_as_followee_method_counts_[followee][follow_method_];
+            ++agent_as_follower_method_counts_[follower][follow_method_];
+            base_type::action_happened_signal_();
+            base_type::action_finished_signal_();
+        }
+        else
+            base_type::action_finished_signal_();
+    }
 
     std::size_t month() const
     {   return std::size_t(time_ptr_->count() / approx_month_);   }
