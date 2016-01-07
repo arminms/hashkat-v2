@@ -1069,6 +1069,10 @@ private:
             at_kmaxes_[at] = idx;
     }
 
+    // slot for network::connection_added() signal
+    void followback_when_connection_added(T followee, T follower)
+    {}
+
     std::size_t month() const
     {   return std::size_t(time_ptr_->count() / approx_month_);   }
 
