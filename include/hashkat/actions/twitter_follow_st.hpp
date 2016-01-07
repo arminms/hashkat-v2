@@ -521,16 +521,16 @@ private:
 
         if (follow_model == "twitter")
         {
-            model_weights_[0] = cnf_ptr_->template get<T>
-                ("analysis.model_weights.random", T(1));
-            model_weights_[1] = cnf_ptr_->template get<T>
-                ("analysis.model_weights.twitter_suggest", T(1));
-            model_weights_[2] = cnf_ptr_->template get<T>
-                ("analysis.model_weights.agent", T(1));
-            model_weights_[3] = cnf_ptr_->template get<T>
-                ("analysis.model_weights.preferential_agent", T(1));
-            model_weights_[4] = cnf_ptr_->template get<T>
-                ("analysis.model_weights.hashtag", T(1));
+            model_weights_[0] = cnf_ptr_->template get<V>
+                ("analysis.model_weights.random", V(1));
+            model_weights_[1] = cnf_ptr_->template get<V>
+                ("analysis.model_weights.twitter_suggest", V(1));
+            model_weights_[2] = cnf_ptr_->template get<V>
+                ("analysis.model_weights.agent", V(1));
+            model_weights_[3] = cnf_ptr_->template get<V>
+                ("analysis.model_weights.preferential_agent", V(1));
+            model_weights_[4] = cnf_ptr_->template get<V>
+                ("analysis.model_weights.hashtag", V(1));
 
             if (model_weights_[1] > 0)
             {
@@ -1169,7 +1169,7 @@ private:
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<std::size_t, 7> follow_models_count_;
-    std::array<T, 5> model_weights_;
+    std::array<V, 5> model_weights_;
     int follow_method_;
     const int approx_month_;
     // referral rate function for each month, decreases over time by 1 / t
