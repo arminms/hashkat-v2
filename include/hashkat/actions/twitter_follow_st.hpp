@@ -455,6 +455,9 @@ private:
             (&self_type::update_counters_when_agent_added, this, _1, _2));
         net_ptr_->connection_added().connect(boost::bind
             (&self_type::update_counters_when_connection_added, this, _1, _2));
+        if (cnf_ptr_->template get<bool>("analysis.use_followback ", false))
+            net_ptr_->connection_added().connect(boost::bind
+                (&self_type::followback_when_connection_added, this, _1, _2));
     }
 
     // initialize follow models
