@@ -1179,6 +1179,8 @@ private:
     std::vector<weight_type> at_af_weight_;
     // agent type add weight
     std::vector<weight_type> at_add_weight_;
+    // agent type followback weight
+    std::vector<weight_type> at_followback_weight_;
     // agent type region care flag
     std::vector<bool> at_care_about_region_;
     // agent type ideology care flag
