@@ -996,16 +996,7 @@ private:
                 return;
             }
 
-            if (net_ptr_->connect(followee, follower))
-            {
-                ++at_follows_count_[net_ptr_->agent_type(follower)];
-                ++agent_as_followee_method_counts_[followee][follow_method_];
-                ++agent_as_follower_method_counts_[follower][follow_method_];
-                base_type::action_happened_signal_();
-                base_type::action_finished_signal_();
-            }
-            else
-                base_type::action_finished_signal_();
+            handle_follow(followee, follower);
         }
     }
 
