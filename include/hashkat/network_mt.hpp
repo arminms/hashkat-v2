@@ -23,8 +23,8 @@
 // of a derivation, subsequent authors.
 //
 
-#ifndef HASHKAT_NETWORK_MT_H_
-#define HASHKAT_NETWORK_MT_H_
+#ifndef HASHKAT_NETWORK_MT_HPP_
+#define HASHKAT_NETWORK_MT_HPP_
 
 #include <mutex>
 #include <atomic>
@@ -38,35 +38,42 @@ template
     class    AgentType
 ,   class    ConfigType
 ,   typename T = std::uint32_t
-,   typename ValueType = double
+,   typename V = double
+,   typename W = std::uint16_t
 >
 class network_mt
 {
 public:
     typedef T type;
-    typedef ValueType rate_type;
-    typedef ValueType value_type;
-    typedef AgentType agent_type;
+    typedef V rate_type;
+    typedef V value_type;
+    typedef W agent_type_index_type;
+    //typedef AgentType agent_type;
     typedef ConfigType config_type;
-    typedef network_mt<AgentType, ConfigType, T, ValueType> self_type;
-    typedef boost::signals2::signal<void(T)> grown_signal_type;
+    typedef network_mt<AgentType, ConfigType, T, V, W> self_type;
+    typedef boost::signals2::signal<void(T, W)> grown_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_added_signal_type;
     typedef boost::signals2::signal<void(T, T)> connection_removed_signal_type;
 
     network_mt()
     :   agents_(nullptr)
+    ,   cnf_ptr_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
     {}
 
     network_mt(const ConfigType& conf)
     :   agents_(nullptr)
+    ,   cnf_ptr_(&conf)
     ,   n_agents_(0)
-    ,   max_agents_(0)
-    {   allocate(conf.template get<T>("analysis.max_agents", 1000)); }
+    {
+        init_agent_types(conf);
+        allocate(conf.template get<T>("analysis.max_agents", 1000));
+    }
 
     network_mt(T n)
     :   agents_(nullptr)
+    ,   cnf_ptr_(nullptr)
     ,   n_agents_(0)
     ,   max_agents_(0)
     {   allocate(n); }
@@ -79,6 +86,7 @@ public:
         n_agents_.store(0);
         followers_.clear();
         followees_.clear();
+        agent_type_.clear();
     }
 
     void allocate(T n)
@@ -87,37 +95,48 @@ public:
             delete[] agents_;
         max_agents_ = n;
         agents_ = new AgentType[max_agents_];
+        agent_type_.reserve(max_agents_);
         followers_.reserve(max_agents_);
         followees_.reserve(max_agents_);
+        V sum = 0;
+        for (auto w : at_add_weight_)
+            sum += w;
+        for (unsigned i = 0; i < at_agent_ids_.size(); ++i)
+            at_agent_ids_[i].reserve(
+                std::size_t(max_agents_ * at_add_weight_[i] / sum + 10));
     }
 
-    bool grow()
+    bool grow(W at = 0)
     {
         if (n_agents_.load() < max_agents_)
         {
             {
                 std::lock_guard<std::mutex> lg(grow_mutex_);
+                at_agent_ids_[at].push_back(n_agents_);
+                agent_type_.push_back(at);
                 followers_.emplace_back(tbb::concurrent_unordered_set<T>());
                 followees_.emplace_back(tbb::concurrent_unordered_set<T>());
             }
             ++n_agents_;
-            grown_signal_(n_agents_ - 1);
+            grown_signal_(n_agents_ - 1, at);
             return true;
         }
         else 
             return false;
     }
 
-    T grow(T n)
+    T grow(T n, W at = 0)
     {
         for (auto i = 0; i < n; ++i)
         {
             if (n_agents_ == max_agents_)
                 return i;
+            agent_type_.push_back(at);
+            at_agent_ids_[at].push_back(n_agents_);
             followers_.emplace_back(tbb::concurrent_unordered_set<T>());
             followees_.emplace_back(tbb::concurrent_unordered_set<T>());
             ++n_agents_;
-            grown_signal_(n_agents_ - 1);
+            grown_signal_(n_agents_ - 1, at);
         }
         return n;
     }
@@ -144,6 +163,18 @@ public:
         return agents_[idx];
     }
 
+    W agent_type(T n) const
+    {   return agent_type_[n];   }
+
+    std::size_t count(std::size_t type) const
+    {   return at_agent_ids_[type].size();   }
+
+    T agent_by_type(std::size_t type, T n) const
+    {   return at_agent_ids_[type][n];    }
+
+    std::string type_name(std::size_t type_idx) const
+    {   return at_name_[type_idx];   }
+
     grown_signal_type& grown()
     {   return grown_signal_;   }
 
@@ -161,6 +192,16 @@ public:
     std::size_t followers_size(std::size_t id) const
     {
         return followers_[id].size();
+    }
+
+    const std::unordered_set<T>& follower_set(std::size_t id) const
+    {
+        return followers_[id];
+    }
+
+    const std::unordered_set<T>& followee_set(std::size_t id) const
+    {
+        return followees_[id];
     }
 
     bool can_grow() const
@@ -238,20 +279,131 @@ public:
         return out;
     }
 
+    void dump(const std::string& folder) const
+    {
+        if (cnf_ptr_->template get<bool>("output.visualize", true))
+        {
+            std::ofstream out(folder + "/network.dat", std::ofstream::trunc);
+            out << "# Agent ID\tFollower ID\n\n";
+            for (unsigned id = 0; id < n_agents_; ++id)
+                for (auto id_fol : followers_[id])
+                    out << id << "\t" << id_fol << "\n";
+            out.close();
+
+            out.open(folder + "/network.gexf", std::ofstream::trunc);
+            std::time_t t = std::time(nullptr);
+            std::tm tm = *std::localtime(&t);
+            out << "<gexf version=\"1.2\">\n"
+                << "<meta lastmodifieddate=\""
+                << std::put_time(&tm, "%Y-%m-%d")
+                << "\">\n"
+                << "<creator>#k@</creator>\n"
+                << "<description>social network simulator</description>\n"
+                << "</meta>\n"
+                << "<graph mode=\"static\" defaultedgetype=\"directed\">\n"
+                << "<nodes>\n";
+            for (T i = 0; i < n_agents_; ++i)
+                out << "<node id=\""
+                    << i
+                    << "\" label=\"" 
+                    << agent_type_[i]
+                    << "\" />\n";
+            out << "</nodes>\n"
+                << "<edges>\n";
+            std::size_t count = 0;
+            for (T id = 0; id < n_agents_; ++id)
+                for (T id_fol : followees_[id])
+                    out << "<edge id=\""
+                        << count++
+                        << "\" source=\""
+                        << id
+                        << "\" target=\""
+                        << id_fol
+                        << "\"/>\n";
+            out << "</edges>\n"
+                << "</graph>\n"
+                << "</gexf>";
+            out.close();
+
+            out.open(folder + "/network.graphml", std::ofstream::trunc);
+            out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                << "<graphml>\n"
+                << "\t<graph id=\"G\" edgedefault=\"directed\">\n";
+            for (std::size_t i = 0; i < n_agents_; ++i)
+                out << "\t\t<node id=\""
+                    << i
+                    << "\" label=\""
+                    << agent_type_[i]
+                    << "\" />\n";
+            count = 0;
+            for (T id = 0; id < n_agents_; ++id)
+                for (T id_fol : followees_[id])
+                    out << "\t\t<edge id=\""
+                        << count++
+                        << "\" source=\""
+                        << id
+                        << "\" target=\""
+                        << id_fol
+                        << "\"/>\n";
+            out << "\t</graph>\n"
+                << "</graphml>";
+        }
+
+        if (cnf_ptr_->template get<bool>("output.main_statistics", true))
+        {
+            std::ofstream out(folder + "/main_stats.dat", std::ofstream::trunc);
+            out << "+--------------------+\n"
+                << "| MAIN NETWORK STATS |\n"
+                << "+--------------------+\n\n";
+
+            out << "USERS\n"
+                << "_____\n\n";
+
+            out << "Total: " << n_agents_ << "\n";
+            for (std::size_t i = 0; i < at_name_.size(); ++i)
+                out << at_name_[i] << ": "
+                    << at_agent_ids_[i].size() << "\t(" 
+                    << 100 * at_agent_ids_[i].size() / (double)n_agents_
+                    << "% of total agents)\n";
+            out << std::endl;
+        }
+    }
+
 private:
+    // initialize agent types
+    void init_agent_types(const ConfigType& conf)
+    {
+        for (auto const& v : conf)
+            if (v.first == "agents")
+            {
+                at_agent_ids_.emplace_back(tbb::concurrent_vector<T>());
+                at_name_.emplace_back(v.second.template get<std::string>("name"));
+                at_add_weight_.emplace_back(v.second.template get<V>("weights.add"));
+            }
+    }
+
     // member variables
     AgentType* agents_;
+    const ConfigType* cnf_ptr_;
     std::atomic<T> n_agents_;
     T max_agents_;
-    //std::vector<tbb::concurrent_unordered_set<T>> followers_;
-    //std::vector<tbb::concurrent_unordered_set<T>> followees_;
+    // set of followers for the corresponding agent
     tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followers_;
+    // set of agents that the corresponding agent acts as a followee
     tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> followees_;
-    std::mutex grow_mutex_;
-    std::mutex erase_mutex_;
+    // type of the corresponding agent
+    tbb::concurrent_vector<W> agent_type_;
+    // names of agent types
+    std::vector<std::string> at_name_;
+    // list of agent ID's for agent types
+    std::vector<tbb::concurrent_vector<T>> at_agent_ids_;
+    // add weight of agent types 
+    std::vector<V> at_add_weight_;
     grown_signal_type grown_signal_;
     connection_added_signal_type connection_added_signal_;
     connection_removed_signal_type connection_removed_signal_;
+    std::mutex grow_mutex_;
+    std::mutex erase_mutex_;
 };
 
 template
@@ -259,15 +411,16 @@ template
     class    AgentType
 ,   class    ConfigType
 ,   typename T
-,   typename ValueType
+,   typename V
+,   typename W
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const network_mt<AgentType, ConfigType, T, ValueType>& n)
+,   const network_mt<AgentType, ConfigType, T, V, W>& n)
 {
     return n.print(out);
 }
 
 }    // namespace hashkat
 
-#endif  // HASHKAT_NETWORK_MT_H_
+#endif  // HASHKAT_NETWORK_MT_HPP_

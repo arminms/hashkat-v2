@@ -26,8 +26,6 @@
 #ifndef HASHKAT_NETWORK_ST_HPP_
 #define HASHKAT_NETWORK_ST_HPP_
 
-#include <boost/range/adaptor/reversed.hpp>
-
 namespace hashkat {
 
 template
