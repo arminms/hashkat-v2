@@ -104,6 +104,12 @@ public:
         return out;
     }
 
+    void dump(const std::string& folder) const
+    {
+        net_.dump(folder);
+        eng_.dump(folder);
+    }
+
 private:
     void action_loop()
     {
