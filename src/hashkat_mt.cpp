@@ -33,6 +33,7 @@
 #include <limits>
 
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <hashkat/hashkat_mt.hpp>
 
@@ -67,17 +68,24 @@ typedef simulation_mt
 
 int main(int argc, char* argv[])
 {
+    typedef std::chrono::high_resolution_clock seed_clock;
+    seed_clock::time_point start = seed_clock::now();
     std::string input_file = "INFILE.xml";
-    std::string output_file = "out.dat";
+    std::string output_folder = "output";
     unsigned nt = 0;
+    std::string seed;
+    unsigned seed_value = 1;
+
     options_description visible(
         "usage: hashkat [ options ]\n"
         "               [ [-i|--input-file] INFILE.xml ]\n"
-        "               [ [-o|--output-file] out.dat ]\n\n"
+        "               [ [-o|--output-folder] output ]\n\n"
         "Allowed options");
     visible.add_options()
     ("help,h", "display this help and exit")
     ("version,v", "output version information and exit")
+    ("seed,r", value<std::string>(&seed),
+        "seed for PRNG, =random for a true RNG")
     ("threads,n", value<unsigned>(&nt), "number of threads to use")
     ("scaling-benchmark,b", "run parallel scalability benchmark")
     ("silent,s", "switch to silent mode");
@@ -85,11 +93,11 @@ int main(int argc, char* argv[])
     options_description hidden("Hidden options");
     hidden.add_options()
     ("input-file,i", value<std::string>(&input_file), "input file")
-    ("output-file,o", value<std::string>(&output_file), "output file");
+    ("output-folder,o", value<std::string>(&output_folder), "output folder");
 
     positional_options_description p;
     p.add("input-file", 1);
-    p.add("output-file", 1);
+    p.add("output-folder", 1);
 
     options_description all("Allowed options");
     all.add(visible).add(hidden);
@@ -116,34 +124,62 @@ int main(int argc, char* argv[])
         // having notify after -v and -h options...
         notify(vm);
 
+        // showing initial information
+        if (!vm.count("silent"))
+            std::cout << "Starting #k@_mt network simulator (version )\n"
+                      << "Loading input configuration from '"
+                      << input_file << "'.\n";
+
+        // acttually reading the configuration file
         configuration conf;
         config::read_xml(input_file, conf);
-        auto max_nt = std::thread::hardware_concurrency();
+        conf.add("output_folder", output_folder);
 
+        // setting the seed after reading the config
+        // for having better true RNG
+        if (vm.count("seed"))
+        {
+            if (boost::iequals(seed, "random"))
+            {
+                seed_clock::duration d = seed_clock::now() - start;
+                seed_value = unsigned(d.count());
+            }
+            else
+                seed_value = std::stoul(seed);
+        }
+
+        // showing seed information
+        if (!vm.count("silent"))
+            std::cout << "Starting simulation with seed '"
+                      << seed_value << "'.\n";
+
+        // preforming scaling-benchmark if necessary
+        auto max_nt = std::thread::hardware_concurrency();
         if (vm.count("scaling-benchmark"))
         {
-            auto found = output_file.find_last_of('.');
-            std::string base = 
-                found ? output_file.substr(0, found) : output_file;
-            std::string ext = 
-                found ? output_file.substr(found + 1) : "dat";
             for (unsigned i = 1; i <= max_nt; ++i)
             {
+                std::ostringstream s;
+                s << output_folder << '_'
+                  << std::setfill('0') << std::setw(2) << i;
+                // use put() rather than add() to overwrite previous one
+                conf.put("output_folder", s.str());
+
                 if (!vm.count("silent"))
                     std::cout << "Using " << i << " out of " 
                               << max_nt << " concurrent threads...";
+
                 simulation sim(conf);
+                sim.rng().seed(seed_value);
                 sim.run(i);
+
                 if (!vm.count("silent"))
                     std::cout << "\b\b\b -> Elapsed time: "
                               << sim.duration().count()
                               << " ms" << std::endl;
-                std::ostringstream s;
-                s << base << '_'
-                  << std::setfill('0') << std::setw(2) << i
-                  << '.' << ext;
-                std::ofstream out(s.str(), std::ofstream::out);
+                std::ofstream out(s.str() + "/out.dat", std::ofstream::out);
                 out << sim;
+                //sim.dump(s.str());
             }
         }
         else
@@ -151,15 +187,26 @@ int main(int argc, char* argv[])
             if (!vm.count("silent"))
                 std::cout << "Using " << (nt ? nt : max_nt) << " out of " 
                           << max_nt << " concurrent threads...";
+
+            // running simulation
             simulation sim(conf);
+            sim.rng().seed(seed_value);
             sim.run(nt);
+
+            // done, showing more information
             if (!vm.count("silent"))
-                std::cout << "\b\b\b -> Elapsed time: "
+                std::cout << "Simulation Completed: "
+                          << "desired simulation time reached"
+                          << std::endl
+                          << "\b\b\b -> Elapsed time: "
                           << sim.duration().count()
                           << " ms" << std::endl
-                          << "Saving output -> " << output_file << std::endl;
-            std::ofstream out(output_file, std::ofstream::out);
+                          << "Creating analysis files in: "
+                          << output_folder << std::endl;
+        // actually saving the output
+            std::ofstream out(output_folder + "/out.dat", std::ofstream::out);
             out << sim;
+            //sim.dump(output_folder);
             if (!vm.count("silent"))
                 std::cout << "Done!\n";
         }
@@ -188,9 +235,14 @@ int main(int argc, char* argv[])
         std::cout << visible << std::endl;
         std::cout << "Invalid option value!" << std::endl;
     }
-    catch (std::exception& e)
+    catch (std::invalid_argument& e)
     {
         UNREFERENCED_PARAMETER(e);
+        std::cout << visible << std::endl;
+        std::cerr << "Need a number as random seed!" << std::endl;
+    }
+    catch (std::exception& e)
+    {
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }

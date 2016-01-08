@@ -143,7 +143,6 @@ int main(int argc, char* argv[])
             {
                 seed_clock::duration d = seed_clock::now() - start;
                 seed_value = unsigned(d.count());
-                sim.rng().seed(seed_value);
             }
             else
                 seed_value = std::stoul(seed);
