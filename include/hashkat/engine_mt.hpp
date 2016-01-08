@@ -108,7 +108,7 @@ public:
     {
         for (auto& action : actions_.depot_)
         {
-            action->init(net_, cnt_, cnf_, rng_);
+            action->init(net_, cnt_, cnf_, rng_, time_);
             action->happened().connect(
                 boost::bind(&self_type::update_event_rate, this));
             action->finished().connect(
@@ -140,7 +140,7 @@ public:
         weights.reserve(actions_.depot_.size());
         for (auto& action : actions_.depot_)
         {
-            action->update_weight(time_);
+            action->update_weight();
             weights.push_back(action->weight());
         }
         std::discrete_distribution<T> di(weights.begin(), weights.end());
@@ -151,10 +151,20 @@ public:
     {
         out << "# Number of steps: " << n_steps_ << std::endl;
         out << "# Simulation time: " << time_.count() << " min" << std::endl;
-        out << "# Event rate: " << event_rate_ << std::endl;
+        double event_rate = 0;
+        for (auto& action : actions_.depot_)
+            event_rate += action->weight();
+        out << "# Event rate: " << event_rate << std::endl;
+        out << "# Real event rate: " << event_rate_ << std::endl;
          for (auto& action : actions_.depot_)
             out << action.get();
         return out;
+    }
+
+    void dump(const std::string& folder) const
+    {
+        for (auto& action : actions_.depot_)
+            action->dump(folder);
     }
 
 private:
@@ -167,17 +177,26 @@ private:
     {
         ++n_steps_;
 
+        double event_rate = 0;
+        for (auto& action : actions_.depot_)
+            event_rate += action->weight();
+
+        if (event_rate < std::numeric_limits<double>::epsilon())
+            throw std::overflow_error
+                ("Stagnant network! Nothing to do. Exiting...");
+
         if (random_time_increment_)
         {
-            std::uniform_real_distribution<double> dr(std::nextafter(0, 1), 1);
-            auto inc = time_type(-std::log(dr(rng_)) / event_rate_);
+            std::uniform_real_distribution<double>
+                dr(std::nextafter(0.0, 1.0), 1.0);
+            auto inc = time_type(-std::log(dr(rng_)) / event_rate);
             std::lock_guard<std::mutex> lg(time_mutex_);
             time_ += inc;
         }
         else
         {
             std::lock_guard<std::mutex> lg(time_mutex_);
-            time_ += time_type(1.0 / event_rate_);
+            time_ += time_type(1.0 / event_rate);
         }
     }
 

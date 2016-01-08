@@ -183,7 +183,7 @@ private:
 
         if (event_rate < std::numeric_limits<double>::epsilon())
             throw std::overflow_error
-                ("Stagnant network! Nothing to do. Exiting.");
+                ("Stagnant network! Nothing to do. Exiting...");
 
         if (random_time_increment_)
         {
