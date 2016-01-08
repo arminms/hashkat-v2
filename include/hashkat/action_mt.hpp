@@ -59,8 +59,9 @@ public:
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
-    ,   RngType& rng)
-    {   do_init(net, cnt, cnf, rng);   }
+    ,   RngType& rng
+    ,   const TimeType& time)
+    {   do_init(net, cnt, cnf, rng, time);   }
 
     rate_type rate() const
     {   return rate_;   }
@@ -73,13 +74,18 @@ public:
 
     void reset()
     {   do_reset(); }
-    void update_weight(const TimeType& time)
-    {   do_update_weight(time);   }
+
+    void update_weight()
+    {   do_update_weight();   }
 
     void operator()()
     {   do_action();   }
+
     std::ostream& print(std::ostream& out) const
     {   return do_print(out); }
+
+    void dump(const std::string& folder) const
+    {   return do_dump(folder);   }
 
     action_happened_signal_type& happened()
     {   return action_happened_signal_;   }
@@ -102,12 +108,14 @@ private:
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
-    ,   RngType& rng) = 0;
+    ,   RngType& rng
+    ,   const TimeType& time) = 0;
     virtual void do_post_init() = 0;
     virtual void do_reset() = 0;
-    virtual void do_update_weight(const TimeType& time) = 0;
+    virtual void do_update_weight() = 0;
     virtual void do_action() = 0;
     virtual std::ostream& do_print(std::ostream& out) const = 0;
+    virtual void do_dump(const std::string& folder) const = 0;
 };
 
 template
@@ -120,7 +128,8 @@ template
 >
 std::ostream& operator<< (
     std::ostream& out
-,   const action_base<NetworkType, ContentsType, ConfigType, RngType, TimeType>* ptr)
+,   const action_base
+        <NetworkType, ContentsType, ConfigType, RngType, TimeType>* ptr)
 {
     return ptr->print(out);
 }
