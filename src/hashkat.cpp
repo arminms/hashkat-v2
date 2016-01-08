@@ -33,6 +33,7 @@
 #include <limits>
 
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <hashkat/hashkat.hpp>
 
@@ -120,45 +121,39 @@ int main(int argc, char* argv[])
         // having notify after -v and -h options...
         notify(vm);
 
-        // initializing configuration
-        configuration conf;
-        config::read_xml(input_file, conf);
-        conf.add("output_folder", output_folder);
-
         // showing initial information
         if (!vm.count("silent"))
             std::cout << "Starting #k@ network simulator (version )\n"
                       << "Loading input configuration from '"
                       << input_file << "'.\n";
 
+        // acttually reading the configuration file
+        configuration conf;
+        config::read_xml(input_file, conf);
+        conf.add("output_folder", output_folder);
+
         // constructing simulation object using conf
         simulation sim(conf);
 
-        // setting the seed, if any
+        // setting the seed after reading the config and
+        // making simulation object for having better true RNG
         if (vm.count("seed"))
         {
-            if (seed == "random")
+            if (boost::iequals(seed, "random"))
             {
                 seed_clock::duration d = seed_clock::now() - start;
                 seed_value = unsigned(d.count());
                 sim.rng().seed(seed_value);
             }
             else
-            {
-                std::seed_seq s(seed.begin(), seed.end());
-                sim.rng().seed(s);
-                std::vector<std::uint32_t> seeds(s.size());
-                s.generate(seeds.begin(), seeds.end());
-                seed_value = seeds[0];
-            }
+                seed_value = std::stoul(seed);
         }
-        else
-            sim.rng().seed(seed_value);
 
         // showing seed information
         if (!vm.count("silent"))
             std::cout << "Starting simulation with seed '"
                       << seed_value << "'.\n";
+        sim.rng().seed(seed_value);
 
         // running simulation
         sim.run();
@@ -204,9 +199,14 @@ int main(int argc, char* argv[])
         std::cout << visible << std::endl;
         std::cout << "Invalid option value!" << std::endl;
     }
-    catch (std::exception& e)
+    catch (std::invalid_argument& e)
     {
         UNREFERENCED_PARAMETER(e);
+        std::cout << visible << std::endl;
+        std::cerr << "Need a number as random seed!" << std::endl;
+    }
+    catch (std::exception& e)
+    {
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
