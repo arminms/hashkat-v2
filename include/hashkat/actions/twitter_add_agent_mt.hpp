@@ -46,8 +46,10 @@ class twitter_add_agent_mt
         <NetworkType, ContentsType, ConfigType, RngType, TimeType> self_type;
     typedef action_base
         <NetworkType, ContentsType, ConfigType, RngType, TimeType> base_type;
+    typedef typename base_type::weight_type weight_type;
     typedef typename NetworkType::type T;
     typedef typename NetworkType::value_type V;
+    typedef typename NetworkType::agent_type_index_type W;
 
 public:
     twitter_add_agent_mt()
@@ -69,6 +71,7 @@ public:
     ,   cnt_ptr_(&cnt)
     ,   cnf_ptr_(&cnf)
     ,   rng_ptr_(&rng)
+    ,   approx_month_(30 * 24 * 60) // 30 days, 24 hours, 60 minutes
     {}
 
 private:
@@ -76,18 +79,32 @@ private:
         NetworkType& net
     ,   ContentsType& cnt
     ,   ConfigType& cnf
-    ,   RngType& rng)
+    ,   RngType& rng
+    ,   const TimeType& time)
     {
-        net_ptr_ = &net;
-        cnt_ptr_ = &cnt;
-        cnf_ptr_ = &cnf;
-        rng_ptr_ = &rng;
+        net_ptr_  = &net;
+        cnt_ptr_  = &cnt;
+        cnf_ptr_  = &cnf;
+        rng_ptr_  = &rng;
+        time_ptr_ = &time;
+        init_agent_types();
+    }
+
+    // initialize agent types
+    void init_agent_types()
+    {
+        for (auto const& v : *cnf_ptr_)
+            if (v.first == "agents")
+            {
+                //at_name_.emplace_back(v.second.get<std::string>("name"));
+                at_add_weight_.push_back(v.second.template get<weight_type>
+                    ("weights.add", weight_type(100)));
+            }
     }
 
     virtual void do_post_init()
     {
-        typedef typename base_type::weight_type weight_type;
-        base_type::rate_.store(0);
+        base_type::rate_ = 0;
 
         unsigned months = (unsigned)cnf_ptr_->template get<double>
             ("analysis.max_time", 1000) / approx_month_;
@@ -98,9 +115,9 @@ private:
         if (f_type == "linear" )
         {
              weight_type y_intercept = cnf_ptr_->template
-                 get<weight_type>("rates.add.y_intercept", 1);
+                 get<weight_type>("rates.add.y_intercept", 0.001);
              weight_type slope = cnf_ptr_->template
-                 get<weight_type>("rates.add.y_slope", 0.5);
+                 get<weight_type>("rates.add.slope", 0.001);
             for (unsigned i = 0; i <= months; ++i)
                 monthly_weights_.push_back(y_intercept + i * slope);
             base_type::weight_ = monthly_weights_[0];
@@ -116,7 +133,12 @@ private:
         T ia = cnf_ptr_->template get<T>
             ("analysis.initial_agents", T(0));
         for (T i = 0; i < ia; ++i)
-            (*this)();
+        {
+            std::discrete_distribution<W> di(
+                at_add_weight_.begin(), at_add_weight_.end());
+            if (net_ptr_->grow(di(*rng_ptr_)))
+                ++base_type::rate_;
+        }
     }
 
     virtual void do_reset()
@@ -124,15 +146,16 @@ private:
         do_post_init();
     }
 
-    virtual void do_update_weight(const TimeType& time)
+    virtual void do_update_weight()
     {
-        base_type::weight_.store(
-            monthly_weights_[std::size_t(time.count() / approx_month_)] ); 
+        base_type::weight_.store(monthly_weights_[month()]);
     }
 
     virtual void do_action()
     {
-        if (net_ptr_->grow())
+        std::discrete_distribution<W> di(
+            at_add_weight_.begin(), at_add_weight_.end());
+        if (net_ptr_->grow(di(*rng_ptr_)))
         {
             ++base_type::rate_;
             base_type::action_happened_signal_();
@@ -147,13 +170,22 @@ private:
         return out;
     }
 
+    virtual void do_dump(const std::string& folder) const
+    {}
+
+    std::size_t month() const
+    {   return std::size_t(time_ptr_->count() / approx_month_);   }
+
 // member variables
     NetworkType* net_ptr_;
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
+    const TimeType* time_ptr_;
     const int approx_month_;
-    std::vector<typename base_type::weight_type> monthly_weights_;
+    std::vector<weight_type> monthly_weights_;
+    // agent type add weight
+    std::vector<weight_type> at_add_weight_;
 };
 
 template
