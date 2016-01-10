@@ -137,20 +137,23 @@ private:
                 get<std::string>("output_folder", "output"));
         }
 
-        base_type::weight_ = 0;
+        weight_type w = 0;
         if (zero_add_rate_)
             for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
-                base_type::weight_ += net_ptr_->count(at) 
-                                   *  at_monthly_weights_[at][months];
+                w += std::atomic<weight_type>(
+                     net_ptr_->count(at) 
+                  *  at_monthly_weights_[at][months]);
         else
             for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
             {
-                base_type::weight_ += at_agent_per_month_[at].back()
-                                   *  at_monthly_weights_[at][0];
+                w += at_agent_per_month_[at].back()
+                  *  at_monthly_weights_[at][0];
                 for (std::size_t i = 1, j = months; i <= months; ++i, --j)
-                    base_type::weight_ += at_monthly_weights_[at][i]
-                                       *  at_agent_per_month_[at][j];
+                    w += at_monthly_weights_[at][i]
+                      *  at_agent_per_month_[at][j];
             }
+        std::lock_guard<std::mutex> g(update_weight_mutex_);
+        base_type::weight_ = w;
     }
 
     virtual void do_action()
@@ -265,16 +268,6 @@ private:
         if (cnf_ptr_->template get<bool>
             ("output.degree_distribution_by_follow_model", true))
         {
-            //std::size_t max_followees = 0, max_followers = 0;
-            //for (std::size_t i = 0; i < net_ptr_->size(); ++i)
-            //{
-            //    if (net_ptr_->followees_size(i) >= max_followees)
-            //        max_followees = net_ptr_->followees_size(i) + 1;
-            //    if (net_ptr_->followers_size(i) >= max_followers)
-            //        max_followers = net_ptr_->followers_size(i) + 1;
-            //}
-            //std::size_t max_degree = max_followees + max_followers;
-
             std::size_t max_degree = 0;
             for (std::size_t i = 0; i < net_ptr_->size(); ++i)
             {
@@ -293,8 +286,8 @@ private:
             for (std::size_t i = 0; i < net_ptr_->size(); ++i)
                 for (std::size_t j = 0; j < 7; ++j)
                 {
-                    std::size_t degree = agent_as_followee_method_counts_[i][j]
-                                       + agent_as_follower_method_counts_[i][j];
+                    std::size_t degree = (*agent_as_followee_method_counts_[i])[j]
+                                       + (*agent_as_follower_method_counts_[i])[j];
                     ++follow_models[degree][j]; 
                 }
 
@@ -553,7 +546,7 @@ private:
             weights_.reserve(net_ptr_->max_size() + 1);
             for (T i = 1; i < net_ptr_->max_size(); ++i)
             {
-                bins_.emplace_back(std::unordered_set<T>());
+                bins_.emplace_back(tbb::concurrent_unordered_set<T>());
                 weights_.push_back(V(std::pow(V(i), exp)));
             }
         }
@@ -676,6 +669,8 @@ private:
                 &&  model_weights_[3] > 0) )
                 {
                     at_kmaxes_.push_back(0);
+                    update_at_bins_mutex_.emplace_back
+                        (std::unique_ptr<std::mutex>(new std::mutex));
 
                     T spc = cnf_ptr_->template get<T>
                         ("follow_ranks.weights.bin_spacing", T(1));
@@ -690,10 +685,12 @@ private:
                         inc *= inc;
 
                     T count = (max - min) / inc;
-                    at_bins_.emplace_back(std::vector<std::unordered_set<T>>());
+                    at_bins_.emplace_back
+                        (std::vector<tbb::concurrent_unordered_set<T>>());
                     at_bins_.back().reserve(count + 1);
                     for (T i = min; i <= max; i += inc)
-                        at_bins_.back().emplace_back(std::unordered_set<T>());
+                        at_bins_.back().emplace_back
+                            (tbb::concurrent_unordered_set<T>());
                 }
 
                 // initializing number of agent types per month
@@ -784,7 +781,7 @@ private:
         ,   weights_.cbegin() + kmax_ + 1
         ,   bins_.cbegin()
         ,   std::back_inserter(weights)
-        ,   [](V w, const std::unordered_set<T>& b)
+        ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
         {   return w * b.size();    });
         std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
 
@@ -798,9 +795,19 @@ private:
 
     T twitter_suggest_follow_model(T follower)
     {
+        follow_method_ = 1;
+        ++follow_models_count_[follow_method_];
+
+        unsigned bin = unsigned(
+            (time_ptr_->count() - agent_creation_time_[follower])
+        /   (double)approx_month_);
+        std::uniform_real_distribution<double> dr(0, 1);
+        if (!(dr(*rng_ptr_) < monthly_referral_rate_[bin]))
+            return std::numeric_limits<T>::max();
         std::vector<V> weights;
         auto kmax = kmax_.load();
         weights.reserve(kmax + 1);
+
         std::transform(
             weights_.cbegin()
         ,   weights_.cbegin() + kmax + 1
@@ -809,27 +816,73 @@ private:
         ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
         {   return w * b.size();    });
         std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
-        T idx = di(*rng_ptr_);
-        auto followee = bins_[idx].cbegin();
-        return  followee == bins_[idx].cend()
-            ?   std::numeric_limits<T>::max()
-            :   *followee;
+
+        auto idx = di(*rng_ptr_);
+        BOOST_ASSERT_MSG(bins_[idx].size() > 0, "zero bin size :(");
+        std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
+        auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
+        return *followee;
     }
 
-    T agent_follow_model(T follower)
+    T agent_follow_model(T follower)    // 2
     {
-        // not implemented yet
-        return std::numeric_limits<T>::max();
+        follow_method_ = 2;
+        ++follow_models_count_[follow_method_];
+
+        std::discrete_distribution<W> dd(
+            at_af_weight_.cbegin()
+        ,   at_af_weight_.cend());
+        W at = dd(*rng_ptr_);
+        if (0 == net_ptr_->count(at))
+            return std::numeric_limits<T>::max();
+        std::uniform_int_distribution<T>
+            ud(0, T(net_ptr_->count(at) - 1));
+        // TODO: checking for the agent language
+        return net_ptr_->agent_by_type(at, ud(*rng_ptr_));
     }
 
-    T preferential_agent_follow_model(T follower)
+    T preferential_agent_follow_model(T follower)   // 3
     {
-        // not implemented yet
-        return std::numeric_limits<T>::max();
+        follow_method_ = 3;
+        ++follow_models_count_[follow_method_];
+
+        // first selecting agent type
+        std::discrete_distribution<W> dd(
+            at_af_weight_.cbegin()
+        ,   at_af_weight_.cend());
+        W at = dd(*rng_ptr_);
+
+        // make sure we're not pulling from an empty list
+        if (0 == net_ptr_->count(at))
+            return std::numeric_limits<T>::max();
+
+        // selecting bin's index
+        std::vector<V> weights;
+        weights.reserve(at_kmaxes_[at] + 1);
+        std::transform(
+            weights_.cbegin()
+        ,   weights_.cbegin() + at_kmaxes_[at] + 1
+        ,   at_bins_[at].cbegin()
+        ,   std::back_inserter(weights)
+        ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
+        {   return w * b.size();    });
+        std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
+        auto idx = di(*rng_ptr_);
+
+        // selecting agent
+        BOOST_ASSERT_MSG(at_bins_[at][idx].size() > 0, "zero bin size :(");
+        std::uniform_int_distribution<std::size_t>
+            udi(0, at_bins_[at][idx].size() - 1);
+        auto followee = std::next(at_bins_[at][idx].cbegin(), udi(*rng_ptr_));
+
+        return *followee;
     }
 
-    T hashtag_follow_model(T follower)
+    T hashtag_follow_model(T follower)  // 4
     {
+        follow_method_ = 4;
+        ++follow_models_count_[follow_method_];
+
         // not implemented yet
         return std::numeric_limits<T>::max();
     }
@@ -841,25 +894,92 @@ private:
         return follow_models_[di(*rng_ptr_)](follower);
     }
 
-    void agent_added(T idx)
+    // slot for network::grow() signal
+    void update_counters_when_agent_added(T idx, W at)
     {
-        base_type::weight_.store(follow_rate_ * net_ptr_->size());
-
-        {
-            std::lock_guard<std::mutex> g(update_bins_mutex_);
-            bins_[0].insert(idx);
-        }
-
+        agent_creation_time_.push_back(time_ptr_->count());
+        std::unique_ptr<std::array<std::atomic<T>, 7>>
+            a(new std::array<std::atomic<T>, 7> {});
+        agent_as_followee_method_counts_.push_back(std::move(a));
+        a = std::unique_ptr<std::array<std::atomic<T>, 7>>
+            (new std::array<std::atomic<T>, 7> {});
+        agent_as_follower_method_counts_.push_back(std::move(a));
+        ++at_agent_per_month_[at].back();
         ++n_connections_;
     }
 
-    void update_bins(T followee, T follower)
+    // slot for network::grow() signal
+    void update_bins_when_agent_added(T idx, W at)
+    {
+        std::lock_guard<std::mutex> g(update_bins_mutex_);
+        bins_[0].insert(idx);
+    }
+
+    // slot for network::grow() signal
+    void update_at_bins_when_agent_added(T idx, W at)
+    {
+        std::lock_guard<std::mutex> g(*update_at_bins_mutex_[at]);
+        at_bins_[at][0].insert(idx);
+    }
+
+    // slot for network::grow() signal
+    void barabasi_follow_when_agent_added(T follower, W at)
+    {
+        if (follower < 2)
+            return;
+
+        BOOST_CONSTEXPR_OR_CONST auto failed = std::numeric_limits<T>::max();
+        for (T i = 0; i < barabasi_connections_; ++i)
+        {
+            auto followee = select_followee(follower);
+            if (followee == failed)
+            {
+                base_type::action_finished_signal_();
+                return;
+            }
+
+            handle_follow(followee, follower);
+        }
+    }
+
+    // slot for network::connection_added() signal
+    void update_counters_when_connection_added(T followee, T follower)
+    {
+        ++base_type::rate_;
+        ++n_connections_;
+    }
+
+    // slot for network::connection_added() signal
+    void update_bins_when_connection_added(T followee, T follower)
     {
         std::size_t idx;
         {
             std::lock_guard<std::mutex> g(update_bins_mutex_);
-            idx = net_ptr_->followers_size(followee) * bins_.size()
-                     / net_ptr_->max_size();
+            idx = net_ptr_->followers_size(followee)
+                * bins_.size()
+                / net_ptr_->max_size();
+            if (bins_[idx - 1].unsafe_erase(followee))
+                bins_[idx].insert(followee);
+            else
+            {
+                while (bins_[idx].find(followee) == bins_[idx].end() && idx > 0)
+                    --idx;
+                bins_[idx].unsafe_erase(followee);
+                bins_[++idx].insert(followee);
+            }
+        }
+        if (kmax_ < idx)
+            kmax_.store(idx);
+    }
+
+
+    // slot for network::connection_added() signal
+    void update_barabasi_bins_when_connection_added(T followee, T follower)
+    {
+        std::size_t idx;
+        {
+            std::lock_guard<std::mutex> g(update_bins_mutex_);
+            idx = net_ptr_->followers_size(followee);
             if (bins_[idx - 1].unsafe_erase(followee))
                 bins_[idx].insert(followee);
             else
@@ -873,8 +993,133 @@ private:
 
         if (kmax_ < idx)
             kmax_.store(idx);
-        ++base_type::rate_;
-        ++n_connections_;
+    }
+
+    // slot for network::connection_added() signal
+    void update_at_bins_when_connection_added(T followee, T follower)
+    {
+        auto at = net_ptr_->agent_type(followee);
+        std::size_t idx;
+        {
+            std::lock_guard<std::mutex> g(*update_at_bins_mutex_[at]);
+            idx = net_ptr_->followers_size(followee)
+                * at_bins_[at].size()
+                / net_ptr_->max_size();
+            if (at_bins_[at][idx - 1].unsafe_erase(followee))
+                at_bins_[at][idx].insert(followee);
+            else
+            {
+                while (bins_[idx].find(followee) == bins_[idx].end() && idx > 0)
+                    --idx;
+                bins_[idx].unsafe_erase(followee);
+                bins_[++idx].insert(followee);
+            }
+        }
+
+        if (at_kmaxes_[at] < idx)
+            at_kmaxes_[at] = idx;
+    }
+
+    // slot for network::connection_added() signal
+    void followback_when_connection_added(T followee, T follower)
+    {
+        auto fbw = at_followback_weight_[net_ptr_->agent_type(followee)];
+        std::discrete_distribution<> dd({1.0 - fbw, fbw});
+        if (dd(*rng_ptr_))
+        {
+            follow_method_ = 6;
+            ++follow_models_count_[follow_method_];
+            handle_follow(follower, followee);
+        }
+    }
+
+    void handle_follow(T followee, T follower)
+    {
+        if (net_ptr_->connect(followee, follower))
+        {
+            ++at_follows_count_[net_ptr_->agent_type(follower)];
+            ++((*agent_as_followee_method_counts_[followee])[follow_method_]);
+            ++((*agent_as_follower_method_counts_[follower])[follow_method_]);
+            base_type::action_happened_signal_();
+            base_type::action_finished_signal_();
+        }
+        else
+            base_type::action_finished_signal_();
+    }
+
+    std::size_t month() const
+    {   return std::size_t(time_ptr_->count() / approx_month_);   }
+
+    void save_degree_distributions(const std::string& folder) const
+    {
+        std::size_t max_followees = 0, max_followers = 0;
+        for (T i = 0; i < net_ptr_->size(); ++i)
+        {
+            if (net_ptr_->followees_size(i) >= max_followees)
+                max_followees = net_ptr_->followees_size(i) + 1;
+            if (net_ptr_->followers_size(i) >= max_followers)
+                max_followers = net_ptr_->followers_size(i) + 1;
+        }
+        std::size_t max_degree = max_followees + max_followers;
+
+        std::vector<T> od_distro(max_followees, 0);
+        std::vector<T> id_distro(max_followers, 0);
+        std::vector<T> cd_distro(max_degree, 0);
+        for (T i = 0; i < net_ptr_->size(); ++i)
+        {
+            std::size_t out, in;
+            ++od_distro[out = net_ptr_->followees_size(i)];
+            ++id_distro[in  = net_ptr_->followers_size(i)];
+            ++cd_distro[out + in];
+        }
+
+        std::size_t max = 0;
+        for (auto count : cd_distro)
+            if (count > max)
+                max = count;
+
+        std::string base("-degree_distribution_month_");
+        std::string rest("degree distribution. The data order is:\n# degree, "
+            "normalized probability, log of degree, log of normalized"
+            " probability\n\n");
+
+        std::ostringstream fname(folder, std::ios_base::ate);
+        fname << "/out" << base << std::setfill('0')
+              << std::setw(3) << month() << ".dat";
+        std::ofstream out(fname.str(), std::ofstream::trunc);
+        out << "# This is the out-" << rest;
+        for (std::size_t i = 0; i < max_followees; ++i)
+            out << i << "\t"
+                << od_distro[i] / (double)net_ptr_->size()
+                << "\t" << std::log(i) << "\t"
+                << std::log(od_distro[i] / (double)net_ptr_->size())
+                << std::endl;
+        out.close();
+
+        fname.str(folder);
+        fname << "/in" << base << std::setfill('0')
+              << std::setw(3) << month() << ".dat";
+        out.open(fname.str(), std::ofstream::trunc);
+        out << "# This is the in-" << rest;
+        for (std::size_t i = 0; i < max_followers; ++i)
+            out << i << "\t"
+                << id_distro[i] / (double)net_ptr_->size()
+                << "\t" << std::log(i) << "\t"
+                << std::log(id_distro[i] / (double)net_ptr_->size())
+                << std::endl;
+        out.close();
+
+        fname.str(folder);
+        fname << "/cumulative" << base << std::setfill('0')
+              << std::setw(3) << month() << ".dat";
+        out.open(fname.str(), std::ofstream::trunc);
+        out << "# This is the cumulative " << rest;
+        for (std::size_t i = 0; i < max_degree; ++i)
+            out << i << "\t"
+                << cd_distro[i] / (double)net_ptr_->size()
+                << "\t" << std::log(i) << "\t"
+                << std::log(cd_distro[i] / (double)net_ptr_->size())
+                << std::endl;
     }
 
 // member variables
@@ -882,16 +1127,60 @@ private:
     ContentsType* cnt_ptr_;
     ConfigType* cnf_ptr_;
     RngType* rng_ptr_;
-    typename base_type::rate_type follow_rate_;
+    const TimeType* time_ptr_;
     std::atomic<std::size_t> n_connections_;
-    std::atomic<std::size_t> kmax_;
-    //tbb::concurrent_vector<tbb::concurrent_unordered_set<T>> bins_;
     std::vector<tbb::concurrent_unordered_set<T>> bins_;
-    std::mutex update_bins_mutex_;
     std::vector<V> weights_;
+    std::atomic<std::size_t> kmax_;
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
-    std::array<T, 5> model_weights_;
+    std::array<std::size_t, 7> follow_models_count_;
+    std::array<V, 5> model_weights_;
+    int follow_method_;
+    const int approx_month_;
+    // referral rate function for each month, decreases over time by 1 / t
+    std::vector<weight_type> monthly_referral_rate_;
+    // creation time for the corresponding agent
+    std::vector<double> agent_creation_time_;
+    // counts of follow models for the corresponding agent as a followee
+    std::vector<std::unique_ptr<std::array<std::atomic<T>, 7>>>
+        agent_as_followee_method_counts_;
+    // counts of follow models for the corresponding agent as a follower
+    std::vector<std::unique_ptr<std::array<std::atomic<T>, 7>>>
+        agent_as_follower_method_counts_;
+    // agent type name, NOTE: remove later if redundant/not used
+    std::vector<std::string> at_name_;
+    // agent type monthly follow weights
+    std::vector<std::vector<weight_type>> at_monthly_weights_;
+    // number of agents per month for each agent type
+    std::vector<std::vector<T>> at_agent_per_month_;
+    // number of follows for each agent type
+    std::vector<std::size_t> at_follows_count_;
+    // agent type follow weight ONLY for 'agent' follow model
+    std::vector<weight_type> at_af_weight_;
+    // agent type add weight
+    std::vector<weight_type> at_add_weight_;
+    // agent type followback weight
+    std::vector<weight_type> at_followback_weight_;
+    // agent type region care flag
+    std::vector<bool> at_care_about_region_;
+    // agent type ideology care flag
+    std::vector<bool> at_care_about_ideology_;
+    // bins for each agent type used in preferential_agent_follow_model
+    std::vector<std::vector<tbb::concurrent_unordered_set<T>>> at_bins_;
+    // max degrees for each agent type used in preferential_agent_follow_model
+    std::vector<std::size_t> at_kmaxes_;
+    // true when add rate is zero
+    bool zero_add_rate_;
+    // number of connections for barabasi model
+    T barabasi_connections_;
+
+    // mutex for updating base_type::weight_
+    std::mutex update_weight_mutex_;
+    // mutex for updating bins
+    std::mutex update_bins_mutex_;
+    // mutexes for updating bins for each agent type
+    std::vector<std::unique_ptr<std::mutex>> update_at_bins_mutex_;
 };
 
 template

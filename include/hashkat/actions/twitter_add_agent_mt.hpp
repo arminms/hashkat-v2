@@ -148,7 +148,8 @@ private:
 
     virtual void do_update_weight()
     {
-        base_type::weight_.store(monthly_weights_[month()]);
+        std::lock_guard<std::mutex> g(update_weight_mutex_);
+        base_type::weight_ = monthly_weights_[month()];
     }
 
     virtual void do_action()
@@ -186,6 +187,9 @@ private:
     std::vector<weight_type> monthly_weights_;
     // agent type add weight
     std::vector<weight_type> at_add_weight_;
+
+    // mutex for updating base_type::weight_
+    std::mutex update_weight_mutex_;
 };
 
 template

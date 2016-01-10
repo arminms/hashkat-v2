@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
                 std::cout << "Simulation Completed: "
                           << "desired simulation time reached"
                           << std::endl
-                          << "\b\b\b -> Elapsed time: "
+                          << "Elapsed time: "
                           << sim.duration().count()
                           << " ms" << std::endl
                           << "Creating analysis files in: "
@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
         // actually saving the output
             std::ofstream out(output_folder + "/out.dat", std::ofstream::out);
             out << sim;
-            //sim.dump(output_folder);
+            sim.dump(output_folder);
             if (!vm.count("silent"))
                 std::cout << "Done!\n";
         }

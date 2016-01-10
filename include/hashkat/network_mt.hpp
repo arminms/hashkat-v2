@@ -194,12 +194,12 @@ public:
         return followers_[id].size();
     }
 
-    const std::unordered_set<T>& follower_set(std::size_t id) const
+    const tbb::concurrent_unordered_set<T>& follower_set(std::size_t id) const
     {
         return followers_[id];
     }
 
-    const std::unordered_set<T>& followee_set(std::size_t id) const
+    const tbb::concurrent_unordered_set<T>& followee_set(std::size_t id) const
     {
         return followees_[id];
     }

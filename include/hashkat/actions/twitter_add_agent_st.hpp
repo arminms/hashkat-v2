@@ -186,6 +186,7 @@ private:
     std::vector<weight_type> monthly_weights_;
     // agent type add weight
     std::vector<weight_type> at_add_weight_;
+
 };
 
 template
