@@ -38,6 +38,8 @@
 
 #include <hashkat/hashkat.hpp>
 
+#include "rss.hpp"
+
 #define UNREFERENCED_PARAMETER(P) (P)
 
 using namespace boost::program_options;
@@ -189,7 +191,11 @@ int main(int argc, char* argv[])
         sim.dump(output_folder);
 
         if (!vm.count("silent"))
+        {
+            std::cout << "Peak memeory used: " << bytes2size(get_peak_rss())
+                      << std::endl;
             std::cout << "Done!\n";
+        }
     }
     catch (invalid_command_line_syntax& e)
     {

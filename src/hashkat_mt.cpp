@@ -38,6 +38,8 @@
 
 #include <hashkat/hashkat_mt.hpp>
 
+#include "rss.hpp"
+
 #define UNREFERENCED_PARAMETER(P) (P)
 
 using namespace boost::program_options;
@@ -212,7 +214,7 @@ int main(int argc, char* argv[])
         {
             if (!vm.count("silent"))
                 std::cout << "Using " << (nt ? nt : max_nt) << " out of " 
-                          << max_nt << " concurrent threads...";
+                          << max_nt << " concurrent threads\n";
 
             // running simulation
             simulation sim(conf);
@@ -233,8 +235,13 @@ int main(int argc, char* argv[])
             std::ofstream out(output_folder + "/out.dat", std::ofstream::out);
             out << sim;
             sim.dump(output_folder);
-            if (!vm.count("silent"))
-                std::cout << "Done!\n";
+        }
+
+        if (!vm.count("silent"))
+        {
+            std::cout << "Peak memeory used: " << bytes2size(get_peak_rss())
+                      << std::endl;
+            std::cout << "Done!\n";
         }
     }
     catch (invalid_command_line_syntax& e)
