@@ -33,6 +33,7 @@
 #include <limits>
 
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <hashkat/hashkat_mt.hpp>
@@ -40,6 +41,7 @@
 #define UNREFERENCED_PARAMETER(P) (P)
 
 using namespace boost::program_options;
+using namespace boost::filesystem;
 using namespace hashkat;
 
 struct dummy
@@ -124,6 +126,24 @@ int main(int argc, char* argv[])
         // having notify after -v and -h options...
         notify(vm);
 
+        // creating output folder if it doesn't exist
+        if (!vm.count("scaling-benchmark"))
+        {
+            path p(output_folder);
+            if (exists(p))
+            {
+                if (is_regular_file(p))
+                {
+                    std::cout << "Error: " << output_folder << " is a file. "
+                              << "Need a directory for --output-folder option."
+                              << std::endl;
+                    return 0;
+                }
+            }
+            else
+                create_directories(p);
+        }
+
         // showing initial information
         if (!vm.count("silent"))
             std::cout << "Starting #k@_mt network simulator (version )\n"
@@ -162,6 +182,12 @@ int main(int argc, char* argv[])
                 std::ostringstream s;
                 s << output_folder << '_'
                   << std::setfill('0') << std::setw(2) << i;
+
+                // creating output folder if it doesn't exist
+                path p(s.str());
+                if (!exists(p))
+                    create_directories(p);
+
                 // use put() rather than add() to overwrite previous one
                 conf.put("output_folder", s.str());
 
@@ -179,7 +205,7 @@ int main(int argc, char* argv[])
                               << " ms" << std::endl;
                 std::ofstream out(s.str() + "/out.dat", std::ofstream::out);
                 out << sim;
-                //sim.dump(s.str());
+                sim.dump(s.str());
             }
         }
         else
@@ -239,7 +265,11 @@ int main(int argc, char* argv[])
     {
         UNREFERENCED_PARAMETER(e);
         std::cout << visible << std::endl;
-        std::cerr << "Need a number as random seed!" << std::endl;
+        std::cout << "Need a number as random seed!" << std::endl;
+    }
+    catch (filesystem_error& e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
     }
     catch (std::exception& e)
     {
