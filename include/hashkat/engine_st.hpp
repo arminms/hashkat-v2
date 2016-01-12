@@ -111,8 +111,13 @@ public:
             action->init(net_, cnt_, cnf_, rng_, time_);
             action->happened().connect(
                 boost::bind(&self_type::update_event_rate, this));
-            action->finished().connect(
-                boost::bind(&self_type::increase_time, this));
+            if (cnf.template
+                    get<bool>("analysis.use_random_time_increment", false))
+                action->finished().connect(boost::bind
+                    (&self_type::increase_time, this));
+            else
+                action->finished().connect(boost::bind
+                    (&self_type::increase_time_randomly, this));
         }
         for (auto& action : actions_.depot_)
             action->post_init();
