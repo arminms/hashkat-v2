@@ -103,17 +103,21 @@ public:
     ,   time_(0)
     ,   n_steps_(0)
     ,   event_rate_(0)
-    ,   random_time_increment_(cnf.template get<bool>
-            ("analysis.use_random_time_increment", true))
     {
         for (auto& action : actions_.depot_)
         {
             action->init(net_, cnt_, cnf_, rng_, time_);
             action->happened().connect(
                 boost::bind(&self_type::update_event_rate, this));
-            action->finished().connect(
-                boost::bind(&self_type::step_time, this));
+            if (cnf.template
+                    get<bool>("analysis.use_random_time_increment", false))
+                action->finished().connect(boost::bind
+                    (&self_type::increase_time, this));
+            else
+                action->finished().connect(boost::bind
+                    (&self_type::increase_time_randomly, this));
         }
+
         for (auto& action : actions_.depot_)
             action->post_init();
     }
@@ -173,7 +177,7 @@ private:
         ++event_rate_;
     }
 
-    void step_time()
+    void increase_time()
     {
         ++n_steps_;
 
@@ -185,19 +189,27 @@ private:
             throw std::overflow_error
                 ("Stagnant network! Nothing to do. Exiting...");
 
-        if (random_time_increment_)
-        {
-            std::uniform_real_distribution<double>
-                dr(std::nextafter(0.0, 1.0), 1.0);
-            auto inc = time_type(-std::log(dr(rng_)) / event_rate);
-            std::lock_guard<std::mutex> lg(time_mutex_);
-            time_ += inc;
-        }
-        else
-        {
-            std::lock_guard<std::mutex> lg(time_mutex_);
-            time_ += time_type(1.0 / event_rate);
-        }
+        std::lock_guard<std::mutex> lg(time_mutex_);
+        time_ += time_type(1.0 / event_rate);
+    }
+
+    void increase_time_randomly()
+    {
+        ++n_steps_;
+
+        double event_rate = 0;
+        for (auto& action : actions_.depot_)
+            event_rate += action->weight();
+
+        if (event_rate < std::numeric_limits<double>::epsilon())
+            throw std::overflow_error
+                ("Stagnant network! Nothing to do. Exiting...");
+
+        std::uniform_real_distribution<double>
+            dr(std::nextafter(0.0, 1.0), 1.0);
+        auto inc = time_type(-std::log(dr(rng_)) / event_rate);
+        std::lock_guard<std::mutex> lg(time_mutex_);
+        time_ += inc;
     }
 
     // member variables
@@ -210,7 +222,6 @@ private:
     std::atomic<std::size_t> n_steps_;
     std::atomic<std::size_t> event_rate_;
     std::mutex time_mutex_;
-    bool random_time_increment_;
 };
 
 template

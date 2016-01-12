@@ -117,6 +117,7 @@ public:
                 action->finished().connect(boost::bind
                     (&self_type::increase_time_randomly, this));
         }
+
         for (auto& action : actions_.depot_)
             action->post_init();
     }
