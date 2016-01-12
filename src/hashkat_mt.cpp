@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
         if (!vm.count("silent"))
             std::cout << "Starting #k@_mt network simulator (version )\n"
                       << "Loading input configuration from '"
-                      << input_file << "'.\n";
+                      << input_file << "'." << std::endl;
 
         // acttually reading the configuration file
         configuration conf;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
         // showing seed information
         if (!vm.count("silent"))
             std::cout << "Starting simulation with seed '"
-                      << seed_value << "'.\n";
+                      << seed_value << "'." << std::endl;
 
         // preforming scaling-benchmark if necessary
         auto max_nt = std::thread::hardware_concurrency();
@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
         {
             std::cout << "Peak memeory used: " << bytes2size(get_peak_rss())
                       << std::endl;
-            std::cout << "Done!\n";
+            std::cout << "Done!" << std::endl;
         }
     }
     catch (invalid_command_line_syntax& e)
