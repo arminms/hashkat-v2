@@ -103,8 +103,6 @@ public:
     ,   time_(0)
     ,   n_steps_(0)
     ,   event_rate_(0)
-    ,   random_time_increment_(cnf.template get<bool>
-            ("analysis.use_random_time_increment", true))
     {
         for (auto& action : actions_.depot_)
         {
@@ -219,7 +217,6 @@ private:
     time_type time_;
     std::size_t n_steps_;
     std::size_t event_rate_;
-    bool random_time_increment_;
 };
 
 template
