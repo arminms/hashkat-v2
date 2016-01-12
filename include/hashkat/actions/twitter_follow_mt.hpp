@@ -132,7 +132,8 @@ private:
         if (months == at_agent_per_month_.back().size() - 1)
         {
             for (auto i = 0; i < at_name_.size(); ++i)
-                at_agent_per_month_[i].push_back(0);
+                at_agent_per_month_[i].push_back
+                    (std::unique_ptr<std::atomic<T>>(new std::atomic<T>(0)));
             save_degree_distributions(cnf_ptr_->template
                 get<std::string>("output_folder", "output"));
         }
@@ -146,11 +147,11 @@ private:
         else
             for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
             {
-                w += at_agent_per_month_[at].back()
+                w += *(at_agent_per_month_[at].back())
                   *  at_monthly_weights_[at][0];
                 for (std::size_t i = 1, j = months; i <= months; ++i, --j)
                     w += at_monthly_weights_[at][i]
-                      *  at_agent_per_month_[at][j];
+                      *  at_agent_per_month_[at][j]->load();
             }
         std::lock_guard<std::mutex> g(update_weight_mutex_);
         base_type::weight_ = w;
@@ -694,9 +695,11 @@ private:
                 }
 
                 // initializing number of agent types per month
-                at_agent_per_month_.emplace_back(std::vector<T>());
+                at_agent_per_month_.emplace_back(tbb::concurrent_vector
+                    <std::unique_ptr<std::atomic<T>>>());
                 at_agent_per_month_.back().reserve(months + 1);
-                at_agent_per_month_.back().push_back(0);
+                at_agent_per_month_.back().push_back
+                    (std::unique_ptr<std::atomic<T>>(new std::atomic<T>(0)));
                 at_follows_count_.push_back(0);
             }
         }
@@ -740,17 +743,15 @@ private:
                 if (0 == net_ptr_->count(at))
                     return std::numeric_limits<T>::max();
                 auto month = r.second;
-                if (0 == at_agent_per_month_[at][month])
+                if (0 == at_agent_per_month_[at][month]->load())
                     return std::numeric_limits<T>::max();
 
-                T start = (month
-                ?   std::accumulate(
-                        at_agent_per_month_[at].begin()
-                    ,   at_agent_per_month_[at].begin() + month
-                    ,   0)
-                :   0);
+                T sum = 0;
+                for (std::size_t i = 0; i < month; ++i)
+                    sum += at_agent_per_month_[at][i]->load();
+                T start = (month ? sum : 0);
                 std::uniform_int_distribution<T>
-                    di(start, start + at_agent_per_month_[at][month] - 1);
+                    di(start, start + at_agent_per_month_[at][month]->load() - 1);
                 return net_ptr_->agent_by_type(at, di(*rng_ptr_));
         }
     }
@@ -786,7 +787,8 @@ private:
         std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
 
         auto idx = di(*rng_ptr_);
-        BOOST_ASSERT_MSG(bins_[idx].size() > 0, "zero bin size :(");
+        if (0 == bins_[idx].size())
+            return std::numeric_limits<T>::max();
         std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
         auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
 
@@ -818,7 +820,8 @@ private:
         std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
 
         auto idx = di(*rng_ptr_);
-        BOOST_ASSERT_MSG(bins_[idx].size() > 0, "zero bin size :(");
+        if (0 == bins_[idx].size())
+            return std::numeric_limits<T>::max();
         std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
         auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
         return *followee;
@@ -904,7 +907,7 @@ private:
         a = std::unique_ptr<std::array<std::atomic<T>, 7>>
             (new std::array<std::atomic<T>, 7> {});
         agent_as_follower_method_counts_.push_back(std::move(a));
-        ++at_agent_per_month_[at].back();
+        ++(*(at_agent_per_month_[at].back()));
         ++n_connections_;
     }
 
@@ -1143,17 +1146,18 @@ private:
     // creation time for the corresponding agent
     std::vector<double> agent_creation_time_;
     // counts of follow models for the corresponding agent as a followee
-    std::vector<std::unique_ptr<std::array<std::atomic<T>, 7>>>
+    tbb::concurrent_vector<std::unique_ptr<std::array<std::atomic<T>, 7>>>
         agent_as_followee_method_counts_;
     // counts of follow models for the corresponding agent as a follower
-    std::vector<std::unique_ptr<std::array<std::atomic<T>, 7>>>
+    tbb::concurrent_vector<std::unique_ptr<std::array<std::atomic<T>, 7>>>
         agent_as_follower_method_counts_;
     // agent type name, NOTE: remove later if redundant/not used
     std::vector<std::string> at_name_;
     // agent type monthly follow weights
     std::vector<std::vector<weight_type>> at_monthly_weights_;
     // number of agents per month for each agent type
-    std::vector<std::vector<T>> at_agent_per_month_;
+    std::vector<tbb::concurrent_vector<std::unique_ptr<std::atomic<T>>>>
+        at_agent_per_month_;
     // number of follows for each agent type
     std::vector<std::size_t> at_follows_count_;
     // agent type follow weight ONLY for 'agent' follow model
