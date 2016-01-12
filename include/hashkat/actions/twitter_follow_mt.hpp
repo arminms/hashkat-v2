@@ -249,8 +249,10 @@ private:
 
             for (std::size_t i = 0; i < at_name_.size(); ++i)
                 out << at_name_[i] << ": "
-                    << at_follows_count_[i] << "\t(" 
-                    << 100 * at_follows_count_[i] / double(base_type::rate_)
+                    << at_follows_count_[i]->load() << "\t(" 
+                    << 100
+                     * at_follows_count_[i]->load()
+                     / double(base_type::rate_)
                     << "% of total follows)\n";
         }
 
@@ -700,7 +702,9 @@ private:
                 at_agent_per_month_.back().reserve(months + 1);
                 at_agent_per_month_.back().push_back
                     (std::unique_ptr<std::atomic<T>>(new std::atomic<T>(0)));
-                at_follows_count_.push_back(0);
+                at_follows_count_.push_back
+                    (std::unique_ptr<std::atomic<std::size_t>>
+                        (new std::atomic<std::size_t>(0)));
             }
         }
     }
@@ -1040,7 +1044,7 @@ private:
     {
         if (net_ptr_->connect(followee, follower))
         {
-            ++at_follows_count_[net_ptr_->agent_type(follower)];
+            ++(*at_follows_count_[net_ptr_->agent_type(follower)]);
             ++((*agent_as_followee_method_counts_[followee])[follow_method_]);
             ++((*agent_as_follower_method_counts_[follower])[follow_method_]);
             base_type::action_happened_signal_();
@@ -1159,7 +1163,7 @@ private:
     std::vector<tbb::concurrent_vector<std::unique_ptr<std::atomic<T>>>>
         at_agent_per_month_;
     // number of follows for each agent type
-    std::vector<std::size_t> at_follows_count_;
+    std::vector<std::unique_ptr<std::atomic<std::size_t>>> at_follows_count_;
     // agent type follow weight ONLY for 'agent' follow model
     std::vector<weight_type> at_af_weight_;
     // agent type add weight
