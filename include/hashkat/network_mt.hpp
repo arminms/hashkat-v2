@@ -377,8 +377,10 @@ private:
             if (v.first == "agents")
             {
                 at_agent_ids_.emplace_back(tbb::concurrent_vector<T>());
-                at_name_.emplace_back(v.second.template get<std::string>("name"));
-                at_add_weight_.emplace_back(v.second.template get<V>("weights.add"));
+                at_name_.emplace_back(v.second.template
+                    get<std::string>("name"));
+                at_add_weight_.emplace_back(v.second.template
+                    get<V>("weights.add"));
             }
     }
 

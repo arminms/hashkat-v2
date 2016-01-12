@@ -131,11 +131,16 @@ private:
         auto months = month();
         if (months == at_agent_per_month_.back().size() - 1)
         {
-            for (auto i = 0; i < at_name_.size(); ++i)
-                at_agent_per_month_[i].push_back
-                    (std::unique_ptr<std::atomic<T>>(new std::atomic<T>(0)));
-            save_degree_distributions(cnf_ptr_->template
-                get<std::string>("output_folder", "output"));
+            std::lock_guard<std::mutex> g(add_month_mutex_);
+            if (months == at_agent_per_month_.back().size() - 1)
+            {
+                //std::cout << "month: " << months << std::endl;
+                for (auto i = 0; i < at_name_.size(); ++i)
+                    at_agent_per_month_[i].push_back
+                        (std::unique_ptr<std::atomic<T>>(new std::atomic<T>(0)));
+                save_degree_distributions(cnf_ptr_->template
+                    get<std::string>("output_folder", "output"));
+            }
         }
 
         weight_type w = 0;
@@ -793,10 +798,12 @@ private:
         auto idx = di(*rng_ptr_);
         if (0 == bins_[idx].size())
             return std::numeric_limits<T>::max();
-        std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
-        auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
 
-        return *followee;
+        std::vector<T> v;
+        v.reserve(bins_[idx].size());
+        std::copy(bins_[idx].cbegin(), bins_[idx].cend(), std::back_inserter(v));
+        std::uniform_int_distribution<std::size_t> udi(0, v.size() - 1);
+        return v[udi(*rng_ptr_)];
     }
 
     T twitter_suggest_follow_model(T follower)
@@ -826,9 +833,14 @@ private:
         auto idx = di(*rng_ptr_);
         if (0 == bins_[idx].size())
             return std::numeric_limits<T>::max();
-        std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
-        auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
-        return *followee;
+        //std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
+        //auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
+        //return *followee;
+        std::vector<T> v;
+        v.reserve(bins_[idx].size());
+        std::copy(bins_[idx].cbegin(), bins_[idx].cend(), std::back_inserter(v));
+        std::uniform_int_distribution<std::size_t> udi(0, v.size() - 1);
+        return v[udi(*rng_ptr_)];
     }
 
     T agent_follow_model(T follower)    // 2
@@ -877,12 +889,15 @@ private:
         auto idx = di(*rng_ptr_);
 
         // selecting agent
-        BOOST_ASSERT_MSG(at_bins_[at][idx].size() > 0, "zero bin size :(");
-        std::uniform_int_distribution<std::size_t>
-            udi(0, at_bins_[at][idx].size() - 1);
-        auto followee = std::next(at_bins_[at][idx].cbegin(), udi(*rng_ptr_));
-
-        return *followee;
+        if (0 == at_bins_[at][idx].size())
+            return std::numeric_limits<T>::max();
+        std::vector<T> bin;
+        bin.reserve(at_bins_[at][idx].size());
+        std::copy(at_bins_[at][idx].cbegin(),
+                  at_bins_[at][idx].cend(),
+                  std::back_inserter(bin));
+        std::uniform_int_distribution<std::size_t> udi(0, bin.size() - 1);
+        return bin[udi(*rng_ptr_)];
     }
 
     T hashtag_follow_model(T follower)  // 4
@@ -1187,6 +1202,8 @@ private:
     std::mutex update_weight_mutex_;
     // mutex for updating bins
     std::mutex update_bins_mutex_;
+    // mutex for adding new month
+    std::mutex add_month_mutex_;
     // mutexes for updating bins for each agent type
     std::vector<std::unique_ptr<std::mutex>> update_at_bins_mutex_;
 };
