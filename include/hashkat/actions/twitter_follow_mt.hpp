@@ -152,7 +152,7 @@ private:
         else
             for (std::size_t at = 0; at < at_monthly_weights_.size(); ++at)
             {
-                w += *(at_agent_per_month_[at].back())
+                w += at_agent_per_month_[at].back()->load()
                   *  at_monthly_weights_[at][0];
                 for (std::size_t i = 1, j = months; i <= months; ++i, --j)
                     w += at_monthly_weights_[at][i]
@@ -676,7 +676,8 @@ private:
                 ==  tfm.template target<T(T)>()
                 &&  model_weights_[3] > 0) )
                 {
-                    at_kmaxes_.push_back(0);
+                    at_kmaxes_.emplace_back(std::unique_ptr<std::atomic
+                        <std::size_t>>(new std::atomic<std::size_t>(0)));
                     update_at_bins_mutex_.emplace_back
                         (std::unique_ptr<std::mutex>(new std::mutex));
 
@@ -788,7 +789,7 @@ private:
         std::vector<V> weights;
         std::transform(
             weights_.cbegin()
-        ,   weights_.cbegin() + kmax_ + 1
+        ,   weights_.cbegin() + kmax_.load() + 1
         ,   bins_.cbegin()
         ,   std::back_inserter(weights)
         ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
@@ -799,11 +800,14 @@ private:
         if (0 == bins_[idx].size())
             return std::numeric_limits<T>::max();
 
-        std::vector<T> v;
-        v.reserve(bins_[idx].size());
-        std::copy(bins_[idx].cbegin(), bins_[idx].cend(), std::back_inserter(v));
-        std::uniform_int_distribution<std::size_t> udi(0, v.size() - 1);
-        return v[udi(*rng_ptr_)];
+        std::vector<T> bin;
+        bin.reserve(bins_[idx].size());
+        std::copy(
+            bins_[idx].cbegin()
+        ,   bins_[idx].cend()
+        ,   std::back_inserter(bin));
+        std::uniform_int_distribution<std::size_t> udi(0, bin.size() - 1);
+        return bin[udi(*rng_ptr_)];
     }
 
     T twitter_suggest_follow_model(T follower)
@@ -833,9 +837,7 @@ private:
         auto idx = di(*rng_ptr_);
         if (0 == bins_[idx].size())
             return std::numeric_limits<T>::max();
-        //std::uniform_int_distribution<std::size_t> udi(0, bins_[idx].size() - 1);
-        //auto followee = std::next(bins_[idx].cbegin(), udi(*rng_ptr_));
-        //return *followee;
+
         std::vector<T> v;
         v.reserve(bins_[idx].size());
         std::copy(bins_[idx].cbegin(), bins_[idx].cend(), std::back_inserter(v));
@@ -877,10 +879,10 @@ private:
 
         // selecting bin's index
         std::vector<V> weights;
-        weights.reserve(at_kmaxes_[at] + 1);
+        weights.reserve(at_kmaxes_[at]->load() + 1);
         std::transform(
             weights_.cbegin()
-        ,   weights_.cbegin() + at_kmaxes_[at] + 1
+        ,   weights_.cbegin() + at_kmaxes_[at]->load() + 1
         ,   at_bins_[at].cbegin()
         ,   std::back_inserter(weights)
         ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
@@ -893,9 +895,10 @@ private:
             return std::numeric_limits<T>::max();
         std::vector<T> bin;
         bin.reserve(at_bins_[at][idx].size());
-        std::copy(at_bins_[at][idx].cbegin(),
-                  at_bins_[at][idx].cend(),
-                  std::back_inserter(bin));
+        std::copy(
+            at_bins_[at][idx].cbegin()
+        ,   at_bins_[at][idx].cend()
+        ,   std::back_inserter(bin));
         std::uniform_int_distribution<std::size_t> udi(0, bin.size() - 1);
         return bin[udi(*rng_ptr_)];
     }
@@ -940,7 +943,7 @@ private:
     // slot for network::grow() signal
     void update_at_bins_when_agent_added(T idx, W at)
     {
-        std::lock_guard<std::mutex> g(*update_at_bins_mutex_[at]);
+        std::lock_guard<std::mutex> g(*(update_at_bins_mutex_[at]));
         at_bins_[at][0].insert(idx);
     }
 
@@ -990,7 +993,7 @@ private:
                 bins_[++idx].insert(followee);
             }
         }
-        if (kmax_ < idx)
+        if (kmax_.load() < idx)
             kmax_.store(idx);
     }
 
@@ -1013,7 +1016,7 @@ private:
             }
         }
 
-        if (kmax_ < idx)
+        if (kmax_.load() < idx)
             kmax_.store(idx);
     }
 
@@ -1023,7 +1026,7 @@ private:
         auto at = net_ptr_->agent_type(followee);
         std::size_t idx;
         {
-            std::lock_guard<std::mutex> g(*update_at_bins_mutex_[at]);
+            std::lock_guard<std::mutex> g(*(update_at_bins_mutex_[at]));
             idx = net_ptr_->followers_size(followee)
                 * at_bins_[at].size()
                 / net_ptr_->max_size();
@@ -1031,15 +1034,17 @@ private:
                 at_bins_[at][idx].insert(followee);
             else
             {
-                while (bins_[idx].find(followee) == bins_[idx].end() && idx > 0)
+                while (at_bins_[at][idx].find(followee)
+                ==     at_bins_[at][idx].end()
+                &&     idx > 0)
                     --idx;
-                bins_[idx].unsafe_erase(followee);
-                bins_[++idx].insert(followee);
+                at_bins_[at][idx].unsafe_erase(followee);
+                at_bins_[at][++idx].insert(followee);
             }
         }
 
-        if (at_kmaxes_[at] < idx)
-            at_kmaxes_[at] = idx;
+        if (at_kmaxes_[at]->load() < idx)
+            at_kmaxes_[at]->store(idx);
     }
 
     // slot for network::connection_added() signal
@@ -1192,7 +1197,7 @@ private:
     // bins for each agent type used in preferential_agent_follow_model
     std::vector<std::vector<tbb::concurrent_unordered_set<T>>> at_bins_;
     // max degrees for each agent type used in preferential_agent_follow_model
-    std::vector<std::size_t> at_kmaxes_;
+    std::vector<std::unique_ptr<std::atomic<std::size_t>>> at_kmaxes_;
     // true when add rate is zero
     bool zero_add_rate_;
     // number of connections for barabasi model
