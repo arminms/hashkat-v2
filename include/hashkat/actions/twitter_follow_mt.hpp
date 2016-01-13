@@ -1162,7 +1162,7 @@ private:
     std::array<std::function<T(T)>, 5> follow_models_;
     std::array<std::atomic<std::size_t>, 7> follow_models_count_ = {};
     std::array<V, 5> model_weights_;
-    int follow_method_;
+    static thread_local int follow_method_;
     const int approx_month_;
     // referral rate function for each month, decreases over time by 1 / t
     std::vector<weight_type> monthly_referral_rate_;
@@ -1211,6 +1211,18 @@ private:
     // mutexes for updating bins for each agent type
     std::vector<std::unique_ptr<std::mutex>> update_at_bins_mutex_;
 };
+
+template
+<
+    class NetworkType
+,   class ContentsType
+,   class ConfigType
+,   class RngType
+,   class TimeType
+>
+thread_local int twitter_follow_mt
+    <NetworkType, ContentsType, ConfigType, RngType, TimeType>::follow_method_
+    = -1;
 
 template
 <

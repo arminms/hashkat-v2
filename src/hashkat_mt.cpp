@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
         {
             if (!vm.count("silent"))
                 std::cout << "Using " << (nt ? nt : max_nt) << " out of " 
-                          << max_nt << " concurrent threads\n";
+                          << max_nt << " concurrent threads" << std::endl;
 
             // running simulation
             simulation sim(conf);
