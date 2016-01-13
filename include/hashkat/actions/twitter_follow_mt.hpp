@@ -702,7 +702,7 @@ private:
                 }
 
                 // initializing number of agent types per month
-                at_agent_per_month_.emplace_back(tbb::concurrent_vector
+                at_agent_per_month_.emplace_back(std::vector
                     <std::unique_ptr<std::atomic<T>>>());
                 at_agent_per_month_.back().reserve(months + 1);
                 at_agent_per_month_.back().push_back
@@ -1185,7 +1185,7 @@ private:
     // agent type monthly follow weights
     std::vector<std::vector<weight_type>> at_monthly_weights_;
     // number of agents per month for each agent type
-    std::vector<tbb::concurrent_vector<std::unique_ptr<std::atomic<T>>>>
+    std::vector<std::vector<std::unique_ptr<std::atomic<T>>>>
         at_agent_per_month_;
     // number of follows for each agent type
     std::vector<std::unique_ptr<std::atomic<std::size_t>>> at_follows_count_;
