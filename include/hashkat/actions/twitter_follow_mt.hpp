@@ -429,7 +429,6 @@ private:
     void init_follow_models()
     {
         follow_method_ = -1;
-        follow_models_count_.fill(0);
 
         barabasi_connections_ = cnf_ptr_->template get<T>
             ("analysis.barabasi_connections", T(1));
@@ -776,7 +775,7 @@ private:
     T random_follow_model(T follower)   // 0
     {
         follow_method_ = 0;
-        ++follow_models_count_[follow_method_];
+        ++follow_models_count_[0];
         std::uniform_int_distribution<T> di(0, net_ptr_->size() - 1);
         return di(*rng_ptr_);
     }
@@ -784,7 +783,7 @@ private:
     T barabasi_follow_model(T follower) // 1
     {
         follow_method_ = 1;
-        ++follow_models_count_[follow_method_];
+        ++follow_models_count_[1];
 
         std::vector<V> weights;
         std::transform(
@@ -813,7 +812,7 @@ private:
     T twitter_suggest_follow_model(T follower)
     {
         follow_method_ = 1;
-        ++follow_models_count_[follow_method_];
+        ++follow_models_count_[1];
 
         unsigned bin = unsigned(
             (time_ptr_->count() - agent_creation_time_[follower])
@@ -848,7 +847,7 @@ private:
     T agent_follow_model(T follower)    // 2
     {
         follow_method_ = 2;
-        ++follow_models_count_[follow_method_];
+        ++follow_models_count_[2];
 
         std::discrete_distribution<W> dd(
             at_af_weight_.cbegin()
@@ -865,7 +864,7 @@ private:
     T preferential_agent_follow_model(T follower)   // 3
     {
         follow_method_ = 3;
-        ++follow_models_count_[follow_method_];
+        ++follow_models_count_[3];
 
         // first selecting agent type
         std::discrete_distribution<W> dd(
@@ -906,7 +905,7 @@ private:
     T hashtag_follow_model(T follower)  // 4
     {
         follow_method_ = 4;
-        ++follow_models_count_[follow_method_];
+        ++follow_models_count_[4];
 
         // not implemented yet
         return std::numeric_limits<T>::max();
@@ -1055,7 +1054,7 @@ private:
         if (dd(*rng_ptr_))
         {
             follow_method_ = 6;
-            ++follow_models_count_[follow_method_];
+            ++follow_models_count_[6];
             handle_follow(follower, followee);
         }
     }
@@ -1161,7 +1160,7 @@ private:
     std::atomic<std::size_t> kmax_;
     std::function<T(T)> default_follow_model_;
     std::array<std::function<T(T)>, 5> follow_models_;
-    std::array<std::size_t, 7> follow_models_count_;
+    std::array<std::atomic<std::size_t>, 7> follow_models_count_ = {};
     std::array<V, 5> model_weights_;
     int follow_method_;
     const int approx_month_;
