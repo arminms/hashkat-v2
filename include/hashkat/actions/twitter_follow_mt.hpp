@@ -794,6 +794,7 @@ private:
         ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
         {   return w * b.size();    });
         std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
+        weights.clear();
 
         auto idx = di(*rng_ptr_);
         if (0 == bins_[idx].size())
@@ -820,6 +821,7 @@ private:
         std::uniform_real_distribution<double> dr(0, 1);
         if (!(dr(*rng_ptr_) < monthly_referral_rate_[bin]))
             return std::numeric_limits<T>::max();
+
         std::vector<V> weights;
         auto kmax = kmax_.load();
         weights.reserve(kmax + 1);
@@ -832,6 +834,7 @@ private:
         ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
         {   return w * b.size();    });
         std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
+        weights.clear();
 
         auto idx = di(*rng_ptr_);
         if (0 == bins_[idx].size())
@@ -887,6 +890,7 @@ private:
         ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
         {   return w * b.size();    });
         std::discrete_distribution<T> di(weights.cbegin(), weights.cend());
+        weights.clear();
         auto idx = di(*rng_ptr_);
 
         // selecting agent
@@ -898,6 +902,8 @@ private:
             at_bins_[at][idx].cbegin()
         ,   at_bins_[at][idx].cend()
         ,   std::back_inserter(bin));
+        if (0 == bin.size())
+            return std::numeric_limits<T>::max();
         std::uniform_int_distribution<std::size_t> udi(0, bin.size() - 1);
         return bin[udi(*rng_ptr_)];
     }

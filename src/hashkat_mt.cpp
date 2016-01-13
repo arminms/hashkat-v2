@@ -195,7 +195,8 @@ int main(int argc, char* argv[])
 
                 if (!vm.count("silent"))
                     std::cout << "Using " << i << " out of " 
-                              << max_nt << " concurrent threads...";
+                              << max_nt << " concurrent threads..."
+                              << std::flush;
 
                 simulation sim(conf);
                 sim.rng().seed(seed_value);
