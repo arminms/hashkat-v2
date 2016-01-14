@@ -298,7 +298,7 @@ public:
 #if defined(_MSC_VER)
                 << std::put_time(&tm, "%Y-%m-%d")
 #else
-                << std::put_time(&tm, "2016-01-13")
+                << "2016-01-13"
 #endif
                 << "\">\n"
                 << "<creator>#k@</creator>\n"
