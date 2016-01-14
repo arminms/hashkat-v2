@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 
         if (vm.count("version"))
         {
-            std::cout << "Hashkat multithreaded version 0.3.0.0" << std::endl;
+            std::cout << "Hashkat multithreaded version 2.0" << std::endl;
             return 0;
         }
 
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 
         // showing initial information
         if (!vm.count("silent"))
-            std::cout << "Starting #k@_mt network simulator (version )\n"
+            std::cout << "Starting #k@_mt network simulator (version 2.0)\n"
                       << "Loading input configuration from '"
                       << input_file << "'." << std::endl;
 

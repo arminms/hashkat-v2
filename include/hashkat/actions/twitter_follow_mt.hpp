@@ -811,11 +811,12 @@ private:
         weights.clear();
 
         auto idx = di(*rng_ptr_);
-        if (0 == bins_[idx].size())
+        auto size = bins_[idx].size();
+        if (0 == size)
             return std::numeric_limits<T>::max();
 
         std::vector<T> bin;
-        bin.reserve(bins_[idx].size());
+        bin.reserve(size);
         std::copy(
             bins_[idx].cbegin()
         ,   bins_[idx].cend()
@@ -877,10 +878,11 @@ private:
             at_af_weight_.cbegin()
         ,   at_af_weight_.cend());
         W at = dd(*rng_ptr_);
-        if (0 == net_ptr_->count(at))
+        auto size = net_ptr_->count(at);
+        if (0 == size)
             return std::numeric_limits<T>::max();
         std::uniform_int_distribution<T>
-            ud(0, T(net_ptr_->count(at) - 1));
+            ud(0, T(size - 1));
         // TODO: checking for the agent language
         return net_ptr_->agent_by_type(at, ud(*rng_ptr_));
     }
