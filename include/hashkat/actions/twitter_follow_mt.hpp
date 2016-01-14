@@ -31,6 +31,19 @@
 
 namespace hashkat {
 
+// workaround for using std::unique_ptr as value in tbb::concurrent_vector
+template <typename V>
+struct V_ptr : public std::unique_ptr<V>
+{
+
+    typedef std::unique_ptr<V> uvptr;
+    using uvptr::uvptr;
+    V_ptr () : std::unique_ptr<V> () {};
+
+    V_ptr (const V_ptr& rhs)
+    {   this->swap (const_cast<V_ptr&> (rhs));  }
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // twitter_follow_mt action class
 
@@ -702,8 +715,8 @@ private:
                 }
 
                 // initializing number of agent types per month
-                at_agent_per_month_.emplace_back(std::vector
-                    <std::unique_ptr<std::atomic<T>>>());
+                at_agent_per_month_.emplace_back(tbb::concurrent_vector
+                    <V_ptr<std::atomic<T>>>());
                 at_agent_per_month_.back().reserve(months + 1);
                 at_agent_per_month_.back().push_back
                     (std::unique_ptr<std::atomic<T>>(new std::atomic<T>(0)));
@@ -880,11 +893,12 @@ private:
             return std::numeric_limits<T>::max();
 
         // selecting bin's index
+        auto kmax = at_kmaxes_[at]->load();
         std::vector<V> weights;
-        weights.reserve(at_kmaxes_[at]->load() + 1);
+        weights.reserve(kmax + 1);
         std::transform(
             weights_.cbegin()
-        ,   weights_.cbegin() + at_kmaxes_[at]->load() + 1
+        ,   weights_.cbegin() + kmax + 1
         ,   at_bins_[at].cbegin()
         ,   std::back_inserter(weights)
         ,   [](V w, const tbb::concurrent_unordered_set<T>& b)
@@ -1085,7 +1099,8 @@ private:
     void save_degree_distributions(const std::string& folder) const
     {
         std::size_t max_followees = 0, max_followers = 0;
-        for (T i = 0; i < net_ptr_->size(); ++i)
+        auto size = net_ptr_->size();
+        for (T i = 0; i < size; ++i)
         {
             if (net_ptr_->followees_size(i) >= max_followees)
                 max_followees = net_ptr_->followees_size(i) + 1;
@@ -1097,7 +1112,7 @@ private:
         std::vector<T> od_distro(max_followees, 0);
         std::vector<T> id_distro(max_followers, 0);
         std::vector<T> cd_distro(max_degree, 0);
-        for (T i = 0; i < net_ptr_->size(); ++i)
+        for (T i = 0; i < size; ++i)
         {
             std::size_t out, in;
             ++od_distro[out = net_ptr_->followees_size(i)];
@@ -1122,9 +1137,9 @@ private:
         out << "# This is the out-" << rest;
         for (std::size_t i = 0; i < max_followees; ++i)
             out << i << "\t"
-                << od_distro[i] / (double)net_ptr_->size()
+                << od_distro[i] / (double)size
                 << "\t" << std::log(i) << "\t"
-                << std::log(od_distro[i] / (double)net_ptr_->size())
+                << std::log(od_distro[i] / (double)size)
                 << std::endl;
         out.close();
 
@@ -1135,9 +1150,9 @@ private:
         out << "# This is the in-" << rest;
         for (std::size_t i = 0; i < max_followers; ++i)
             out << i << "\t"
-                << id_distro[i] / (double)net_ptr_->size()
+                << id_distro[i] / (double)size
                 << "\t" << std::log(i) << "\t"
-                << std::log(id_distro[i] / (double)net_ptr_->size())
+                << std::log(id_distro[i] / (double)size)
                 << std::endl;
         out.close();
 
@@ -1148,9 +1163,9 @@ private:
         out << "# This is the cumulative " << rest;
         for (std::size_t i = 0; i < max_degree; ++i)
             out << i << "\t"
-                << cd_distro[i] / (double)net_ptr_->size()
+                << cd_distro[i] / (double)size
                 << "\t" << std::log(i) << "\t"
-                << std::log(cd_distro[i] / (double)net_ptr_->size())
+                << std::log(cd_distro[i] / (double)size)
                 << std::endl;
     }
 
@@ -1185,7 +1200,7 @@ private:
     // agent type monthly follow weights
     std::vector<std::vector<weight_type>> at_monthly_weights_;
     // number of agents per month for each agent type
-    std::vector<std::vector<std::unique_ptr<std::atomic<T>>>>
+    std::vector<tbb::concurrent_vector<V_ptr<std::atomic<T>>>>
         at_agent_per_month_;
     // number of follows for each agent type
     std::vector<std::unique_ptr<std::atomic<std::size_t>>> at_follows_count_;

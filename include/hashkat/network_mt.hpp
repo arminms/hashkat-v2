@@ -142,7 +142,7 @@ public:
     }
 
     T size() const
-    {   return n_agents_;   }
+    {   return n_agents_.load();   }
 
     T max_size() const
     {   return max_agents_; }
@@ -295,7 +295,11 @@ public:
             std::tm tm = *std::localtime(&t);
             out << "<gexf version=\"1.2\">\n"
                 << "<meta lastmodifieddate=\""
+#if defined(_MSC_VER)
                 << std::put_time(&tm, "%Y-%m-%d")
+#else
+                << std::put_time(&tm, "2016-01-13")
+#endif
                 << "\">\n"
                 << "<creator>#k@</creator>\n"
                 << "<description>social network simulator</description>\n"
