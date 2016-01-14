@@ -151,8 +151,9 @@ private:
                 for (auto i = 0; i < at_name_.size(); ++i)
                     at_agent_per_month_[i].push_back
                         (std::unique_ptr<std::atomic<T>>(new std::atomic<T>(0)));
-                save_degree_distributions(cnf_ptr_->template
-                    get<std::string>("output_folder", "output"));
+                // TODO: because of the crash commented out
+                //save_degree_distributions(cnf_ptr_->template
+                //    get<std::string>("output_folder", "output"));
             }
         }
 
@@ -819,6 +820,8 @@ private:
             bins_[idx].cbegin()
         ,   bins_[idx].cend()
         ,   std::back_inserter(bin));
+        if (0 == bin.size())
+            return std::numeric_limits<T>::max();
         std::uniform_int_distribution<std::size_t> udi(0, bin.size() - 1);
         return bin[udi(*rng_ptr_)];
     }
@@ -828,11 +831,11 @@ private:
         follow_method_ = 1;
         ++follow_models_count_[1];
 
-        unsigned bin = unsigned(
+        unsigned month = unsigned(
             (time_ptr_->count() - agent_creation_time_[follower])
         /   (double)approx_month_);
         std::uniform_real_distribution<double> dr(0, 1);
-        if (!(dr(*rng_ptr_) < monthly_referral_rate_[bin]))
+        if (!(dr(*rng_ptr_) < monthly_referral_rate_[month]))
             return std::numeric_limits<T>::max();
 
         std::vector<V> weights;
@@ -853,11 +856,16 @@ private:
         if (0 == bins_[idx].size())
             return std::numeric_limits<T>::max();
 
-        std::vector<T> v;
-        v.reserve(bins_[idx].size());
-        std::copy(bins_[idx].cbegin(), bins_[idx].cend(), std::back_inserter(v));
-        std::uniform_int_distribution<std::size_t> udi(0, v.size() - 1);
-        return v[udi(*rng_ptr_)];
+        std::vector<T> bin;
+        bin.reserve(bins_[idx].size());
+        std::copy(
+            bins_[idx].cbegin()
+        ,   bins_[idx].cend()
+        ,   std::back_inserter(bin));
+        if (0 == bin.size())
+            return std::numeric_limits<T>::max();
+        std::uniform_int_distribution<std::size_t> udi(0, bin.size() - 1);
+        return bin[udi(*rng_ptr_)];
     }
 
     T agent_follow_model(T follower)    // 2
