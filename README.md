@@ -1,6 +1,5 @@
-# Hashkat version 2 (#k@-v2)
-## Kinetic Analysis of Twitter-like Networks
-===
+# Hashkat Version 2 (#k@-v2)
+### Kinetic Analysis of Twitter-like Network
 
 This is the new codebase for _#k@_ network simulation software that supports both single and multithreaded runs.
 
