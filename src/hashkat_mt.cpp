@@ -230,6 +230,8 @@ int main(int argc, char* argv[])
                           << "Elapsed time: "
                           << sim.duration().count()
                           << " ms" << std::endl
+                          << "Peak memory used: "
+                          << bytes2size(get_peak_rss()) << std::endl
                           << "Creating analysis files in: "
                           << output_folder << std::endl;
         // actually saving the output

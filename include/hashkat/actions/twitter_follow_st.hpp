@@ -120,7 +120,17 @@ private:
     virtual void do_reset()
     {
         bins_.clear();
+        at_bins_.clear();
         weights_.clear();
+        monthly_referral_rate_.clear();
+        agent_creation_time_.clear();
+        agent_as_followee_method_counts_.clear();
+        agent_as_follower_method_counts_.clear();
+        agent_as_follower_method_counts_.clear();
+        at_monthly_weights_.clear();
+        at_agent_per_month_.clear();
+        at_follows_count_.clear();
+        at_add_weight_.clear();
         do_post_init();
     }
 

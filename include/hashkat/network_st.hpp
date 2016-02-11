@@ -79,8 +79,10 @@ public:
     void reset()
     {
         n_agents_ = 0;
-        followers_.clear();
-        followees_.clear();
+        std::vector<std::unordered_set<T>>().swap(followers_);
+        std::vector<std::unordered_set<T>>().swap(followees_);
+//        followers_.clear();
+//        followees_.clear();
         agent_type_.clear();
     }
 

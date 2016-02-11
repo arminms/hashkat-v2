@@ -115,9 +115,9 @@ private:
 
         auto max_agents = cnf_ptr_->template get<T>
             ("analysis.max_agents", 1000);
-        agent_creation_time_.reserve(max_agents);
-        agent_as_followee_method_counts_.reserve(max_agents);
-        agent_as_follower_method_counts_.reserve(max_agents);
+//        agent_creation_time_.reserve(max_agents);
+//        agent_as_followee_method_counts_.reserve(max_agents);
+//        agent_as_follower_method_counts_.reserve(max_agents);
 
         init_slots();
         init_follow_models();

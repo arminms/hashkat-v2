@@ -173,6 +173,10 @@ int main(int argc, char* argv[])
                       << seed_value << "'." << std::endl;
         sim.rng().seed(seed_value);
 
+        std::cout << "Peak memory used: " 
+                  << bytes2size(get_peak_rss())
+                  << std::endl;
+
         // running simulation
         sim.run();
 
@@ -182,6 +186,8 @@ int main(int argc, char* argv[])
                       << std::endl
                       << "Elapsed time: " << sim.duration().count()
                       << " ms" << std::endl
+                      << "Peak memory used: " 
+                      << bytes2size(get_peak_rss()) << std::endl
                       << "Creating analysis files in: "
                       << output_folder << std::endl;
 
@@ -196,6 +202,11 @@ int main(int argc, char* argv[])
                       << std::endl;
             std::cout << "Done!" << std::endl;
         }
+
+        sim.reset();
+        std::cout << "Current memory used after reset: "
+                  << bytes2size(get_current_rss())
+                  << std::endl;	
     }
     catch (invalid_command_line_syntax& e)
     {

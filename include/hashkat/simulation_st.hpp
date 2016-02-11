@@ -62,7 +62,7 @@ public:
     {
         net_.reset();
         //cnt_.reset();
-        eng_.reset();
+        //eng_.reset();
     }
 
     RngType& rng()
