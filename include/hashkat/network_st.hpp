@@ -264,8 +264,8 @@ public:
             if (followees_[i].size())
             {
                 out << ' ';
-                for (auto following : followees_[i])
-                    out << following << ',';
+                for (auto followee : followees_[i])
+                    out << followee << ',';
             }
             out << std::endl;
         }

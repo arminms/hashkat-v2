@@ -216,11 +216,17 @@ private:
         out << "# Number of Bins: " << bins_.size() << std::endl;
         out << "# Number of Connections: " << n_connections_ << std::endl;
         out << "# kmax: " << kmax_ << std::endl;
-        out << "# Bins: " << std::endl;
+        out << "# Degree Distribution [IN]: " << std::endl;
         out << "#   K        N      Agent IDs" << std::endl;
 
+        // finding kmax
+        std::size_t kmax = 0;
+        for (std::size_t i = 0; i < net_ptr_->size(); ++i)
+            if (net_ptr_->followers_size(i) > kmax)
+                kmax = net_ptr_->followers_size(i);
+
         // building the bins
-        std::vector<std::unordered_set<T>> bins(net_ptr_->size() + 1);
+        std::vector<std::unordered_set<T>> bins(kmax + 1);
         for (T i = 0; i < net_ptr_->size(); ++i)
             bins[net_ptr_->followers_size(i)].insert(i);
 
@@ -237,6 +243,35 @@ private:
             }
             out << std::endl;
         }
+
+        out << "# Degree Distribution [OUT]: " << std::endl;
+        out << "#   K        N      Agent IDs" << std::endl;
+
+        // finding kmax
+        kmax = 0;
+        for (std::size_t i = 0; i < net_ptr_->size(); ++i)
+            if (net_ptr_->followees_size(i) > kmax)
+                kmax = net_ptr_->followees_size(i);
+
+        // building the bins
+        std::vector<std::unordered_set<T>>().swap(bins);
+        bins.resize(kmax + 1);
+        for (T i = 0; i < net_ptr_->size(); ++i)
+            bins[net_ptr_->followees_size(i)].insert(i);
+
+        for (T i = 0; i < bins.size(); ++i)
+        {
+            out << std::setfill('0') << std::setw(8) << i
+                << " [" << std::setw(8) << bins[i].size() << "]";
+            if (bins[i].size())
+            {
+                out << ' ';
+                for (auto follower : bins[i])
+                    out << follower << ',';
+            }
+            out << std::endl;
+        }
+
         return out;
     }
 
