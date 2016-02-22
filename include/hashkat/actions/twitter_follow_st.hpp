@@ -326,9 +326,14 @@ private:
                 folder + "/Categories_Distro.dat"
             ,   std::ofstream::trunc); // TODO: change to std::ofstream::app
 
+            // building the bins
+            std::vector<std::unordered_set<T>> bins(net_ptr_->size() + 1);
+            for (T i = 0; i < net_ptr_->size(); ++i)
+                bins[net_ptr_->followers_size(i)].insert(i);
+
             out << "Following | ";
-            for (auto i = 0; i < bins_.size(); ++i)
-                out << bins_[i].size() << " at " << i << "|\t";
+            for (auto i = 0; i < bins.size(); ++i)
+                out << bins[i].size() << " at " << i << "|\t";
             out << std::endl;
         }
 
