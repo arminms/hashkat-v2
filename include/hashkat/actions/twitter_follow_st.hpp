@@ -643,6 +643,9 @@ private:
             T inc = cnf_ptr_->template get<T>
                 ("follow_ranks.weights.increment", T(1));
 
+            if (max > net_ptr_->max_size() + 1)
+                max = net_ptr_->max_size() + 1;
+
             for (T i = 1; i < spc; ++i)
                 inc *= inc;
 
