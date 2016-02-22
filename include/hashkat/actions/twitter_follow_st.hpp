@@ -1064,14 +1064,18 @@ private:
     // slot for network::connection_added() signal
     void update_bins_when_connection_added(T followee, T follower)
     {
+        std::size_t prev_idx = (net_ptr_->followers_size(followee) - 1)
+                             * bins_.size()
+                             / net_ptr_->max_size();
         std::size_t idx = net_ptr_->followers_size(followee)
                         * bins_.size()
                         / net_ptr_->max_size();
-        if (bins_[idx - 1].erase(followee))
+        if (prev_idx != idx
+        &&  bins_[prev_idx].erase(followee))
             bins_[idx].insert(followee);
-        else
-            BOOST_ASSERT_MSG(false,
-                "followee not found in the bins :(");
+        //else
+        //    BOOST_ASSERT_MSG(false,
+        //        "followee not found in the bins :(");
 
         if (kmax_ < idx)
             kmax_ = idx;
