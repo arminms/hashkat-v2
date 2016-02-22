@@ -1073,9 +1073,6 @@ private:
         if (prev_idx != idx
         &&  bins_[prev_idx].erase(followee))
             bins_[idx].insert(followee);
-        //else
-        //    BOOST_ASSERT_MSG(false,
-        //        "followee not found in the bins :(");
 
         if (kmax_ < idx)
             kmax_ = idx;
@@ -1099,14 +1096,15 @@ private:
     void update_at_bins_when_connection_added(T followee, T follower)
     {
         auto at = net_ptr_->agent_type(followee);
+        std::size_t prev_idx = (net_ptr_->followers_size(followee) - 1)
+                             * at_bins_[at].size()
+                             / net_ptr_->max_size();
         std::size_t idx = net_ptr_->followers_size(followee)
                         * at_bins_[at].size()
                         / net_ptr_->max_size();
-        if (at_bins_[at][idx - 1].erase(followee))
+        if (prev_idx != idx
+        &&  at_bins_[at][idx - 1].erase(followee))
             at_bins_[at][idx].insert(followee);
-        else
-            BOOST_ASSERT_MSG(false,
-                "followee not found in the bins :(");
 
         if (at_kmaxes_[at] < idx)
             at_kmaxes_[at] = idx;
