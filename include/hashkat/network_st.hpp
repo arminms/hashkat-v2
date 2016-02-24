@@ -365,30 +365,14 @@ public:
             out << std::endl;
         }
 
-        std::ofstream out(folder + "/cdf.dat", std::ofstream::trunc);
-        write_cdf(out, followers_);
-    }
-
-    void write_cdf(std::ostream& out
-    ,   const std::vector<std::unordered_set<T>>& f) const
-    {
-        auto cdf = make_cdf(f);
-        std::copy(cdf.begin(), cdf.end(), std::ostream_iterator<V>(out, "\n"));
-    }
-
-private:
-    // initialize agent types
-    void init_agent_types(const ConfigType& conf)
-    {
-        for (auto const& v : conf)
-            if (v.first == "agents")
-            {
-                at_agent_ids_.emplace_back(std::vector<T>());
-                at_name_.emplace_back(v.second.template
-                    get<std::string>("name"));
-                at_add_weight_.emplace_back(v.second.template
-                    get<V>("weights.add"));
-            }
+        //std::ofstream out(folder + "/cdf.dat", std::ofstream::trunc);
+        //auto cdf1 = make_cdf(followers_);
+        //write_cdf(out, cdf1);
+        //out.close();
+        //std::ifstream in(folder + "/cdf.dat");
+        //auto cdf2 = read_cdf(in);
+        //std::ofstream test(folder + "/test_cdf.dat");
+        //write_cdf(test, cdf2);
     }
 
     std::vector<V> make_cdf(
@@ -410,6 +394,53 @@ private:
             cdf[i] /= cdf.back();
 
         return cdf;
+    }
+
+    static std::vector<V> read_cdf(std::istream& in)
+    {
+        std::size_t size = 0;
+        in >> size;
+        std::vector<V> cdf;
+        if (size)
+        {
+            cdf.reserve(size);
+            for (std::size_t i = 0; i < size; ++i)
+            {
+                V v;
+                if (in >> v)
+                    cdf.push_back(v);
+                else
+                {
+                    std::cerr << "Error while reading the CDF file"
+                              << std::endl;
+                    break;
+                }
+            }
+        }
+        return cdf;
+    }
+
+    static void write_cdf(
+        std::ostream& out
+    ,   const std::vector<V>& cdf)
+    {
+        out << cdf.size() << std::endl;
+        std::copy(cdf.begin(), cdf.end(), std::ostream_iterator<V>(out, "\n"));
+    }
+
+private:
+    // initialize agent types
+    void init_agent_types(const ConfigType& conf)
+    {
+        for (auto const& v : conf)
+            if (v.first == "agents")
+            {
+                at_agent_ids_.emplace_back(std::vector<T>());
+                at_name_.emplace_back(v.second.template
+                    get<std::string>("name"));
+                at_add_weight_.emplace_back(v.second.template
+                    get<V>("weights.add"));
+            }
     }
 
     // member variables
