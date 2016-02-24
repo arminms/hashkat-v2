@@ -365,15 +365,16 @@ public:
             out << std::endl;
         }
 
-        //std::ofstream out(folder + "/cdf.dat", std::ofstream::trunc);
-        //write_followers_cdf(out);
+        std::ofstream out(folder + "/cdf.dat", std::ofstream::trunc);
+        write_cdf(out, followers_);
     }
 
-    //void write_followers_cdf(std::ostream& out) const
-    //{
-    //    auto cdf = get_followers_cdf();
-    //    std::copy(cdf.begin(), cdf.end(), std::ostream_iterator<V>(out, "\n"));
-    //}
+    void write_cdf(std::ostream& out
+    ,   const std::vector<std::unordered_set<T>>& f) const
+    {
+        auto cdf = make_cdf(f);
+        std::copy(cdf.begin(), cdf.end(), std::ostream_iterator<V>(out, "\n"));
+    }
 
 private:
     // initialize agent types
@@ -383,21 +384,24 @@ private:
             if (v.first == "agents")
             {
                 at_agent_ids_.emplace_back(std::vector<T>());
-                at_name_.emplace_back(v.second.template get<std::string>("name"));
-                at_add_weight_.emplace_back(v.second.template get<V>("weights.add"));
+                at_name_.emplace_back(v.second.template
+                    get<std::string>("name"));
+                at_add_weight_.emplace_back(v.second.template
+                    get<V>("weights.add"));
             }
     }
 
-    std::vector<V> get_followers_cdf() const
+    std::vector<V> make_cdf(
+        const std::vector<std::unordered_set<T>>& f) const
     {
         std::size_t kmax = 0;
         for (std::size_t i = 0; i < n_agents_; ++i)
-            if (followers_[i].size() > kmax)
-                kmax = followers_[i].size();
+            if (f[i].size() > kmax)
+                kmax = f[i].size();
 
         std::vector<std::unordered_set<T>> bins(kmax + 1);
         for (T i = 0; i < n_agents_; ++i)
-            bins[followers_[i].size()].insert(i);
+            bins[f[i].size()].insert(i);
         std::vector<V> cdf(kmax + 1);
         cdf[0] = (V)bins[0].size();
         for (T i = 1; i < cdf.size(); ++i)
