@@ -365,10 +365,10 @@ public:
             out << std::endl;
         }
 
-        std::ofstream out(folder + "/cdf.dat");
-        write_cdf(out, make_cdf(followers_));
-        out.close();
-        //std::ifstream in(folder + "/cdf.dat");
+        //std::ofstream out(folder + "/cdf.dat");
+        //write_cdf(out, make_cdf(followers_));
+        //out.close();
+        //std::ifstream in(folder + "/test_cdf.dat");
         //auto cdf2 = read_cdf(in);
         //std::ofstream test(folder + "/test_cdf.dat");
         //write_cdf(test, make_cdf(followers_));
@@ -419,7 +419,12 @@ public:
                 d = diff;
         }
 
-        V da = ca * std::sqrt( (n1 + n2) / (n1 * n2) );
+        V da = ca * std::sqrt( V(n1 + n2) / V(n1 * n2) );
+
+        //std::cout << "alpha = " << alpha << std::endl;
+        //std::cout << "ca = " << ca << std::endl;
+        //std::cout << "d = " << d << std::endl;
+        //std::cout << "da = " << da << std::endl;
 
         return (d <= da);
     }
