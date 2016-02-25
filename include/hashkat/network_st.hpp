@@ -365,26 +365,75 @@ public:
             out << std::endl;
         }
 
-        //std::ofstream out(folder + "/cdf.dat", std::ofstream::trunc);
-        //auto cdf1 = make_cdf(followers_);
-        //write_cdf(out, cdf1);
-        //out.close();
+        std::ofstream out(folder + "/cdf.dat");
+        write_cdf(out, make_cdf(followers_));
+        out.close();
         //std::ifstream in(folder + "/cdf.dat");
         //auto cdf2 = read_cdf(in);
         //std::ofstream test(folder + "/test_cdf.dat");
-        //write_cdf(test, cdf2);
+        //write_cdf(test, make_cdf(followers_));
+        //if (ks_test(make_cdf(followers_), read_cdf(in)))
+        //    std::cout << "PASSED" << std::endl;
+        //else
+        //    std::cout << "FAILED" << std::endl;
     }
 
-    std::vector<V> make_cdf(
-        const std::vector<std::unordered_set<T>>& f) const
+    static bool ks_test(
+        std::vector<V>& cdf1
+    ,   std::vector<V>& cdf2
+    ,   V alpha = V(0.05))
+    {
+        std::size_t n1 = cdf1.size();
+        std::size_t n2 = cdf2.size();
+
+        std::size_t size = std::max(n1, n2);
+        BOOST_ASSERT_MSG(size > 12,
+            "sample size >12 is needed for KS test :(");
+
+        V ca = 0;
+        if (alpha <= 0.001)
+            ca = V(1.95);
+        else if (alpha <= 0.005)
+            ca = V(1.73);
+        else if (alpha <= 0.01)
+            ca = V(1.63);
+        else if (alpha <= 0.025)
+            ca = V(1.48);
+        else if (alpha <= 0.05)
+            ca = V(1.36);
+        else if (alpha <= 0.1)
+            ca = V(1.22);
+        else
+            ca = V(1.22);
+
+        if (n1 < size)
+            cdf1.resize(size, cdf1.back());
+        if (n2 < size)
+            cdf2.resize(size, cdf2.back());
+
+        V d = 0;
+        for (std::size_t i = 0; i < size; ++i)
+        {
+            V diff = std::abs(cdf1[i] - cdf2[i]);
+            if (diff > d)
+                d = diff;
+        }
+
+        V da = ca * std::sqrt( (n1 + n2) / (n1 * n2) );
+
+        return (d <= da);
+    }
+
+    static std::vector<V> make_cdf(
+        const std::vector<std::unordered_set<T>>& f)
     {
         std::size_t kmax = 0;
-        for (std::size_t i = 0; i < n_agents_; ++i)
+        for (std::size_t i = 0; i < f.size(); ++i)
             if (f[i].size() > kmax)
                 kmax = f[i].size();
 
         std::vector<std::unordered_set<T>> bins(kmax + 1);
-        for (T i = 0; i < n_agents_; ++i)
+        for (T i = 0; i < f.size(); ++i)
             bins[f[i].size()].insert(i);
         std::vector<V> cdf(kmax + 1);
         cdf[0] = (V)bins[0].size();
