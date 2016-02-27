@@ -812,6 +812,7 @@ private:
                 {
                     adjusted_weights.push_back(
                         at_monthly_weights_[at][month]
+                    //* at_agent_per_month_[at][month]) / weight_type(net_ptr_->count(at)))
                     *   at_add_weight_[at]);
                     grid.push_back(std::make_pair(at, month));
                 }

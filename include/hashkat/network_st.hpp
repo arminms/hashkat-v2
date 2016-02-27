@@ -368,14 +368,14 @@ public:
         //std::ofstream out(folder + "/cdf.dat");
         //write_cdf(out, make_cdf(followers_));
         //out.close();
-        //std::ifstream in(folder + "/test_cdf.dat");
+        std::ifstream in(folder + "/cdf_followers_random.dat");
         //auto cdf2 = read_cdf(in);
         //std::ofstream test(folder + "/test_cdf.dat");
         //write_cdf(test, make_cdf(followers_));
-        //if (ks_test(make_cdf(followers_), read_cdf(in)))
-        //    std::cout << "PASSED" << std::endl;
-        //else
-        //    std::cout << "FAILED" << std::endl;
+        if (ks_test(make_cdf(followers_), read_cdf(in)))
+            std::cout << "PASSED" << std::endl;
+        else
+            std::cout << "FAILED" << std::endl;
     }
 
     static bool ks_test(
@@ -423,8 +423,10 @@ public:
 
         //std::cout << "alpha = " << alpha << std::endl;
         //std::cout << "ca = " << ca << std::endl;
-        //std::cout << "d = " << d << std::endl;
-        //std::cout << "da = " << da << std::endl;
+        std::cout << "n1 = " << n1 << std::endl;
+        std::cout << "n2 = " << n2 << std::endl;
+        std::cout << "d = "  << d  << std::endl;
+        std::cout << "da = " << da << std::endl;
 
         return (d <= da);
     }
