@@ -622,6 +622,9 @@ private:
             T inc = cnf_ptr_->template get<T>
                 ("follow_ranks.weights.increment", T(1));
 
+            if (max > net_ptr_->max_size() + 1)
+                max = net_ptr_->max_size() + 1;
+
             for (T i = 1; i < spc; ++i)
                 inc *= inc;
 
@@ -742,6 +745,9 @@ private:
                         ("follow_ranks.weights.max", net_ptr_->max_size() + 1);
                     T inc = cnf_ptr_->template get<T>
                         ("follow_ranks.weights.increment", T(1));
+
+                    if (max > net_ptr_->max_size() + 1)
+                        max = net_ptr_->max_size() + 1;
 
                     for (T i = 1; i < spc; ++i)
                         inc *= inc;
@@ -1049,19 +1055,26 @@ private:
         std::size_t idx;
         {
             std::lock_guard<std::mutex> g(update_bins_mutex_);
+            std::size_t prev_idx = (net_ptr_->followers_size(followee) - 1)
+                                 * bins_.size()
+                                 / net_ptr_->max_size();
             idx = net_ptr_->followers_size(followee)
                 * bins_.size()
                 / net_ptr_->max_size();
-            if (bins_[idx - 1].unsafe_erase(followee))
-                bins_[idx].insert(followee);
-            else
+            if (prev_idx != idx)
             {
-                while (bins_[idx].find(followee) == bins_[idx].end() && idx > 0)
-                    --idx;
-                bins_[idx].unsafe_erase(followee);
-                bins_[++idx].insert(followee);
+                if (bins_[prev_idx].unsafe_erase(followee))
+                    bins_[idx].insert(followee);
+                else
+                {
+                    while (bins_[idx].find(followee) == bins_[idx].end() && idx > 0)
+                        --idx;
+                    bins_[idx].unsafe_erase(followee);
+                    bins_[++idx].insert(followee);
+                }
             }
         }
+
         if (kmax_.load() < idx)
             kmax_.store(idx);
     }
@@ -1096,19 +1109,25 @@ private:
         std::size_t idx;
         {
             std::lock_guard<std::mutex> g(*(update_at_bins_mutex_[at]));
+            std::size_t prev_idx = (net_ptr_->followers_size(followee) - 1)
+                                 * at_bins_[at].size()
+                                 / net_ptr_->max_size();
             idx = net_ptr_->followers_size(followee)
                 * at_bins_[at].size()
                 / net_ptr_->max_size();
-            if (at_bins_[at][idx - 1].unsafe_erase(followee))
-                at_bins_[at][idx].insert(followee);
-            else
+            if (prev_idx != idx)
             {
-                while (at_bins_[at][idx].find(followee)
-                ==     at_bins_[at][idx].end()
-                &&     idx > 0)
-                    --idx;
-                at_bins_[at][idx].unsafe_erase(followee);
-                at_bins_[at][++idx].insert(followee);
+                if (at_bins_[at][prev_idx].unsafe_erase(followee))
+                    at_bins_[at][idx].insert(followee);
+                else
+                {
+                    while (at_bins_[at][idx].find(followee)
+                    ==     at_bins_[at][idx].end()
+                    &&     idx > 0)
+                        --idx;
+                    at_bins_[at][idx].unsafe_erase(followee);
+                    at_bins_[at][++idx].insert(followee);
+                }
             }
         }
 

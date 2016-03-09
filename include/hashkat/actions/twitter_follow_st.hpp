@@ -1104,7 +1104,7 @@ private:
                         * at_bins_[at].size()
                         / net_ptr_->max_size();
         if (prev_idx != idx
-        &&  at_bins_[at][idx - 1].erase(followee))
+        &&  at_bins_[at][prev_idx].erase(followee))
             at_bins_[at][idx].insert(followee);
 
         if (at_kmaxes_[at] < idx)
