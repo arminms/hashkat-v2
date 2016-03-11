@@ -626,7 +626,7 @@ private:
         {
             bins_.reserve(net_ptr_->max_size() + 1);
             weights_.reserve(net_ptr_->max_size() + 1);
-            for (T i = 1; i < net_ptr_->max_size(); ++i)
+            for (T i = 1; i < net_ptr_->max_size() + 1; ++i)
             {
                 bins_.emplace_back(std::unordered_set<T>());
                 weights_.push_back(V(std::pow(V(i), exp)));

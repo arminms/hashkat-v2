@@ -605,7 +605,7 @@ private:
         {
             bins_.reserve(net_ptr_->max_size() + 1);
             weights_.reserve(net_ptr_->max_size() + 1);
-            for (T i = 1; i < net_ptr_->max_size(); ++i)
+            for (T i = 1; i < net_ptr_->max_size() + 1; ++i)
             {
                 bins_.emplace_back(tbb::concurrent_unordered_set<T>());
                 weights_.push_back(V(std::pow(V(i), exp)));
@@ -1258,7 +1258,7 @@ private:
     // referral rate function for each month, decreases over time by 1 / t
     std::vector<weight_type> monthly_referral_rate_;
     // creation time for the corresponding agent
-    std::vector<double> agent_creation_time_;
+    tbb::concurrent_vector<double> agent_creation_time_;
     // counts of follow models for the corresponding agent as a followee
     tbb::concurrent_vector<std::unique_ptr<std::array<std::atomic<T>, 7>>>
         agent_as_followee_method_counts_;
