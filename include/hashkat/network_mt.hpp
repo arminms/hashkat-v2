@@ -95,9 +95,9 @@ public:
             delete[] agents_;
         max_agents_ = n;
         agents_ = new AgentType[max_agents_];
-//        agent_type_.reserve(max_agents_);
-//        followers_.reserve(max_agents_);
-//        followees_.reserve(max_agents_);
+        agent_type_.reserve(max_agents_);
+        followers_.reserve(max_agents_);
+        followees_.reserve(max_agents_);
         V sum = 0;
         for (auto w : at_add_weight_)
             sum += w;

@@ -668,6 +668,7 @@ private:
 
                 unsigned months = (unsigned)cnf_ptr_->template get<double>
                     ("analysis.max_time", 1000) / approx_month_;
+                ++months;
 
                 std::string f_type = v.second.template
                     get<std::string>("rates.follow.function", "constant");
