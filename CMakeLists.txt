@@ -85,6 +85,7 @@ IF(BUILD_TESTS)
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test)
     ENDIF()
 ENDIF()
+OPTION(INSTALL_TESTS "Install unit tests ?" OFF)
 
 INSTALL(FILES src/INFILE.xml DESTINATION share/hashkat)
 

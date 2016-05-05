@@ -14,12 +14,14 @@ IF(Boost_FOUND)
     ADD_EXECUTABLE(test_engine engine.cpp)
     ADD_EXECUTABLE(test_simulation_st simulation_st.cpp)
     IF(MSVC)
-        INSTALL(TARGETS
-            test_network
-            test_twitter_follow_action
-            test_engine
-            test_simulation_st
-            RUNTIME DESTINATION test COMPONENT tests)
+        IF(INSTALL_TESTS)
+            INSTALL(TARGETS
+                test_network
+                test_twitter_follow_action
+                test_engine
+                test_simulation_st
+                RUNTIME DESTINATION test COMPONENT tests)
+        ENDIF()
         IF(CONCURRENT)
             ADD_EXECUTABLE(test_simulation_mt simulation_mt.cpp)
             IF(TBB_FOUND)
@@ -27,18 +29,22 @@ IF(Boost_FOUND)
             ELSE()
                 TARGET_LINK_LIBRARIES(test_simulation_mt tbb)
             ENDIF()
-            INSTALL(TARGETS test_simulation_mt
-                    RUNTIME DESTINATION test
-                    COMPONENT tests)
+            IF(INSTALL_TESTS)
+                INSTALL(TARGETS test_simulation_mt
+                        RUNTIME DESTINATION test
+                        COMPONENT tests)
+            ENDIF()
         ENDIF()
         INSTALL(DIRECTORY patterns DESTINATION test COMPONENT patterns)
     ELSE()
-        INSTALL(TARGETS
-            test_network
-            test_twitter_follow_action
-            test_engine
-            test_simulation_st
-            RUNTIME DESTINATION share/hashkat/test COMPONENT tests)
+        IF(INSTALL_TESTS)
+            INSTALL(TARGETS
+                test_network
+                test_twitter_follow_action
+                test_engine
+                test_simulation_st
+                RUNTIME DESTINATION share/hashkat/test COMPONENT tests)
+        ENDIF()
         IF(CONCURRENT)
             ADD_EXECUTABLE(test_simulation_mt simulation_mt.cpp)
             IF(TBB_FOUND)
@@ -46,13 +52,17 @@ IF(Boost_FOUND)
             ELSE()
                 TARGET_LINK_LIBRARIES(test_simulation_mt tbb)
             ENDIF()
-            INSTALL(TARGETS test_simulation_mt
-                    RUNTIME DESTINATION share/hashkat/test
-                    COMPONENT tests)
+            IF(INSTALL_TESTS)
+                INSTALL(TARGETS test_simulation_mt
+                        RUNTIME DESTINATION share/hashkat/test
+                        COMPONENT tests)
+            ENDIF()
         ENDIF()
-        INSTALL(DIRECTORY patterns
-                DESTINATION share/hashkat/test
-                COMPONENT patterns)
+        IF(INSTALL_TESTS)
+            INSTALL(DIRECTORY patterns
+                    DESTINATION share/hashkat/test
+                    COMPONENT patterns)
+        ENDIF()
     ENDIF()
     FILE(COPY patterns DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 ENDIF()
