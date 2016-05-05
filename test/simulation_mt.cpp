@@ -90,7 +90,7 @@ struct FOLDERS
     :   cnf_folder(std::getenv("HASHKAT") ? std::getenv("HASHKAT") : "")
     {
         if (!cnf_folder.empty())
-            cnf_folder += "/test/patterns/";
+            cnf_folder += "../patterns/";
         else
             std::cout << "HASHKAT environment variable is not defined\n";
         ptn_folder = cnf_folder + "vc_";

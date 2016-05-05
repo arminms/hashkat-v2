@@ -147,7 +147,9 @@ int main(int argc, char* argv[])
 
         // showing initial information
         if (!vm.count("silent"))
-            std::cout << "Starting #k@ network simulator (version 2.0)\n"
+            std::cout << "Starting #k@ network simulator (version "
+                      << HASHKAT_VERSION_MAJOR << '.'
+                      << HASHKAT_VERSION_MINOR << ")\n"
                       << "Loading input configuration from '"
                       << input_file << "'." << std::endl;
 
