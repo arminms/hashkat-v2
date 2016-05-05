@@ -1,5 +1,11 @@
+CONFIGURE_FILE(
+    "${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/version.hpp"
+)
+
 INCLUDE_DIRECTORIES(
     "."
+    "${CMAKE_CURRENT_BINARY_DIR}"
     ../include
 )
 

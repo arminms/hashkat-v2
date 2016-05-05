@@ -38,6 +38,7 @@
 
 #include <hashkat/hashkat.hpp>
 
+#include "version.hpp"
 #include "rss.hpp"
 
 #define UNREFERENCED_PARAMETER(P) (P)
@@ -112,7 +113,11 @@ int main(int argc, char* argv[])
 
         if (vm.count("version"))
         {
-            std::cout << "Hashkat version 2.0" << std::endl;
+            std::cout << "Hashkat version "
+                      << HASHKAT_VERSION_MAJOR << '.'
+                      << HASHKAT_VERSION_MINOR << '.'
+                      << HASHKAT_VERSION_PATCH << '.'
+                      << HASHKAT_VERSION_TWEAK << std::endl;
             return 0;
         }
 
