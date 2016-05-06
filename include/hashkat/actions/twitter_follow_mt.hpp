@@ -661,9 +661,9 @@ private:
                     get<weight_type>("weights.follow", weight_type(5)));
                 at_followback_weight_.emplace_back(v.second.template
                     get<weight_type>("followback_probability", weight_type(0)));
-                at_care_about_region_.emplace_back(v.second.template get<bool>
+                at_care_about_region_.push_back(v.second.template get<bool>
                     ("hashtag_follow_options.care_about_region", false));
-                at_care_about_ideology_.emplace_back(v.second.template get<bool>
+                at_care_about_ideology_.push_back(v.second.template get<bool>
                     ("hashtag_follow_options.care_about_ideology", false));
 
                 unsigned months = (unsigned)cnf_ptr_->template get<double>
