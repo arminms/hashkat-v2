@@ -48,24 +48,26 @@ IF(CONCURRENT)
     OPTION(FIND_INTEL_TBB "Try to find Intel TBB library ?" OFF)
     SET(TBB_FOUND FALSE)
     IF(FIND_INTEL_TBB)
-        IF(WIN32)
+        IF(MSVC)
             SET(TBB_PREFIX "C:/local/tbb44_20160413oss")
-        ELSE(WIN32)
+        ELSE()
             SET(TBB_PREFIX "$ENV{HOME}/tbb44_20160413oss")
-        ENDIF(WIN32)
+        ENDIF()
         INCLUDE(cmake/HkFindIntelTbb.txt)
         IF(TBB_FOUND)
             INCLUDE_DIRECTORIES(BEFORE SYSTEM ${TBB_INCLUDE_DIR})
-        ELSE(TBB_FOUND)
+        ELSE()
             MESSAGE("-- Couldn't find Intel TBB library.")
-        ENDIF(TBB_FOUND)
-    ENDIF(FIND_INTEL_TBB)
-ENDIF(CONCURRENT)
+        ENDIF()
+    ENDIF()
+ENDIF()
+
+ADD_SUBDIRECTORY(src)
 
 OPTION(INSTALL_HEADERS "Install headers ?" ON)
 IF(INSTALL_HEADERS)
     ADD_SUBDIRECTORY(include)
-ENDIF(INSTALL_HEADERS)
+ENDIF()
 
 # testing
 OPTION(BUILD_TESTS "Build unit tests ?" OFF)
@@ -87,6 +89,45 @@ IF(BUILD_TESTS)
 ENDIF()
 OPTION(INSTALL_TESTS "Install unit tests ?" OFF)
 
-INSTALL(FILES src/INFILE.xml DESTINATION share/hashkat)
-
-ADD_SUBDIRECTORY(src)
+# build a CPack driven installer package
+INCLUDE(InstallRequiredSystemLibraries)
+SET(CPACK_PACKAGE_NAME "Hashkat")
+SET(CPACK_PACKAGE_VENDOR "hashkat.org")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/readme.txt")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Hashkat - A dynamic network simulation tool designed to model the growth
+     of and information propagation through an online social network.")
+SET(CPACK_RESOURCE_FILE_LICENSE
+    "${CMAKE_SOURCE_DIR}/license.txt")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${HASHKAT_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${HASHKAT_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${HASHKAT_VERSION_PATCH}")
+SET(CPACK_COMPONENTS_ALL hashkat hashkat_mt headers tests patterns)
+SET(CPACK_COMPONENT_HASHKAT_DISPLAY_NAME "hashkat")
+SET(CPACK_COMPONENT_HASHKAT_MT_DISPLAY_NAME "hashkat_mt")
+SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C++ Headers")
+SET(CPACK_COMPONENT_TESTS_DISPLAY_NAME "Unit Tests")
+SET(CPACK_COMPONENT_PATTERNS_DISPLAY_NAME "Pattern Files")
+SET(CPACK_COMPONENT_HASHKAT_DESCRIPTION 
+    "Single-threaded version of Hashkat")
+SET(CPACK_COMPONENT_HASHKAT_MT_DESCRIPTION 
+    "Multi-threaded version of Hashkat")
+SET(CPACK_COMPONENT_HEADERS_DESCRIPTION 
+    "Header files in case you like to develop using Hashkat")
+SET(CPACK_COMPONENT_TESTS_DESCRIPTION
+    "Binaries for unit testing")
+SET(CPACK_COMPONENT_PATTERNS_DESCRIPTION
+    "Pattern files required by unit tests")
+SET(CPACK_COMPONENT_PATTERNS_DEPENDS tests)
+SET(CPACK_COMPONENT_HASHKAT_GROUP "Program")
+SET(CPACK_COMPONENT_HASHKAT_MT_GROUP "Program")
+SET(CPACK_COMPONENT_HEADERS_GROUP "Development")
+SET(CPACK_COMPONENT_TESTS_GROUP "Testing")
+SET(CPACK_COMPONENT_PATTERNS_GROUP "Testing")
+SET(CPACK_COMPONENT_GROUP_PROGRAM_DESCRIPTION
+    "Main binaries")
+SET(CPACK_COMPONENT_GROUP_DEVELOPMENT_DESCRIPTION
+    "All you need to start developing using Hashkat")
+SET(CPACK_COMPONENT_GROUP_TESTING_DESCRIPTION
+    "Supporting files for unit testing")
+INCLUDE(CPack)
