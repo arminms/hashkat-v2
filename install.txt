@@ -1,71 +1,109 @@
-                hashkat-lib Installation Instructions
+Hashkat-v2 Installation Instructions
+====================================
 
-Building and installing the hashkat-lib library
-
-    Using the same procedrue below you can build hashkat-lib for 
+    Using the same procedrue below you can build #k@-v2 for 
     Linux/Windows/OS X:
 
     1. Clone from repository:
 
-    $ git clone https://github.com/arminms/hashkat-lib.git
+        $ git clone https://github.com/arminms/hashkat-v2.git
 
     2. Create a build directory
 
-    The recommended way to build the library is in a seperate build
-    directory, for example within the top-level of the hashkat-lib
-    package:
-    $ cd hashkat-lib
-    $ mkdir build
-    $ cd build
+       The recommended way to build the library is in a seperate build
+       directory, for example within the top-level of the #k@-v2
+       package:
+
+        $ cd hashkat-v2
+        $ mkdir build
+        $ cd build
 
     3. Configure the library
 
-    $ cmake ..
+        $ cmake ..
 
-    The latter command will try to locate the necessary libraries. If
-    everything is OK, then this should end with something like:
-    -- Generating done
-    -- Build files have been written to: some-path/hashkat-lib/build
+       or run GUI version (recommended for Windows):
 
-    To build a multi-threaded version of hashkat, which uses multiple threads
-    for handling concurrent actions, you need a thread-enabled boost
-    library and Intel® Threading Building Blocks (Intel® TBB). By default,
-    CMake 2.6 will only search for a thread-enabled boost installation, while
-    CMake 2.4 will fall-back to a non-multithreaded boost library.
+        $ cmake-gui ..
 
-    Most linux distributions provide multi-threaded boost libraries and 
-    Intel® TBB by default now.
+       The latter command will try to locate the necessary libraries. If
+       everything is OK, then this should end with something like:
 
-    If CMake fails, because it cannot resolve all dependencies, then you
-    may help CMake by setting some variables to help CMake locate the
-    libraries. This may be done on the command-line using -Dvar=value or
-    using the interactive program:
-    $ ccmake .
+        -- Generating done
+        -- Build files have been written to: some-path/hashkat-v2/build
 
-    Note that multi-threaded version is OFF by default. Variables that you
-    may set to configure multithreaded version are:
+       To build a multi-threaded version of hashkat, which uses multiple threads
+       for handling concurrent actions, you need a thread-enabled boost
+       library and Intel® Threading Building Blocks (Intel® TBB).
 
-    CONCURRENT
+       Most linux distributions provide multi-threaded boost libraries and 
+       Intel® TBB by default now.
+
+       If CMake fails, because it cannot resolve all dependencies, then you
+       may help CMake by setting some variables to help CMake locate the
+       libraries. This may be done on the command-line using -Dvar=value or
+       using the interactive program:
+
+        $ ccmake .
+
+       Note that multi-threaded version is OFF by default. Variables that you
+       may set to configure multithreaded version are:
+
+       CONCURRENT
         It is OFF by default. By changing it to ON other variables may
         appear (e.g. FIND_INTEL_TBB).
 
-    FIND_INTEL_TBB
+       FIND_INTEL_TBB
         Tries to find Intel® TBB. If it couldn't find it in system
-        directories, it tries to find it at $HOME/tbb44_20150728oss
-        (C:\local\tbb44_20150728oss on Windows plateform). You can download
+        directories, it tries to find it at $HOME/tbb44_20160413oss
+        (C:\local\tbb44_20160413oss on Windows plateform). You can download
         the latest version of Intel® TBB for various plateforms from
         https://www.threadingbuildingblocks.org/download.
 
-    To change any entry, use [Enter]. To save and quit, do [c] followed by
-    [g].
+       To change any entry, use [Enter]. To save and quit, do [c] followed by
+       [g].
 
     4. Build the binaries
 
-    $ make
+        $ make
 
-    5. Install hashkat binaries (as user with sufficient permissions):
+       For parallel builds add '-j N', e.g. for building using 4 CPUs use:
 
-    $ make install
+        $ make -j 4
 
-    This will install hashkat and hashkat_mt to $INSTALL_PREFIX/bin. The
-    later (i.e. hashkat_mt) is the multi-threaded version.
+       On Windows using native tools (i.e. Visual Studio) use cmake build
+       facility:
+
+        $ cmake --build . --config Release
+
+       and for multi-thread builds use:
+
+        $ cmake --build . --config Release -- //m
+
+    5. Running tests (optional):
+
+        $ make
+        $ make test
+
+       And on Windows:
+
+        $ cmake --build . --config Release --target run_tests
+
+    6. Install hashkat binaries (as user with sufficient permissions):
+
+        $ make install
+
+       And on Windows:
+
+        $ cmake --build . --config Release --target install
+
+       This will install hashkat and hashkat_mt to $INSTALL_PREFIX/bin. The
+       later (i.e. hashkat_mt) is the multi-threaded version.
+
+    7. Making CPack install packages (optional):
+
+        $ make package
+
+       And on Windows with NSIS installed:
+
+        $ cmake --build . --config Release --target package
