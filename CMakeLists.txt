@@ -95,8 +95,7 @@ SET(CPACK_PACKAGE_NAME "Hashkat")
 SET(CPACK_PACKAGE_VENDOR "hashkat.org")
 SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/readme.txt")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY
-    "Hashkat - A dynamic network simulation tool designed to model the growth
-     of and information propagation through an online social network.")
+    "Hashkat - A dynamic network simulation tool designed to model the growth of and information propagation through an online social network.")
 SET(CPACK_RESOURCE_FILE_LICENSE
     "${CMAKE_SOURCE_DIR}/license.txt")
 SET(CPACK_PACKAGE_VERSION_MAJOR "${HASHKAT_VERSION_MAJOR}")
